@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="theme-color" content="#132e32" />
+<meta name="description" content="在松岚湖驾驶遥控竞速船，挑战三圈计时赛。" />
+<title>RC Boat Arena — 松岚湖竞速俱乐部</title>
+<link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+<div id="app" data-screen="home">
+  <canvas id="scene" aria-label="松岚湖三维竞速场景"></canvas>
+  <div class="scene-vignette"></div>
+  <div id="ui">
+    <header class="brand home-only"><span class="brand-mark" aria-hidden="true">R<span>/</span>C</span><span>BOAT ARENA<small>松岚湖竞速俱乐部</small></span></header>
+    <div class="home-location home-only"><span class="live-dot"></span> PINE LAKE <span>·</span> TIME ATTACK</div>
+    <section id="home" class="home-only" aria-labelledby="home-title">
+      <p class="eyebrow"><span>01</span> 湖面，就是你的赛道</p>
+      <h1 id="home-title">MAKE<br>YOUR <em>WAKE.</em></h1>
+      <h2>留下一道，属于你的尾浪。</h2>
+      <p class="home-description">压弯、破浪、冲过终点。<br>用一艘遥控船，跑出你的最佳三圈。</p>
+      <div class="course-facts"><span><b>03</b> 圈计时赛</span><span><b>05</b> 检查点 / 圈</span><span><b>01</b> 湖心环线</span></div>
+      <div class="home-actions"><button id="btn-start" class="btn primary" disabled>开始计时赛 <span aria-hidden="true">↗</span></button><button id="btn-demo" class="btn text-btn" disabled>观看 AI 演示 <span aria-hidden="true">▷</span></button></div>
+      <div class="home-secondary"><button data-panel="panel-tune">船艇调校 <span>↗</span></button><button data-panel="panel-help">驾驶指南 <span>↗</span></button></div>
+      <div class="home-best"><span>PERSONAL BEST</span><b id="home-best">等待你的第一场完赛</b></div>
+    </section>
+    <div class="boat-caption home-only"><span>HBY KART BOAT</span><strong>HBY—09</strong><p>双座卡丁船 · 喷水推进</p></div>
+    <footer class="home-footer home-only"><span>松岚湖 / 环岛计时赛</span><span>WASD 驾驶 <i>·</i> SHIFT 冲刺 <i>·</i> C 切换镜头</span><span>LOCAL CIRCUIT / 01</span></footer>
+
+    <div id="hud-left" class="race-only">
+      <div class="hud-cell lap-cell"><i>LAP / 圈数</i><b id="hud-lap">1/3</b></div>
+      <div class="hud-cell"><i>本圈用时</i><b id="hud-lapTime">0:00.00</b></div>
+      <div class="hud-cell"><i>总用时</i><b id="hud-totalTime">0:00.00</b><span id="hud-penalty"></span></div>
+      <div class="hud-cell best-cell"><i>个人最佳</i><b id="hud-bestTime">—</b></div>
+    </div>
+    <div id="hud-next" class="race-only"><span class="next-icon" aria-hidden="true">↗</span><div><span id="hud-next-tag">下一目标</span><b id="hud-next-name">检查点 1</b></div><span id="hud-next-dist">—</span><span id="hud-cp">0/5</span></div>
+    <button id="btn-pause" class="icon-btn race-only" aria-label="暂停菜单" title="暂停菜单（Esc）"><span aria-hidden="true">Ⅱ</span><small>ESC</small></button>
+    <div id="minimap" class="race-only"><div class="map-label"><span>PINE LAKE</span><span>↑ N</span></div><canvas id="minimap-canvas" width="280" height="220" aria-label="赛道小地图"></canvas></div>
+    <div id="drive-hint" class="race-only"><kbd>W A S D</kbd> 驾驶 <span>·</span> <kbd>SHIFT</kbd> 冲刺 <span>·</span> <kbd>R</kbd> 脱困 +2s</div>
+    <div id="speedo" class="race-only"><span class="speed-label">SPEED</span><div><b id="hud-speed">0</b><span class="unit">KM/H</span></div><div class="bar"><div id="bar-speed"></div></div></div>
+    <div id="dir-arrow" class="hidden"><span aria-hidden="true">➜</span><small id="dir-distance"></small></div>
+    <div id="assist-badge" class="race-only hidden">AI 演示 <span>按驾驶键接管</span></div>
+    <div id="model-status" role="status"><span class="loading-dot"></span><span id="model-status-text">正在准备 HBY 卡丁船…</span><button id="btn-model-retry" class="hidden">重新载入</button></div>
+    <div id="center"><div id="countdown" aria-live="polite"></div><section id="center-card" class="hidden"><p class="eyebrow">SESSION COMPLETE / 本场结束</p><h2 id="center-title"></h2><div id="center-sub"></div><div id="center-actions"></div></section><div id="center-toast" role="status"></div></div>
+    <div id="modal-shade" class="hidden"></div>
+    <aside id="panel-pause" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title" tabindex="-1">
+      <header><div><p class="eyebrow">TAKE A BREATHER</p><h2 id="pause-title">稍作停泊。</h2></div><button class="x" data-close="panel-pause" aria-label="关闭暂停菜单">×</button></header>
+      <div class="panel-body"><button id="btn-resume" class="btn primary wide">继续航行 <span>↗</span></button><div class="menu-grid"><button id="btn-restart" class="btn">重新开始</button><button id="btn-rescue" class="btn" disabled>脱困 +2s <kbd>R</kbd></button><button id="btn-tune" class="btn">船艇调校 <kbd>T</kbd></button><button id="btn-cam" class="btn">镜头：跟随 <kbd>C</kbd></button><button id="btn-ai" class="btn">AI 演示</button><button id="btn-replay" class="btn">上一局回放 <kbd>P</kbd></button><button id="btn-telemetry" class="btn">驾驶数据 <kbd>Y</kbd></button><button id="btn-help" class="btn">驾驶指南</button></div><button id="btn-home" class="btn text-btn wide">返回俱乐部</button></div>
+    </aside>
+    <aside id="panel-tune" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="tune-title" tabindex="-1">
+      <header><div><p class="eyebrow">BOAT SETUP</p><h2 id="tune-title">找到你的手感。</h2></div><button class="x" data-close="panel-tune" aria-label="关闭船艇调校">×</button></header>
+      <div class="panel-body"><div class="preset-row"><button class="preset" data-preset="stable"><b>稳定</b><small>平稳过弯，轻松入门</small></button><button class="preset" data-preset="agile"><b>灵活</b><small>迅捷加速，自由漂移</small></button></div><div class="setup-current">当前调校 <b id="preset-current">默认</b><button data-preset="default">恢复默认</button></div>
+        <label class="slider"><span>推力 <b id="v-thrust">1.00</b></span><input id="s-thrust" type="range" min="0.40" max="2.00" step="0.01" value="1.00" /><em>起步加速与最高速度</em></label>
+        <label class="slider"><span>转向灵敏度 <b id="v-steer">1.00</b></span><input id="s-steer" type="range" min="0.30" max="2.50" step="0.01" value="1.00" /><em>舵响应与转弯幅度</em></label>
+        <label class="slider"><span>水面阻力 <b id="v-drag">1.00</b></span><input id="s-drag" type="range" min="0.40" max="2.50" step="0.01" value="1.00" /><em>越低，松开油门后滑行越远</em></label>
+        <label class="slider"><span>横向滑移 <b id="v-slip">0.45</b></span><input id="s-slip" type="range" min="0" max="1" step="0.01" value="0.45" /><em>贴水抓地 ← → 甩尾漂移</em></label><p class="note">调校会保存在这台设备上，关闭面板即可继续。</p>
+      </div>
+    </aside>
+    <aside id="panel-telemetry" class="panel telemetry-panel hidden" aria-labelledby="telemetry-title" tabindex="-1"><header><div><p class="eyebrow">LIVE TELEMETRY</p><h2 id="telemetry-title">驾驶数据</h2></div><button class="x" data-close="panel-telemetry" aria-label="关闭驾驶数据">×</button></header><div class="panel-body"><div class="tele-row"><span>速度</span><b id="tel-speed">0 km/h</b></div><div class="tele-row"><span>油门</span><b id="tel-throttle">0%</b></div><div class="tele-row"><span>滑移角</span><b id="tel-slip">0°</b></div><div class="tele-row"><span>偏航速度</span><b id="tel-yaw">0 °/s</b></div><div class="tele-row"><span>碰撞 / 脱困</span><b id="tel-hits">0 / 0</b></div><div class="tele-row"><span>帧率</span><b id="tel-fps">0</b></div><details><summary>调校估算</summary><div id="tune-readout" class="readout"></div></details></div></aside>
+    <aside id="panel-replay" class="panel replay-panel hidden" aria-labelledby="replay-title" tabindex="-1"><header><div><p class="eyebrow">SESSION REPLAY</p><h2 id="replay-title">再看一次，破浪时刻。</h2></div><button class="x" id="btn-replay-exit" aria-label="退出回放">×</button></header><div class="panel-body"><div id="replay-info" class="readout"></div><input id="replay-seek" aria-label="回放进度" type="range" min="0" max="1000" value="0" step="1" /><div class="replay-controls"><button id="btn-replay-play" class="btn primary">播放</button><button id="btn-replay-pause" class="btn">暂停</button><button id="btn-replay-restart" class="btn">从头播放</button><button id="btn-replay-race" class="btn text-btn">再赛一场 ↗</button></div></div></aside>
+    <aside id="panel-help" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="help-title" tabindex="-1"><header><div><p class="eyebrow">QUICK START</p><h2 id="help-title">三分钟，开始破浪。</h2></div><button class="x" data-close="panel-help" aria-label="关闭驾驶指南">×</button></header><div class="panel-body"><div class="help-item"><b>01</b><div><h3>先感受船的惯性</h3><p><kbd>W / ↑</kbd> 油门，<kbd>S / ↓</kbd> 倒车<br><kbd>A / ←</kbd> 左转，<kbd>D / →</kbd> 右转<br><kbd>Shift</kbd> 冲刺，<kbd>空格</kbd> 收油。转弯前松油门，船会继续滑行。</p></div></div><div class="help-item"><b>02</b><div><h3>按顺序穿过浮标门</h3><p>每圈通过 5 个检查点，再冲过终点线。完成 3 圈即结算；跳门和逆向穿门不计数。</p></div></div><div class="help-item"><b>03</b><div><h3>试着更快，再快一点</h3><p><kbd>C</kbd> 切换镜头，俯视镜头用 <kbd>+ / −</kbd> 缩放。<kbd>R</kbd> 脱困会增加 2 秒。<kbd>Esc</kbd> 暂停。</p></div></div><p class="note">AI 演示成绩单独标记，不计入个人最佳。触屏设备支持方向与油门按钮，横屏更适合驾驶。</p></div></aside>
+    <div id="touch" class="hidden race-only"><div><button data-touch="left" aria-label="左转">←</button><button data-touch="right" aria-label="右转">→</button></div><div><button data-touch="reverse" aria-label="倒车">↓</button><button data-touch="throttle" aria-label="油门">↑</button></div></div>
+    <div id="fx-ring"></div>
+  </div>
+</div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

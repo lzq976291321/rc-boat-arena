@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.git/
+artifacts/
+.dsh-home/
+.env*
+*.log
+*.blend*
+*.tar.gz
+*.zip
+.DS_Store
+ACCEPTANCE.md
+VISUAL-ACCEPTANCE.md
+tools/
+dsh-plugin/
