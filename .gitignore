@@ -12,10 +12,7 @@ artifacts/
 *.tar.gz
 *.zip
 .DS_Store
-/ACCEPTANCE.md
-/VISUAL-ACCEPTANCE.md
-/tools/*
-!/tools/gameplay-check.mjs
-!/tools/sim-race.mjs
-!/tools/tune-check.mjs
-!/tools/export-hby-boat.py
+__pycache__/
+*.py[cod]
+# Historical experiments remain local; maintained tools are versioned.
+/tools/local/

@@ -1,0 +1,5 @@
+/* Keep native element defaults; each page already owns its base styles.
+ * Explicit per-page @source declarations keep the three CSS bundles isolated. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);

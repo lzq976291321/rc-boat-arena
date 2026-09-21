@@ -22,6 +22,8 @@ const MIME = {
   '.webm': 'video/webm',
   '.ico': 'image/x-icon',
   '.map': 'application/json; charset=utf-8',
+  '.glb': 'model/gltf-binary',
+  '.md': 'text/plain; charset=utf-8',
 };
 
 /** 由本文件位置推导 dist 目录，允许 config.root 覆盖。 */
@@ -48,13 +50,17 @@ export function apply(ctx, config = {}) {
     try {
       const url = new URL(req.url ?? '/', 'http://localhost');
       let rel = decodeURIComponent(url.pathname).slice(prefix.length);
-      if (rel === '' || rel === '/') rel = '/index.html';
+      if (rel === '') { res.writeHead(308, { location: url.pathname + '/' + url.search }); res.end(); return; }
+      if (rel === '/') rel = '/index.html';
       const target = normalize(join(root, rel));
       if (!target.startsWith(root + sep) && target !== root) return send(res, 403, 'forbidden');
       let file = target;
       try {
         const st = await stat(file);
-        if (st.isDirectory()) file = join(file, 'index.html');
+        if (st.isDirectory()) {
+          if (!url.pathname.endsWith('/')) { res.writeHead(308, { location: url.pathname + '/' + url.search }); res.end(); return; }
+          file = join(file, 'index.html');
+        }
       } catch {
         file = join(root, 'index.html');   // SPA 回退
       }

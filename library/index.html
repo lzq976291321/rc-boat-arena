@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#eceee8"><meta name="description" content="RC Boat Arena 的船艇与场景素材库。收藏、筛选、检查模型，为下一片风景挑选素材。"><title>素材库 · RC Boat Arena</title><link rel="stylesheet" href="../src/library/style.css"></head>
+<body>
+<main class="viewer-shell relative h-dvh min-h-[360px] overflow-hidden">
+  <header class="topbar">
+    <a class="back" href="../" aria-label="返回竞速首页">↖</a><h1>素材库</h1>
+    <div id="categories" class="tabs" role="tablist" aria-label="素材分类"></div>
+    <div class="header-actions ml-auto flex gap-2"><button id="add" aria-label="收藏素材" title="收藏素材">＋</button><button id="manage-open" aria-label="管理收藏" title="管理收藏">⋯</button></div>
+  </header>
+  <section id="model-panel" class="model-panel" role="tabpanel" aria-label="模型预览">
+    <div id="viewport" class="absolute inset-0"></div><button id="load-preview" class="primary" hidden>重试预览</button><div id="preview-message" role="status">加载中…</div>
+    <div id="empty" class="empty" hidden><p>暂无素材</p><button id="clear-filters">查看全部</button></div>
+  </section>
+  <div class="view-tools"><button id="reset-view" aria-label="重置视角" title="重置视角">↺</button><button id="wireframe" hidden aria-pressed="false">线框</button><button id="info-open" aria-label="素材信息" title="素材信息">ⓘ</button></div>
+  <footer class="collection"><div class="model-heading"><h2 id="model-name"></h2><span id="count"></span></div><div id="list" class="asset-list" aria-label="切换模型"></div></footer>
+</main>
+<dialog id="info"><button class="dialog-close" data-close="info" aria-label="关闭素材信息">×</button><div id="detail-content"></div></dialog>
+<dialog id="manage"><div class="dialog-heading"><h2>管理收藏</h2><button data-close="manage" aria-label="关闭管理">×</button></div>
+  <label class="search">搜索<input id="search" type="search" placeholder="名称、作者、标签" aria-label="搜索素材"></label>
+  <div class="filters flex gap-[15px] mb-5"><label>状态<select id="stage"><option value="all">全部状态</option></select></label><label>许可<select id="license-filter"><option value="all">全部许可</option><option value="unknown">待确认</option><option value="CC0-1.0">CC0</option><option value="other">其他许可</option></select></label></div>
+  <button id="favorites" aria-pressed="false">☆ 只看星标</button><button id="reset-filters">清除筛选</button>
+  <div class="backup"><button id="export">导出备份 ↗</button><button id="import">导入备份 ↓</button><input id="import-file" type="file" accept="application/json,.json" hidden></div>
+  <p class="storage-note">收藏保存在当前浏览器，可导出备份。</p>
+</dialog>
+<dialog id="editor"><form id="asset-form"><div class="dialog-heading"><div><p class="eyebrow">SAVE SOMETHING GOOD</p><h2 id="editor-title">收藏一件好素材</h2></div><button type="button" id="close-editor" aria-label="关闭">×</button></div><p id="editor-note">先存下链接，再慢慢挑选。许可与适用场景可稍后补全。</p><div class="form-grid grid grid-cols-2 gap-[15px]"><label class="wide">素材名称<input name="name" required maxlength="160" placeholder="例如：木质独木舟 / 系船柱"></label><label>分类<select name="category"></select></label><label>接入状态<select name="stage"></select></label><label class="wide">来源链接<input name="source" type="url" maxlength="2000" placeholder="https://…"></label><label>作者 / 工作室<input name="author" maxlength="200"></label><label>许可<select name="license"></select></label><label class="wide">许可 / 购买凭证链接<input name="licenseUrl" type="url" maxlength="2000" placeholder="许可说明页；不要填写私密订单或密钥"></label><label class="wide">标签<input name="tags" maxlength="400" placeholder="写实、木质、湿地、低面数…"></label><label class="wide">挑选理由与接入备注<textarea name="notes" rows="4" maxlength="5000" placeholder="好在哪里？适合哪个场景？还需要减面、改材质或调整水线吗？"></textarea></label></div><p id="form-error" role="alert"></p><div class="dialog-actions flex justify-end gap-[10px] mt-5"><button type="button" id="delete" class="danger" hidden>删除收藏</button><button type="submit" class="primary">保存素材</button></div></form></dialog>
+<div id="toast" role="status" hidden></div>
+<script type="module" src="../src/library/main.js"></script>
+</body></html>

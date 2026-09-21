@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "retrievedAt": "2026-09-21",
+  "coordinateSystem": "glTF +Y up; dimensions are meters before runtime scale",
+  "totalBytes": 21106356,
+  "assets": [
+    {
+      "id": "island-tree",
+      "path": "/assets/swamp/island-tree.glb",
+      "name": "Island Tree 02",
+      "role": "tree",
+      "author": "Rob Tuytel; Rico Cilliers",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/island_tree_02",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceApi": "https://api.polyhaven.com/files/island_tree_02",
+      "changes": [
+        "1K source textures embedded in GLB.",
+        "Decimated trunk, branches and leaf geometry to 51,000 triangles.",
+        "Centered horizontally with the bottom at y=0.",
+        "Leaf alpha set to opaque; source leaves have explicit geometry."
+      ],
+      "recommendedScale": [
+        4.2,
+        5.0,
+        4.2
+      ],
+      "triangles": 51000,
+      "bytes": 9069232,
+      "dimensions": {
+        "x": 4.200321197509766,
+        "y": 3.425029993057251,
+        "z": 4.067668914794922
+      },
+      "origin": "horizontal center, bottom at y=0",
+      "upAxis": "+Y",
+      "sha256": "f3df1d49ab8b6f4c8c89c87faa5e3dcdaa3af8689ea84eff26bcaf3012de0092"
+    },
+    {
+      "id": "dead-tree",
+      "path": "/assets/swamp/dead-tree.glb",
+      "name": "Dead Tree Trunk",
+      "role": "environment",
+      "author": "Rob Tuytel",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/dead_tree_trunk",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceApi": "https://api.polyhaven.com/files/dead_tree_trunk",
+      "changes": [
+        "1K source textures embedded in GLB.",
+        "Decimated from 101,802 to 8,000 triangles.",
+        "Centered horizontally with the bottom at y=0."
+      ],
+      "recommendedScale": [
+        1.2,
+        1.2,
+        1.2
+      ],
+      "orientation": "Fallen log; long axis +X.",
+      "triangles": 8000,
+      "bytes": 2700936,
+      "dimensions": {
+        "x": 3.0500452518463135,
+        "y": 0.289295494556427,
+        "z": 0.2768058478832245
+      },
+      "origin": "horizontal center, bottom at y=0",
+      "upAxis": "+Y",
+      "sha256": "df8cadb7a3072c8325a9d8dcdd0a5d4e7a815b43572439654504686627f9056d"
+    },
+    {
+      "id": "fern",
+      "path": "/assets/swamp/fern.glb",
+      "name": "Fern 02, variant b",
+      "role": "foliage",
+      "author": "Rob Tuytel; Rico Cilliers",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/fern_02",
+      "licenseUrl": "https://polyhaven.com/license",
+      "sourceApi": "https://api.polyhaven.com/files/fern_02",
+      "changes": [
+        "Selected source variant fern_02_b from the four-model collection.",
+        "1K source textures embedded in GLB.",
+        "Centered horizontally with the bottom at y=0."
+      ],
+      "recommendedScale": [
+        2.0,
+        2.0,
+        2.0
+      ],
+      "triangles": 2384,
+      "bytes": 1648452,
+      "dimensions": {
+        "x": 0.9897474050521851,
+        "y": 0.427694708108902,
+        "z": 0.893689751625061
+      },
+      "origin": "horizontal center, bottom at y=0",
+      "upAxis": "+Y",
+      "sha256": "b20beae49306bc36586c6897abcc5d47c5990e72f2233b3f307ca104d230dc59"
+    },
+    {
+      "id": "futuristic-speedboat",
+      "name": "Futuristic Speedboat · 科幻快艇",
+      "category": "boat",
+      "stage": "integrated",
+      "kind": "model",
+      "usage": "月下湿地 · 科幻探索艇",
+      "path": "/assets/library/futuristic-speedboat/model.glb",
+      "author": "dylanheyes",
+      "license": "CC-BY-4.0",
+      "source": "https://sketchfab.com/3d-models/futuristic-speedboat-5a8f4d21472e4b2b8ec4d23f70cf8cbc",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "tags": "科幻, 镀铬, 2K PBR, 湿地",
+      "bytes": 7687736,
+      "triangles": 162766,
+      "sha256": "e65d0a188ddc706329ca0d2356bf4a41bd9da83c3d4cb5f91c0116cc7d713094",
+      "role": "boat",
+      "description": "Futuristic Speedboat by dylanheyes · CC BY 4.0；运行时调整朝向、比例及水线，保留原模型和贴图。",
+      "upAxis": "+Y",
+      "forwardAxis": "+X",
+      "dimensions": {
+        "x": 9.379784491155027,
+        "y": 2.415663480517201,
+        "z": 2.557921933594847
+      },
+      "recommendedScale": [
+        0.5543837392963036,
+        0.5543837392963036,
+        0.5543837392963036
+      ],
+      "animations": [],
+      "origin": "Original Sketchfab hierarchy retained; centered and waterline adjusted by runtime mount",
+      "runtime": {
+        "length": 5.2,
+        "width": 1.418070326374342,
+        "draft": 0.28,
+        "forwardAxis": "-Z",
+        "rotationY": 1.5707963267948966,
+        "wakeSternOffset": 2.55
+      },
+      "changes": [
+        "Original Sketchfab GLB / 2K file unchanged; all six 2048px PNG maps embedded.",
+        "Runtime mount centers the model, rotates +X bow to -Z, scales length to 5.2 m and places keel at y=-0.28 m before gentle bobbing.",
+        "Original PBR chrome and window textures retained. Removed old fishing-boat lamps; wake anchored 2.55 m behind the center."
+      ]
+    }
+  ]
+}

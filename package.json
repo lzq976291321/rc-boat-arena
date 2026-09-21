@@ -8,17 +8,23 @@
     "dev": "vite --host 127.0.0.1 --port 5177",
     "build": "vite build",
     "serve": "vite preview --host 127.0.0.1 --port 5177",
-    "check:physics": "node tools/tune-check.mjs",
-    "check:sim": "node tools/sim-race.mjs",
+    "check:physics": "node tools/checks/tune-check.mjs",
+    "check:sim": "node tools/checks/sim-race.mjs",
     "dsh:status": "node dsh-plugin/install.mjs status",
     "dsh:enable": "node dsh-plugin/install.mjs enable",
     "dsh:disable": "node dsh-plugin/install.mjs disable",
-    "check:gameplay": "node tools/gameplay-check.mjs"
+    "check:gameplay": "node tools/checks/gameplay-check.mjs",
+    "check:swamp": "node tools/checks/swamp-navigation-check.mjs",
+    "check:routes": "node tools/checks/swamp-routes-check.mjs",
+    "check:assets": "node tools/checks/assets-check.mjs",
+    "check:bundle": "node tools/checks/bundle-check.mjs"
   },
   "dependencies": {
     "three": "0.180.0"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "4.3.3",
+    "tailwindcss": "4.3.3",
     "vite": "^6.4.3"
   },
   "packageManager": "pnpm@11.25.0+sha512.5cde925b4f075f725eb71fbae18a42ffe784524789f19b61c731cb8721ec28aaee160e01a8d5af4fedb2a42cdbf300efe23db356b0d4a17b4d63e11f8ab7c956"

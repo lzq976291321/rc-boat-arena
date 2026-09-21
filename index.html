@@ -6,11 +6,11 @@
 <meta name="theme-color" content="#132e32" />
 <meta name="description" content="在松岚湖驾驶遥控竞速船，挑战三圈计时赛。" />
 <title>RC Boat Arena — 松岚湖竞速俱乐部</title>
-<link rel="stylesheet" href="/src/style.css" />
+<link rel="stylesheet" href="/src/arena/ui/style.css" />
 </head>
 <body>
 <div id="app" data-screen="home">
-  <canvas id="scene" aria-label="松岚湖三维竞速场景"></canvas>
+  <canvas id="scene" class="block w-full h-full" aria-label="松岚湖三维竞速场景"></canvas>
   <div class="scene-vignette"></div>
   <div id="ui">
     <header class="brand home-only"><span class="brand-mark" aria-hidden="true">R<span>/</span>C</span><span>BOAT ARENA<small>松岚湖竞速俱乐部</small></span></header>
@@ -21,12 +21,12 @@
       <h2>留下一道，属于你的尾浪。</h2>
       <p class="home-description">压弯、破浪、冲过终点。<br>用一艘遥控船，跑出你的最佳三圈。</p>
       <div class="course-facts"><span><b>03</b> 圈计时赛</span><span><b>05</b> 检查点 / 圈</span><span><b>01</b> 湖心环线</span></div>
-      <div class="home-actions"><button id="btn-start" class="btn primary" disabled>开始计时赛 <span aria-hidden="true">↗</span></button><button id="btn-demo" class="btn text-btn" disabled>观看 AI 演示 <span aria-hidden="true">▷</span></button></div>
-      <div class="home-secondary"><button data-panel="panel-tune">船艇调校 <span>↗</span></button><button data-panel="panel-help">驾驶指南 <span>↗</span></button></div>
+      <div class="home-actions flex gap-2"><button id="btn-start" class="btn primary" disabled>开始计时赛 <span aria-hidden="true">↗</span></button><button id="btn-demo" class="btn text-btn" disabled>观看 AI 演示 <span aria-hidden="true">▷</span></button></div>
+      <div class="home-secondary"><a href="./library/">素材库 <span>↗</span></a><a href="./swamp/">月下湿地 <span>↗</span></a><button data-panel="panel-tune">船艇调校 <span>↗</span></button><button data-panel="panel-help">驾驶指南 <span>↗</span></button></div>
       <div class="home-best"><span>PERSONAL BEST</span><b id="home-best">等待你的第一场完赛</b></div>
     </section>
-    <div class="boat-caption home-only"><span>HBY KART BOAT</span><strong>HBY—09</strong><p>双座卡丁船 · 喷水推进</p></div>
-    <footer class="home-footer home-only"><span>松岚湖 / 环岛计时赛</span><span>WASD 驾驶 <i>·</i> SHIFT 冲刺 <i>·</i> C 切换镜头</span><span>LOCAL CIRCUIT / 01</span></footer>
+    <div class="boat-caption home-only"><span>MAVERICK GT</span><strong>GT</strong><p>运动摩托艇 · 水面竞速</p></div>
+    <footer class="home-footer home-only"><span>松岚湖 / 环岛计时赛</span><span>WASD 驾驶 <i>·</i> SHIFT 冲刺 <i>·</i> C 切换镜头</span><span><a class="text-inherit underline-offset-2 hover:text-white" href="https://sketchfab.com/3d-models/maverick-gt-1cbe1b65836d4536bade28ca351ba164" target="_blank" rel="noopener noreferrer">MAVERICK GT · dannzjs</a> / <a class="text-inherit underline-offset-2 hover:text-white" href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer">CC BY 4.0</a></span></footer>
 
     <div id="hud-left" class="race-only">
       <div class="hud-cell lap-cell"><i>LAP / 圈数</i><b id="hud-lap">1/3</b></div>
@@ -41,7 +41,7 @@
     <div id="speedo" class="race-only"><span class="speed-label">SPEED</span><div><b id="hud-speed">0</b><span class="unit">KM/H</span></div><div class="bar"><div id="bar-speed"></div></div></div>
     <div id="dir-arrow" class="hidden"><span aria-hidden="true">➜</span><small id="dir-distance"></small></div>
     <div id="assist-badge" class="race-only hidden">AI 演示 <span>按驾驶键接管</span></div>
-    <div id="model-status" role="status"><span class="loading-dot"></span><span id="model-status-text">正在准备 HBY 卡丁船…</span><button id="btn-model-retry" class="hidden">重新载入</button></div>
+    <div id="model-status" role="status"><span class="loading-dot"></span><span id="model-status-text">正在准备船艇与航标…</span><button id="btn-model-retry" class="hidden">重新载入</button></div>
     <div id="center"><div id="countdown" aria-live="polite"></div><section id="center-card" class="hidden"><p class="eyebrow">SESSION COMPLETE / 本场结束</p><h2 id="center-title"></h2><div id="center-sub"></div><div id="center-actions"></div></section><div id="center-toast" role="status"></div></div>
     <div id="modal-shade" class="hidden"></div>
     <aside id="panel-pause" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="pause-title" tabindex="-1">
@@ -50,7 +50,7 @@
     </aside>
     <aside id="panel-tune" class="panel hidden" role="dialog" aria-modal="true" aria-labelledby="tune-title" tabindex="-1">
       <header><div><p class="eyebrow">BOAT SETUP</p><h2 id="tune-title">找到你的手感。</h2></div><button class="x" data-close="panel-tune" aria-label="关闭船艇调校">×</button></header>
-      <div class="panel-body"><div class="preset-row"><button class="preset" data-preset="stable"><b>稳定</b><small>平稳过弯，轻松入门</small></button><button class="preset" data-preset="agile"><b>灵活</b><small>迅捷加速，自由漂移</small></button></div><div class="setup-current">当前调校 <b id="preset-current">默认</b><button data-preset="default">恢复默认</button></div>
+      <div class="panel-body"><div class="preset-row grid grid-cols-2 gap-[10px]"><button class="preset" data-preset="stable"><b>稳定</b><small>平稳过弯，轻松入门</small></button><button class="preset" data-preset="agile"><b>灵活</b><small>迅捷加速，自由漂移</small></button></div><div class="setup-current">当前调校 <b id="preset-current">默认</b><button data-preset="default">恢复默认</button></div>
         <label class="slider"><span>推力 <b id="v-thrust">1.00</b></span><input id="s-thrust" type="range" min="0.40" max="2.00" step="0.01" value="1.00" /><em>起步加速与最高速度</em></label>
         <label class="slider"><span>转向灵敏度 <b id="v-steer">1.00</b></span><input id="s-steer" type="range" min="0.30" max="2.50" step="0.01" value="1.00" /><em>舵响应与转弯幅度</em></label>
         <label class="slider"><span>水面阻力 <b id="v-drag">1.00</b></span><input id="s-drag" type="range" min="0.40" max="2.50" step="0.01" value="1.00" /><em>越低，松开油门后滑行越远</em></label>
@@ -64,6 +64,6 @@
     <div id="fx-ring"></div>
   </div>
 </div>
-<script type="module" src="/src/main.js"></script>
+<script type="module" src="/src/arena/main.js"></script>
 </body>
 </html>

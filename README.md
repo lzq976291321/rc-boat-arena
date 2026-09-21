@@ -1,6 +1,25 @@
 # RC Boat Arena · 松岚湖竞速俱乐部
 
-基于 Three.js / WebGL2 的遥控喷水船竞速游戏。驾驶粉色 HBY 卡丁船，依次穿过 5 个检查点，完成三圈计时赛。
+基于 Three.js / WebGL2 的遥控喷水船竞速游戏。驾驶 MAVERICK GT 运动摩托艇，依次穿过 5 个检查点，完成三圈计时赛。
+
+## 项目管理
+
+按文件夹用途维护，详细职责、新文件归属与迁移检查见 [项目目录与职责](docs/PROJECT-STRUCTURE.md)。协作入口为 [AGENTS.md](AGENTS.md)。
+
+| 目录 | 负责什么 |
+| --- | --- |
+| `src/arena/` | 竞速代码，按 `gameplay/`（玩法）、`rendering/`（画面）、`ui/`（交互）划分 |
+| `src/swamp/`、`src/library/` | 湿地探索与素材库，各自独立维护 |
+| `public/` | 可公开发布的模型、纹理和素材来源记录 |
+| `tools/checks/`、`tools/assets/` | 正式检查与素材加工；历史实验留在被忽略的 `tools/local/` |
+| `docs/` | 目录约定、设计方向与维护文档 |
+| `artifacts/` | 本地截图、录屏和验收证据，不提交 |
+| `dsh-plugin/` | 可选的本机 DSH 集成 |
+| `dist/`、`node_modules/` | 构建输出与依赖，不手动维护、不提交 |
+
+`index.html`、`swamp/index.html`、`library/index.html` 分别保留 `/`、`/swamp/`、`/library/` 三个页面入口。根目录只保留页面主入口、配置和维护入口文档。
+
+GitHub `main` 推送通过 Vercel Git 集成自动发布；构建配置和验收方式见 [部署说明](docs/DEPLOYMENT.md)。
 
 ## 运行
 
@@ -43,13 +62,7 @@ pnpm check:sim          # 无渲染三圈模拟
 - 尾浪与水花随速度变化并自然消散；手机首页为船体留出独立展示空间。
 - 3D 画布限制约 260 万像素，倒影最长边不超过 1024，控制高分辨率屏幕开销。
 
-`public/models/hby-kart-boat.glb` 保留 HBY 模型原粉色、贴花、双座、顶棚与发动机，约 4.77 MiB。原 Blender 文件不包含在仓库中。
-
-重新导出自己的源文件：
-
-```bash
-blender --background --disable-autoexec --python tools/export-hby-boat.py -- --source SOURCE.blend --out public/models/hby-kart-boat.glb
-```
+`public/assets/library/maverick-gt/model.glb` 是松岚湖驾驶船，作者 dannzjs，CC BY 4.0，约 4.06 MiB；几何与材质保留原样，运行时调整方向、显示比例和入水位置。赛道航道与检查点使用 Poly Haven 的 Ocean Buoy（CC0）替换旧程序浮标与旗门。来源与加工记录见各资产目录的 `SOURCES.md`。
 
 操控采用固定步长的游戏模型，水线和碰撞为游戏展示设定。
 
@@ -68,3 +81,40 @@ pnpm dsh:status
 pnpm dsh:enable
 pnpm dsh:disable
 ```
+
+## 月下湿地 · Moonwater
+
+独立入口：`/swamp/`。原来的竞速首页也提供入口。
+
+驾驶探索艇穿过月光、树林与倒影；支持自动巡航、月夜/晨雾、跟随/侧览镜头、手动开启水声和触屏驾驶。`WASD` 或方向键驾驶，`C` 切换镜头，`Esc` 停泊。自动巡航到水道尽头会缓慢掉头，按驾驶键可接管。
+
+湿地使用 Poly Haven 的三件 CC0 植被，以及 dylanheyes 的 Futuristic Speedboat（CC BY 4.0）。来源、作者、许可和加工记录见页面“素材来源”及 [素材清单](public/assets/swamp/SOURCES.md)。GLB 和纹理本地托管，约 20.13 MiB；水面、天空、低雾、尾流和水声为程序生成。参考作品的具体算法未公开，本版本独立实现。
+
+[画面制作分工与项目视觉记忆](docs/design/VISUAL-DIRECTION.md) 记录模型、材质、渲染的分工和验收约定。
+
+```bash
+pnpm check:swamp        # 左右、倒车、惯性、边界与巡航掉头
+pnpm check:routes       # 构建后检查子路径、目录重定向与模型 MIME
+```
+
+## 素材库
+
+入口：`/library/`，首页和湿地素材来源中均提供链接。全屏展示模型，顶部分类 Tab、底部模型切换；旋转、缩放与线框操作直接可用。来源、许可和备注收进信息面板，搜索、筛选和 JSON 备份收进管理面板。
+
+已有 GLB 及程序生成的浮标、拱门均可预览；网格/材质统计放在信息面板。项目资产来自 `public/assets/library/catalog.json` 与湿地原有 manifest；程序道具独立标注。候选状态为待筛选、已优选、待接入；已接入记录来自项目代码与清单，不由收藏状态自动驱动。
+
+收藏和备注仅保存在当前浏览器的 localStorage；备份只含元数据，不含模型，不跨设备同步。导入按 ID 合并，已有记录优先。模型接入方式见 [素材接入说明](public/assets/library/README.md)。
+
+## 复用与按需加载
+
+模型加载、有限容量字节缓存、GPU 资源释放与画布像素预算统一在 `src/shared/`。同一页相同模型请求去重，缓存最多 16 MiB / 8 项；解析后的模型归各个场景独立拥有，避免材质修改和销毁互相影响。湿地的重复树木继续使用实例化网格，船艇材质保留模型内共享。
+
+素材库列表与预览模块分离；预览用动态 import 加载，静止时停止绘制，关闭时释放 GPU 资源。自动预览仍需下载引擎与选中的模型，不能把入口包大小当作总流量。Vite 输出构建 manifest，将 Three.js 核心、WebGL、GLTF 解析器和后处理拆成共享/功能包。
+
+```bash
+pnpm check:assets       # 并发去重、缓存淘汰、取消、失败重试、资源释放与像素预算
+pnpm build
+pnpm check:bundle       # 静态依赖边界、共享引擎与包大小预算
+```
+
+性能边界和验收记录见 [加载与资源管理](docs/PERFORMANCE.md)。

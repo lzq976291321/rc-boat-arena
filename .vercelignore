@@ -9,7 +9,5 @@ artifacts/
 *.tar.gz
 *.zip
 .DS_Store
-ACCEPTANCE.md
-VISUAL-ACCEPTANCE.md
 tools/
 dsh-plugin/
