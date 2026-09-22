@@ -4,5 +4,41 @@
   "buildCommand": "pnpm run build",
   "installCommand": "corepack pnpm install --frozen-lockfile",
   "outputDirectory": "dist",
-  "trailingSlash": true
+  "trailingSlash": true,
+  "redirects": [
+    {
+      "source": "/:path((?:t|u|guide)(?:/.*)?)",
+      "destination": "https://forum.rcmyq.cn/:path",
+      "permanent": true
+    },
+    {
+      "source": "/:path((?:rc-forum|new|login|register|feed\\.xml|api/og|sitemap\\.xml)/?)",
+      "destination": "https://forum.rcmyq.cn/:path",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "node" }],
+      "destination": "https://forum.rcmyq.cn/",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "q" }],
+      "destination": "https://forum.rcmyq.cn/",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "page" }],
+      "destination": "https://forum.rcmyq.cn/",
+      "permanent": true
+    },
+    {
+      "source": "/",
+      "has": [{ "type": "query", "key": "filter" }],
+      "destination": "https://forum.rcmyq.cn/",
+      "permanent": true
+    }
+  ]
 }
