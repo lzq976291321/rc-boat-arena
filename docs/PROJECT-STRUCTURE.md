@@ -19,6 +19,7 @@ rc-boat-arena/
 │   ├── library/                素材库：收藏数据、异步预览、界面和样式
 │   └── shared/                 已被多个功能实际使用的基础能力
 │       ├── assets/             模型字节缓存、请求去重、GLTF 异步加载
+│       ├── input/              竞速与湿地共用的移动端摇杆
 │       ├── rendering/          资源释放与画布像素预算
 │       └── styles/             三个页面共用的 Tailwind 构建入口
 ├── public/                     原样复制到发布目录的公开资源
@@ -57,6 +58,7 @@ rc-boat-arena/
 | 改船的加速、碰撞、赛制或 AI | `src/arena/gameplay/` | 保持可在 Node 中运行的纯逻辑；成绩存储只在调用时访问浏览器存储 |
 | 改船外观、水面、岸景或镜头 | `src/arena/rendering/` | 负责 Three.js 对象，不把 DOM 界面放在这里 |
 | 改按键、触屏、HUD 或竞速页面样式 | `src/arena/ui/` | 输入采集与玩法计算分开 |
+| 改两个场地共用的触屏摇杆 | `src/shared/input/` | 共用触控、回中和样式；场地负责启停与转向坐标映射 |
 | 改湿地探索 | `src/swamp/` | 只服务湿地；模块较少，当前不继续拆目录 |
 | 改收藏、过滤、备份或模型预览 | `src/library/` | 收藏元数据与模型文件分别管理 |
 | 修改跨场景加载或渲染基础能力 | `src/shared/assets/`、`src/shared/rendering/` | 至少有真实消费者；说明缓存上限、资源所有权和释放方式 |

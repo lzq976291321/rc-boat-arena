@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { pixelRatio } from "../shared/rendering/pixel-budget.js";
+import { createJoystick } from "../shared/input/joystick.js";
 import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
 import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
 import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
@@ -31,8 +32,23 @@ const state = {
 };
 const boat = createNavigation(),
   keys = new Set(),
-  touch = new Set(),
   ambience = createAmbience();
+let joystickInput = null;
+const joystick = createJoystick($("touch-controls"), {
+  onChange(value) {
+    joystickInput = value;
+    if (value && state.driving && !state.paused) {
+      state.cruise = false;
+      updateCruise();
+    }
+  },
+  onAvailabilityChange(available) {
+    document.body.dataset.joystickAvailable = String(available);
+    $("intro-hint").textContent = available
+      ? "拖动摇杆前进 / 倒车 / 转向 · 松手收油"
+      : "WASD 驾驶 · C 切换镜头 · ESC 停泊";
+  },
+});
 let renderer,
   scene,
   camera,
@@ -74,7 +90,11 @@ function toast(message) {
 }
 function clearInput() {
   keys.clear();
-  touch.clear();
+  joystick.reset();
+  joystickInput = null;
+}
+function syncJoystick() {
+  joystick.setEnabled(state.driving && !state.paused && !document.hidden);
 }
 function updateCruise() {
   $("cruise").setAttribute("aria-pressed", String(state.cruise));
@@ -89,17 +109,16 @@ function start(cruise = false) {
   $("intro").hidden = true;
   $("journey").hidden = false;
   $("drive-toolbar").hidden = false;
-  $("touch-controls").hidden = !(
-    navigator.maxTouchPoints > 0 ||
-    matchMedia("(any-pointer:coarse)").matches ||
-    innerWidth < 700
-  );
+  clearInput();
+  syncJoystick();
   updateCruise();
   toast(
     cruise
-      ? "已开始巡航 · 按方向键随时接管"
-      : innerWidth < 700
-        ? "按住 ↑ 前进，配合 ← → 转向"
+      ? joystick.available
+        ? "已开始巡航 · 拖动摇杆随时接管"
+        : "已开始巡航 · 按方向键随时接管"
+      : joystick.available
+        ? "拖动摇杆前进 / 倒车 / 转向 · 松手收油"
         : "W / ↑ 前进 · A / D 转向 · S / ↓ 倒车",
   );
 }
@@ -107,12 +126,14 @@ function openDialog(id) {
   clearInput();
   previousFocus = document.activeElement;
   state.paused = true;
+  syncJoystick();
   $(id).showModal();
 }
 function closeDialog(dialog) {
   dialog.close();
   clearInput();
   state.paused = false;
+  syncJoystick();
   previousFocus?.focus?.({ preventScroll: true });
 }
 $("start").addEventListener("click", () => start(false));
@@ -209,18 +230,6 @@ document.addEventListener("visibilitychange", () => {
   )
     openDialog("pause-dialog");
 });
-for (const button of document.querySelectorAll("[data-key]")) {
-  const key = button.dataset.key;
-  button.addEventListener("pointerdown", (e) => {
-    e.preventDefault();
-    button.setPointerCapture(e.pointerId);
-    touch.add(key);
-    state.cruise = false;
-    updateCruise();
-  });
-  for (const event of ["pointerup", "pointercancel", "lostpointercapture"])
-    button.addEventListener(event, () => touch.delete(key));
-}
 $("sound").addEventListener("click", async () => {
   try {
     const active = await ambience.setEnabled(!ambience.enabled);
@@ -287,15 +296,11 @@ function snapCamera() {
   camera.lookAt(lookTarget);
 }
 function resize() {
+  clearInput();
+  syncJoystick();
   if (!renderer) return;
   const w = innerWidth,
     h = innerHeight;
-  if (state.driving)
-    $("touch-controls").hidden = !(
-      navigator.maxTouchPoints > 0 ||
-      matchMedia("(any-pointer:coarse)").matches ||
-      w < 700
-    );
   renderer.setPixelRatio(
     pixelRatio(w, h, { maxPixels: 1800000, maxDpr: 1.75 }),
   );
@@ -418,20 +423,14 @@ async function init() {
     if (!state.paused) {
       state.elapsed += dt;
       if (state.driving) {
-        const throttle =
-          (keys.has("KeyW") || keys.has("ArrowUp") || touch.has("forward")
-            ? 1
-            : 0) -
-          (keys.has("KeyS") || keys.has("ArrowDown") || touch.has("reverse")
-            ? 1
-            : 0);
-        const steer =
-          (keys.has("KeyA") || keys.has("ArrowLeft") || touch.has("left")
-            ? 1
-            : 0) -
-          (keys.has("KeyD") || keys.has("ArrowRight") || touch.has("right")
-            ? 1
-            : 0);
+        const throttle = joystickInput
+          ? joystickInput.throttle
+          : (keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0) -
+            (keys.has("KeyS") || keys.has("ArrowDown") ? 1 : 0);
+        const steer = joystickInput
+          ? -joystickInput.steer
+          : (keys.has("KeyA") || keys.has("ArrowLeft") ? 1 : 0) -
+            (keys.has("KeyD") || keys.has("ArrowRight") ? 1 : 0);
         stepNavigation(
           boat,
           {
@@ -461,7 +460,9 @@ async function init() {
         boat.z > 10 ? "月光水道" : boat.z > -100 ? "林影深处" : "苇荡回湾";
       $("place-name").textContent = region;
       $("journey-note").textContent = state.cruise
-        ? "正在巡航 · 方向键随时接管"
+        ? joystick.available
+          ? "正在巡航 · 拖动摇杆随时接管"
+          : "正在巡航 · 方向键随时接管"
         : "循着水道，慢慢向前。";
     }
     renderer.info.reset();

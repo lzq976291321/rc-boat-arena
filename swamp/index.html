@@ -52,7 +52,7 @@
             随水漫游 <span aria-hidden="true">▷</span>
           </button>
         </div>
-        <p class="intro-hint">
+        <p class="intro-hint" id="intro-hint">
           WASD 驾驶 <span>·</span> C 切换镜头 <span>·</span> ESC 停泊
         </p>
       </section>
@@ -93,16 +93,7 @@
       ><button id="camera">镜头 · 跟随</button><button id="pause">Ⅱ 停泊</button
       ><span class="speed"><b id="speed">0.0</b> <small>km/h</small></span>
     </div>
-    <div id="touch-controls" hidden aria-label="触屏驾驶">
-      <div>
-        <button data-key="left" aria-label="左转">←</button
-        ><button data-key="right" aria-label="右转">→</button>
-      </div>
-      <div>
-        <button data-key="reverse" aria-label="倒车">↓</button
-        ><button data-key="forward" aria-label="前进">↑</button>
-      </div>
-    </div>
+    <div id="touch-controls" hidden aria-label="触屏驾驶"></div>
     <dialog id="pause-dialog" class="panel">
       <button class="close" data-close aria-label="关闭停泊菜单">×</button>
       <p class="eyebrow">A MOMENT OF STILLNESS</p>

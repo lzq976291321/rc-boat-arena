@@ -1,6 +1,7 @@
 // HUD 与面板绑定：左上数据 / 中上目标 / 右上暂停 / 左下小地图 / 右下速度 / 暂停菜单 / 遥测
 import { PARAM_RANGES, PRESETS, DEFAULT_PARAMS, WORLD } from '../gameplay/config.js';
 import { formatTime } from '../gameplay/storage.js';
+import { createJoystick } from '../../shared/input/joystick.js';
 
 const $ = (id) => document.getElementById(id);
 // 绑定助手：元素缺失时跳过，避免一个 DOM 改动让整个游戏起不来
@@ -90,6 +91,8 @@ export class UI {
 
   setScreen(screen) {
     $('app').dataset.screen = screen;
+    this.joystick?.reset();
+    this._syncJoystick();
     if (screen !== 'race') { this.el.countdown.classList.remove('show'); this.el.toast.classList.remove('show'); this.el.toast.textContent = ''; this._toastTimer = 0; }
   }
   togglePanel(id, force) {
@@ -102,6 +105,8 @@ export class UI {
     if (show) el.classList.remove('hidden');
     this.panelId = show ? id : null;
     $('modal-shade').classList.toggle('hidden', !modal);
+    this.joystick?.reset();
+    this._syncJoystick();
     this.h.onPanelChange?.({ id: this.panelId, modal });
     if (show && modal) el.querySelector('button')?.focus({ preventScroll: true });
     else if (!show && this.returnFocus?.offsetParent) this.returnFocus.focus({ preventScroll: true });
@@ -255,30 +260,16 @@ export class UI {
   setMinimapVisible(v) { this.el.minimap.classList.toggle('hidden', !v); }
 
   _bindTouch() {
-    const touchy = (navigator.maxTouchPoints || 0) > 0 || 'ontouchstart' in window;
-    if (!touchy || !this.el.touch) return;
-    this.el.touch.classList.remove('hidden');
-    $('app').classList.add('has-touch');
-    const state = { left: false, right: false, throttle: false, reverse: false };
-    const sync = () => {
-      let steer = 0, throttle = 0;
-      if (state.left) steer -= 1;
-      if (state.right) steer += 1;
-      if (state.throttle) throttle += 1;
-      if (state.reverse) throttle -= 1;
-      if (steer === 0 && throttle === 0) this.h.onTouch?.(null);
-      else this.h.onTouch?.({ steer, throttle, boost: false });
-    };
-    on(window, 'blur', () => { for (const k of Object.keys(state)) state[k] = false; for (const btn of this.el.touch.querySelectorAll('button')) btn.classList.remove('active'); sync(); });
-    for (const btn of this.el.touch.querySelectorAll('[data-touch]')) {
-      const key = btn.dataset.touch;
-      const on = (e) => { e.preventDefault(); btn.setPointerCapture(e.pointerId); state[key] = true; btn.classList.add('active'); sync(); };
-      const off = (e) => { e.preventDefault(); state[key] = false; btn.classList.remove('active'); sync(); };
-      btn.addEventListener('pointerdown', on);
-      btn.addEventListener('pointerup', off);
-      btn.addEventListener('pointercancel', off);
-      btn.addEventListener('lostpointercapture', off);
-    }
+    if (!this.el.touch) return;
+    this.joystick = createJoystick(this.el.touch, {
+      onChange: (value) => this.h.onTouch?.(value),
+      onAvailabilityChange: (available) => $('app').classList.toggle('has-touch', available),
+    });
+    this._syncJoystick();
+  }
+
+  _syncJoystick() {
+    this.joystick?.setEnabled($('app').dataset.screen === 'race' && $('modal-shade').classList.contains('hidden'));
   }
 
   update(dt) {

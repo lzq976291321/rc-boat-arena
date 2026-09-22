@@ -547,36 +547,12 @@ h1 em {
   margin-bottom: 24px;
 }
 #touch-controls {
-  position: fixed;
-  bottom: 166px;
-  left: 20px;
-  right: 20px;
-  display: flex;
-  justify-content: space-between;
-  z-index: 6;
-  pointer-events: none;
+  bottom: calc(150px + env(safe-area-inset-bottom, 0px));
+  left: calc(20px + env(safe-area-inset-left, 0px));
 }
-#touch-controls[hidden] {
-  display: none;
-}
-#touch-controls > div {
-  display: flex;
-  gap: 9px;
-}
-#touch-controls button {
-  pointer-events: auto;
-  width: 48px;
-  height: 48px;
-  touch-action: none;
-  border: 1px solid #d6e4d342;
-  background: #1026249e;
-  border-radius: 50%;
-  font-size: 21px;
-  backdrop-filter: blur(8px);
-  user-select: none;
-}
-#touch-controls button:active {
-  background: #73877680;
+body[data-driving="true"][data-joystick-available="true"] .journey {
+  top: 101px;
+  bottom: auto;
 }
 body[data-driving="true"] .right-rail {
   opacity: 0.5;
@@ -799,6 +775,25 @@ body[data-driving="true"] .right-rail {
   }
   .loader {
     animation: none;
+  }
+}
+
+@media (max-height: 500px) {
+  #touch-controls {
+    bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+  }
+  body[data-driving="true"][data-joystick-available="true"] .journey {
+    top: 86px;
+    left: calc(176px + env(safe-area-inset-left, 0px));
+    right: 20px;
+  }
+  body[data-joystick-available="true"] .drive-toolbar {
+    left: calc(176px + env(safe-area-inset-left, 0px));
+    right: calc(20px + env(safe-area-inset-right, 0px));
+    bottom: calc(94px + env(safe-area-inset-bottom, 0px));
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px 16px;
   }
 }
 
