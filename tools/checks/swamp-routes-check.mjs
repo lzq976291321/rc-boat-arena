@@ -1,17 +1,17 @@
 import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer, get } from "node:http";
-import { access } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import { apply } from "../../dsh-plugin/lib/index.js";
 
 const prefix = "/rc-boat-arena";
 let server, origin;
 
 before(async () => {
-  await access(new URL("../../dist/swamp/index.html", import.meta.url)).catch(
+  await Promise.all(["index.html", "swamp/index.html", "cove/index.html", "library/index.html"].map(page => access(new URL("../../dist/" + page, import.meta.url)))).catch(
     () => {
       throw new Error(
-        "Missing built swamp page; run pnpm build before this check.",
+        "Missing built page; run pnpm build before this check.",
       );
     },
   );
@@ -90,8 +90,8 @@ test("swamp page serves Moonwater HTML under the prefixed route", async () => {
   assert.match(response.body.toString(), /<title>Moonwater\b/);
 });
 
-test("relative script and stylesheet URLs resolve to served assets with correct MIME types", async () => {
-  const pageUrl = `${prefix}/swamp/`;
+for (const pageName of ["swamp", "cove", "library"]) test(`${pageName} script and stylesheet URLs retain the prefix and MIME types`, async () => {
+  const pageUrl = `${prefix}/${pageName}/`;
   const page = await request(pageUrl);
   assertType(page, "text/html");
   const html = page.body.toString();
@@ -168,4 +168,67 @@ test("original root remains the RC Boat Arena page", async () => {
   assertType(response, "text/html");
   assert.match(response.body.toString(), /<title>RC Boat Arena\b/);
   assert.doesNotMatch(response.body.toString(), /<title>Moonwater\b/);
+});
+
+for (const [pageName, title] of [["cove", /<title>Sunny Cove\b/], ["library", /<title>素材库/]]) {
+  test(`${pageName} directory redirects preserve queries and serve its own page`, async () => {
+    const redirect = await request(`${prefix}/${pageName}?foo=1`);
+    assert.equal(redirect.status, 308);
+    assert.equal(redirect.headers.location, `${prefix}/${pageName}/?foo=1`);
+    const page = await request(redirect.headers.location);
+    assertType(page, "text/html");
+    assert.match(page.body.toString(), title);
+  });
+}
+
+test("both dynamic viewing assets resolve under the mounted library route", async () => {
+  const manifest = JSON.parse(await readFile(new URL("../../dist/.vite/manifest.json", import.meta.url), "utf8"));
+  const adapter = manifest["src/library/scene-preview.js"];
+  for (const scene of ["moonwater", "sunny-cove"]) {
+    const key = `src/scene-assets/${scene}/index.js`;
+    assert.ok(adapter.dynamicImports.includes(key), `${scene} must be lazy`);
+    const path = manifest[key].file;
+    const relative = "./" + path.split("/").at(-1);
+    const url = new URL(relative, new URL(`${prefix}/${adapter.file}`, origin));
+    assert.equal(url.pathname, `${prefix}/${path}`);
+    const response = await request(url);
+    assertType(response, "text/javascript");
+    assert.doesNotMatch(response.body.toString(), /^\s*<!doctype html/i);
+  }
+});
+
+test("Sunny Cove source records serve all nine runtime GLBs with provenance", async () => {
+  const response = await request(`${prefix}/assets/cove/asset-manifest.json`);
+  assertType(response, "application/json");
+  const assets = JSON.parse(response.body.toString()).assets;
+  assert.equal(assets.length, 9);
+  assert.equal(new Set(assets.map(asset => asset.path)).size, 9);
+  assert.ok(assets.some(asset => asset.path === "/assets/library/riva-aquarama/model.glb"));
+  assert.ok(assets.some(asset => asset.path === "/assets/library/jacaranda-tree/model.glb"));
+  assert.ok(assets.some(asset => asset.path === "/assets/library/shrub-04/model.glb"));
+  for (const asset of assets) {
+    assert.ok(asset.source && asset.author && asset.license && asset.licenseUrl, `${asset.id} lacks provenance`);
+    assert.match(asset.path, /^\/assets\/(library|swamp)\/.*\.glb$/);
+    const model = await request(`${prefix}${asset.path}`);
+    assertType(model, "model/gltf-binary");
+    assert.equal(model.body.toString("ascii", 0, 4), "glTF");
+    assert.equal(model.body.readUInt32LE(4), 2);
+    assert.equal(model.body.readUInt32LE(8), model.body.length);
+  }
+});
+
+test("all four entry icons retain the project prefix and serve SVG", async () => {
+  for (const pageName of ["", "swamp/", "cove/", "library/"]) {
+    const pageUrl = `${prefix}/${pageName}`;
+    const page = await request(pageUrl);
+    const icon = [...page.body.toString().matchAll(/<link\b[^>]*>/gi)]
+      .map(match => match[0]).find(tag => /\brel=["']icon["']/i.test(tag));
+    const href = icon?.match(/\bhref=["']([^"']+)["']/i)?.[1];
+    assert.ok(href, `${pageName || "root"} has no explicit icon`);
+    const url = new URL(href, new URL(pageUrl, origin));
+    assert.equal(url.pathname, `${prefix}/favicon.svg`);
+    const response = await request(url);
+    assertType(response, "image/svg+xml");
+    assert.match(response.body.toString(), /^<svg\b/);
+  }
 });

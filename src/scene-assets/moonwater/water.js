@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { Reflector } from "three/addons/objects/Reflector.js";
+import { MOOD_TRANSITION_SECONDS } from "./presets.js";
 
 // A second, mirrored scene render supplies the reflection. Small normal changes
 // preserve the readable tree/sky silhouettes while breaking up their edges.
@@ -76,8 +77,10 @@ export function createWater(scene) {
   scene.add(water);
   const u = water.material.uniforms;
   const hidden = [];
+  let disposed = false, lastTime, from, to, elapsed = MOOD_TRANSITION_SECONDS;
   const reflect = water.onBeforeRender;
   water.onBeforeRender = function (...args) {
+    if (disposed) return;
     const old = hidden.map((o) => o.visible);
     hidden.forEach((o) => {
       o.visible = false;
@@ -93,117 +96,67 @@ export function createWater(scene) {
   return {
     mesh: water,
     exclude(...objects) {
-      hidden.push(...objects.filter(Boolean));
+      if (disposed) return;
+      for (const object of objects) if (object && !hidden.includes(object)) hidden.push(object);
     },
     update(time, boat) {
+      if (disposed) return;
+      const dt = lastTime === undefined ? 0 : Math.max(0, time - lastTime);
+      lastTime = time;
+      if (elapsed < MOOD_TRANSITION_SECONDS) {
+        elapsed = Math.min(MOOD_TRANSITION_SECONDS, elapsed + dt);
+        const progress = elapsed / MOOD_TRANSITION_SECONDS;
+        const eased = progress * progress * (3 - 2 * progress);
+        u.uDeep.value.lerpColors(from.deep, to.deep, eased);
+        u.uFog.value.lerpColors(from.fog, to.fog, eased);
+        u.uDensity.value = THREE.MathUtils.lerp(from.density, to.density, eased);
+        u.uMoon.value.lerpVectors(from.direction, to.direction, eased).normalize();
+        u.uLight.value.lerpColors(from.light, to.light, eased);
+      }
       u.uTime.value = time;
-      u.uBoat.value.set(boat.x, boat.z, boat.heading, boat.speed);
+      if (boat) u.uBoat.value.set(boat.x, boat.z, boat.heading, boat.speed);
     },
     resize(w, h) {
+      if (disposed || w <= 0 || h <= 0) return;
       const scale = Math.min(0.6, 1024 / Math.max(w, h));
       const rw = Math.max(192, Math.round(w * scale)),
         rh = Math.max(192, Math.round(h * scale));
       water.getRenderTarget().setSize(rw, rh);
       u.uTexel.value.set(1 / rw, 1 / rh);
     },
-    setMood(preset) {
-      if (preset.waterColor) u.uDeep.value.set(preset.waterColor);
-      if (preset.fogColor) u.uFog.value.set(preset.fogColor);
-      u.uDensity.value = preset.fogDensity ?? 0.009;
-      if (preset.moonDirection)
-        u.uMoon.value.fromArray(preset.moonDirection).normalize();
-      u.uLight.value.set(preset.name === "dawn" ? "#efca93" : "#bbd5da");
+    setMood(preset, { immediate = false } = {}) {
+      if (disposed) return;
+      const firstMood = !to;
+      from = {
+        deep: u.uDeep.value.clone(), fog: u.uFog.value.clone(),
+        density: u.uDensity.value, direction: u.uMoon.value.clone(), light: u.uLight.value.clone(),
+      };
+      to = {
+        deep: preset.waterColor ? new THREE.Color(preset.waterColor) : from.deep.clone(),
+        fog: preset.fogColor ? new THREE.Color(preset.fogColor) : from.fog.clone(),
+        density: preset.fogDensity ?? 0.009,
+        direction: preset.moonDirection ? new THREE.Vector3().fromArray(preset.moonDirection).normalize() : from.direction.clone(),
+        light: new THREE.Color(preset.lightColor ?? "#bbd5da"),
+      };
+      elapsed = immediate || firstMood ? MOOD_TRANSITION_SECONDS : 0;
+      if (immediate || firstMood) {
+        u.uDeep.value.copy(to.deep);
+        u.uFog.value.copy(to.fog);
+        u.uDensity.value = to.density;
+        u.uMoon.value.copy(to.direction);
+        u.uLight.value.copy(to.light);
+      }
+    },
+    dispose() {
+      if (disposed) return;
+      disposed = true;
+      water.removeFromParent();
+      hidden.length = 0;
+      water.geometry.dispose();
+      // Reflector owns a render target in addition to its shader material.
+      water.dispose();
     },
   };
 }
 
-export function createWake(scene) {
-  const capacity = 180,
-    trail = [];
-  const positions = new Float32Array(capacity * 4 * 3),
-    strength = new Float32Array(capacity * 4),
-    across = new Float32Array(capacity * 4);
-  const indices = [];
-  for (let i = 0; i < capacity - 1; i++)
-    for (let side = 0; side < 2; side++) {
-      const a = i * 4 + side * 2,
-        b = a + 1,
-        c = a + 4,
-        d = a + 5;
-      indices.push(a, c, b, b, c, d);
-    }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute("strength", new THREE.BufferAttribute(strength, 1));
-  geo.setAttribute("across", new THREE.BufferAttribute(across, 1));
-  geo.setIndex(indices);
-  const mat = new THREE.ShaderMaterial({
-    transparent: true,
-    depthWrite: false,
-    side: THREE.DoubleSide,
-    uniforms: { uTime: { value: 0 } },
-    vertexShader: `attribute float strength,across;varying float vA,vSide;varying vec3 vP;
-      void main(){vA=strength;vSide=across;vP=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-    fragmentShader: `uniform float uTime;varying float vA,vSide;varying vec3 vP;
-      float hash(vec2 p){return fract(sin(dot(p,vec2(41.3,117.8)))*31415.9);}
-      void main(){float edge=sin(vSide*3.14159);float n=hash(floor(vP.xz*12.+uTime*.6));
-        float alpha=vA*edge*(.25+.75*smoothstep(.3,.9,n));
-        gl_FragColor=vec4(vec3(.24,.35,.32),alpha);#include <tonemapping_fragment>\n#include <colorspace_fragment>}`.replace(
-      ";#include",
-      ";\n#include",
-    ),
-  });
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.name = "Persistent drifting wake";
-  mesh.frustumCulled = false;
-  mesh.renderOrder = 2;
-  scene.add(mesh);
-  let elapsed = 0;
-  return {
-    mesh,
-    reset() {
-      trail.length = 0;
-      geo.setDrawRange(0, 0);
-    },
-    update(dt, time, boat) {
-      elapsed += dt;
-      mat.uniforms.uTime.value = time;
-      if (elapsed > 0.055 && Math.abs(boat.speed) > 0.2) {
-        elapsed = 0;
-        trail.unshift({
-          x: boat.x + Math.sin(boat.heading) * 2.55,
-          z: boat.z + Math.cos(boat.heading) * 2.55,
-          h: boat.heading,
-          t: time,
-          s: Math.min(Math.abs(boat.speed) / 4, 1),
-        });
-      }
-      while (
-        trail.length > capacity ||
-        (trail.length && time - trail.at(-1).t > 9)
-      )
-        trail.pop();
-      for (let i = 0; i < trail.length; i++) {
-        const p = trail[i],
-          age = time - p.t,
-          spread = 0.6 + age * 0.48,
-          w = 0.18 + age * 0.1,
-          fade = (1 - age / 9) ** 2 * p.s * 0.32;
-        for (let side = 0; side < 2; side++)
-          for (let edge = 0; edge < 2; edge++) {
-            const n = i * 4 + side * 2 + edge,
-              offset = (side === 0 ? -1 : 1) * (spread + (edge - 0.5) * w);
-            positions[n * 3] = p.x + Math.cos(p.h) * offset;
-            positions[n * 3 + 1] = 0.015 + Math.sin(age * 2 + p.x) * 0.004;
-            positions[n * 3 + 2] = p.z - Math.sin(p.h) * offset;
-            strength[n] = fade;
-            across[n] = edge;
-          }
-      }
-      geo.attributes.position.needsUpdate =
-        geo.attributes.strength.needsUpdate = true;
-      geo.attributes.across.needsUpdate = true;
-      geo.setDrawRange(0, Math.max(0, trail.length - 1) * 12);
-    },
-  };
-}
+export { createWake } from '../../shared/viewing/wake.js';

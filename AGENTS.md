@@ -18,14 +18,16 @@
 ## 检查与交付
 
 - 移动文件后同步 import、HTML、脚本命令、`import.meta.url` 路径、资产代码路径和文档链接。
-- 运行与变更相关的现有检查。目录迁移执行 `docs/PROJECT-STRUCTURE.md` 中的检查命令，并在浏览器核对三个入口。
+- 运行与变更相关的现有检查。目录迁移执行 `docs/PROJECT-STRUCTURE.md` 中的检查命令，并在浏览器核对四个入口。
 - 不修改生成目录 `dist/` 或依赖目录 `node_modules/` 来修复源代码。
 - 本地实现、构建通过、浏览器验收、Git 推送和部署上线是不同状态，分别说明。
 
 ## 复用与性能
 
+- 新增体验以观赏为主：自动巡游、光影、水声和镜头服务于欣赏船模与环境。精品场景和效果整理到 `src/scene-assets/<资产名>/`，页面只负责组装与交互；现有竞速入口保持独立。
+- 观赏资产提供配置、资源路径入口、明确的更新/释放责任及可运行接入示例。元数据目录不依赖 Three.js；完整场景与可独立使用的水面、船体、镜头等工厂复用同一实现。接入约定见 `docs/design/VIEWING-ASSETS.md`。
 - 页面样式优先使用 Tailwind CSS（Vite 构建时生成，无浏览器端运行时）。直接在原生 HTML 和 JS 模板写完整类名，不动态拼接半截类名；真实重复的组件样式可在 `@layer components` 中用 `@apply` 复用。
-- 三个页面通过 `src/shared/styles/tailwind.css` 共用 Tailwind 入口，各自 `@source` 只扫描自己的 HTML 和 JS。保留现有基础样式，不引入 Preflight 全局重置；特殊视觉效果保留在页面 CSS，新增普通布局优先用工具类。样式约定见 `docs/STYLING.md`。
+- 四个页面通过 `src/shared/styles/tailwind.css` 共用 Tailwind 入口，各自 `@source` 只扫描自己的 HTML 和 JS。保留现有基础样式，不引入 Preflight 全局重置；特殊视觉效果保留在页面 CSS，新增普通布局优先用工具类。样式约定见 `docs/STYLING.md`。
 - 跨场景模型加载统一使用 `src/shared/assets/gltf.js`，不复制加载器或启用无上限的全局模型缓存。共享不可变文件字节；每个使用方拥有自己的可修改场景和释放责任。
 - 共享资源释放、像素预算分别使用 `src/shared/rendering/resources.js`、`pixel-budget.js`。实例化物体共用几何体/材质，最后一个所属场景统一释放；不要提前销毁其他实例还在使用的资源。
 - 可选 3D 功能通过动态 import 加载；纯列表/收藏逻辑不能静态依赖 Three.js。自动预览可在可见且有选中素材时触发加载，不用“异步入口大小”代替“完成预览的总下载量”。

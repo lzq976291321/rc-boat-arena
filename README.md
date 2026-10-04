@@ -1,6 +1,6 @@
 # RC Boat Arena · 松岚湖竞速俱乐部
 
-基于 Three.js / WebGL2 的遥控喷水船竞速游戏。驾驶 MAVERICK GT 运动摩托艇，依次穿过 5 个检查点，完成三圈计时赛。
+基于 Three.js / WebGL2 的船模竞速、湿地、晴湾观赏与素材预览项目。竞速入口保留 MAVERICK GT 三圈计时赛；湿地入口提供自动巡游，并将水面、岸景、船艇和镜头整理为可独立接入的观赏资产。
 
 ## 项目管理
 
@@ -9,7 +9,9 @@
 | 目录 | 负责什么 |
 | --- | --- |
 | `src/arena/` | 竞速代码，按 `gameplay/`（玩法）、`rendering/`（画面）、`ui/`（交互）划分 |
-| `src/swamp/`、`src/library/` | 湿地探索与素材库，各自独立维护 |
+| `src/swamp/`、`src/cove/` | 湿地与晴湾观赏页面组装及样式 |
+| `src/scene-assets/` | 观赏资产元数据，以及可组合的 Moonwater / Sunny Cove 场景和独立工厂 |
+| `src/library/` | 素材收藏、GLB 预览与观赏资产预览 |
 | `public/` | 可公开发布的模型、纹理和素材来源记录 |
 | `tools/checks/`、`tools/assets/` | 正式检查与素材加工；历史实验留在被忽略的 `tools/local/` |
 | `docs/` | 目录约定、设计方向与维护文档 |
@@ -17,7 +19,7 @@
 | `dsh-plugin/` | 可选的本机 DSH 集成 |
 | `dist/`、`node_modules/` | 构建输出与依赖，不手动维护、不提交 |
 
-`index.html`、`swamp/index.html`、`library/index.html` 分别保留 `/`、`/swamp/`、`/library/` 三个页面入口。根目录只保留页面主入口、配置和维护入口文档。
+`index.html`、`swamp/index.html`、`cove/index.html`、`library/index.html` 分别提供 `/`、`/swamp/`、`/cove/`、`/library/` 四个页面入口。根目录只保留页面主入口、配置和维护入口文档。
 
 GitHub `main` 推送通过 Vercel Git 集成自动发布；构建配置和验收方式见 [部署说明](docs/DEPLOYMENT.md)。
 
@@ -53,7 +55,7 @@ pnpm check:sim          # 无渲染三圈模拟
 | 暂停 | Esc |
 | 调校 / 回放 / 驾驶数据 | T / P / Y |
 
-支持触屏方向与油门按钮。AI 演示可随时由驾驶按键接管；AI 成绩不覆盖个人最佳。成绩保存在当前浏览器本地。
+支持触屏摇杆。AI 演示可随时由驾驶按键接管；AI 成绩不覆盖个人最佳。成绩保存在当前浏览器本地。
 
 ## 画面与模型
 
@@ -84,32 +86,41 @@ pnpm dsh:disable
 
 ## 月下湿地 · Moonwater
 
-独立入口：`/swamp/`。原来的竞速首页也提供入口。
+独立入口：`/swamp/`，竞速首页也提供入口。打开后自动巡游；页面提供月夜、晨雾、夕照三种光照，以及自动观赏、贴水跟随、侧览船模、水道全景镜头。
 
-驾驶探索艇穿过月光、树林与倒影；支持自动巡航、月夜/晨雾、跟随/侧览镜头、手动开启水声和触屏驾驶。`WASD` 或方向键驾驶，`C` 切换镜头，`Esc` 停泊。自动巡航到水道尽头会缓慢掉头，按驾驶键可接管。
+可暂停画面、拍照保存 PNG、隐藏界面沉浸观赏。水声默认关闭，点击“开启水声”后播放。`空格` 暂停或继续，`H` 切换沉浸模式，`Esc` 恢复界面。页面不再提供驾驶操作；自动巡游在水道尽头平缓掉头。
 
 湿地使用 Poly Haven 的三件 CC0 植被，以及 dylanheyes 的 Futuristic Speedboat（CC BY 4.0）。来源、作者、许可和加工记录见页面“素材来源”及 [素材清单](public/assets/swamp/SOURCES.md)。GLB 和纹理本地托管，约 20.13 MiB；水面、天空、低雾、尾流和水声为程序生成。参考作品的具体算法未公开，本版本独立实现。
 
-[画面制作分工与项目视觉记忆](docs/design/VISUAL-DIRECTION.md) 记录模型、材质、渲染的分工和验收约定。
+Moonwater 的同一份运行资产由湿地页和素材库消费。Canvas 接入、已有 renderer 组合、镜头独立复用与资源释放见 [观赏资产接入](docs/design/VIEWING-ASSETS.md)；画面分工见 [视觉方向](docs/design/VISUAL-DIRECTION.md)。
 
 ```bash
 pnpm check:swamp        # 左右、倒车、惯性、边界与巡航掉头
+pnpm check:viewing      # 运镜连续性、水道边界、不同帧率与竖屏构图
+pnpm check:cove         # 晴湾闭环靠泊、镜头、边界和恢复
+pnpm check:contact      # 船水浮态、尾迹衰减、暂停与独立释放
 pnpm check:routes       # 构建后检查子路径、目录重定向与模型 MIME
 ```
 
+## 晴湾船坞 · Sunny Cove
+
+入口：`/cove/`。木质 Riva Aquarama 从码头离泊，在浅海湾巡游后归港停留。提供午后、日落、暮色三种光照，复用镜头、暂停、水声、拍照、沉浸与来源操作；湿地和晴湾页面可互相切换。
+
+场景位于 `src/scene-assets/sunny-cove/`，与湿地共用 Canvas 宿主、页面行为与水声；晴湾船水交互独立提供浮态与水面尾流。Riva 船艇保留 CC BY 4.0 作者署名；码头与岸景复用已有 CC0 素材，公开模型 URL 不变。完整来源见 [晴湾素材记录](public/assets/cove/SOURCES.md)。
+
 ## 素材库
 
-入口：`/library/`，首页和湿地素材来源中均提供链接。全屏展示模型，顶部分类 Tab、底部模型切换；旋转、缩放与线框操作直接可用。来源、许可和备注收进信息面板，搜索、筛选和 JSON 备份收进管理面板。
+入口：`/library/`，首页和湿地素材来源中均提供链接。顶部分类 Tab、底部素材切换；普通模型支持旋转、缩放和线框，“观赏资产”分类可直接运行 Moonwater / Sunny Cove 自动巡游预览，支持重置视角。来源、许可和备注收进信息面板，搜索、筛选和 JSON 备份收进管理面板。
 
-已有 GLB 及程序生成的浮标、拱门均可预览；网格/材质统计放在信息面板。项目资产来自 `public/assets/library/catalog.json` 与湿地原有 manifest；程序道具独立标注。候选状态为待筛选、已优选、待接入；已接入记录来自项目代码与清单，不由收藏状态自动驱动。
+已有 GLB 和程序道具可预览；模型的网格/材质统计放在信息面板。项目资产来自 `public/assets/library/catalog.json`、湿地 manifest 和纯元数据文件 `src/scene-assets/catalog.js`。候选状态为待筛选、已优选、待接入；已接入记录来自项目代码与清单，不由收藏状态自动驱动。
 
-收藏和备注仅保存在当前浏览器的 localStorage；备份只含元数据，不含模型，不跨设备同步。导入按 ID 合并，已有记录优先。模型接入方式见 [素材接入说明](public/assets/library/README.md)。
+收藏和备注仅保存在当前浏览器的 localStorage；备份只含元数据，不含模型，不跨设备同步。查看、切换镜头和预览不保存服务器数据；照片下载到本地。导入按 ID 合并，已有记录优先。模型接入方式见 [素材接入说明](public/assets/library/README.md)。
 
 ## 复用与按需加载
 
 模型加载、有限容量字节缓存、GPU 资源释放与画布像素预算统一在 `src/shared/`。同一页相同模型请求去重，缓存最多 16 MiB / 8 项；解析后的模型归各个场景独立拥有，避免材质修改和销毁互相影响。湿地的重复树木继续使用实例化网格，船艇材质保留模型内共享。
 
-素材库列表与预览模块分离；预览用动态 import 加载，静止时停止绘制，关闭时释放 GPU 资源。自动预览仍需下载引擎与选中的模型，不能把入口包大小当作总流量。Vite 输出构建 manifest，将 Three.js 核心、WebGL、GLTF 解析器和后处理拆成共享/功能包。
+素材库列表与预览模块分离，元数据不静态依赖 Three.js；选中素材后才动态加载对应预览。静态 GLB 按需绘制，观赏场景在可见时持续动画；离屏、后台停止无效绘制，切换取消旧请求，关闭释放资源。自动预览仍需下载引擎与选中的模型，不能把入口包大小当作总流量。Vite 输出构建 manifest，将 Three.js 核心、WebGL、GLTF 解析器和后处理拆成共享/功能包。
 
 ```bash
 pnpm check:assets       # 并发去重、缓存淘汰、取消、失败重试、资源释放与像素预算

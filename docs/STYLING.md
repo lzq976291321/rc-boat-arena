@@ -5,9 +5,10 @@
 ## 入口与范围
 
 - `src/shared/styles/tailwind.css` 声明 theme / base / components / utilities 层，导入主题与工具类。不导入 Preflight，保留当前页面依赖的原生标题、表单、dialog 默认行为与各页基础样式。
-- `src/arena/ui/style.css`、`src/swamp/style.css`、`src/library/style.css` 分别导入共享入口，并用 `@source` 指定本页 HTML 和 JS 模板。
+- `src/arena/ui/style.css`、`src/swamp/style.css`、`src/cove/style.css`、`src/library/style.css` 分别导入共享入口，并用 `@source` 指定本页 HTML 和 JS 模板。
+- 湿地和晴湾共用 `src/shared/viewing/page.css` 的页面结构样式；各自 CSS 用变量配置配色，并补充共享 `page.js` 的 `@source`，不扫描另一场景页面。
 - 自动扫描关闭；不扫描 `dist/`、报告、文档或其他页面。以后新增模板目录，在实际消费它的页面补充 `@source`。
-- Vite 继续按三个 HTML 入口生成独立 CSS，模型与 Three.js 的动态加载边界保持原样。
+- Vite 继续按四个 HTML 入口生成独立 CSS，模型与 Three.js 的动态加载边界保持原样。
 
 ## 迭代方式
 
@@ -26,6 +27,6 @@ JS 中条件选择完整类名，如 `active ? 'opacity-100' : 'opacity-50'`，�
 
 ## 验证
 
-运行 `pnpm build`、`pnpm check:bundle`、`pnpm check:routes`；涉及交互时在浏览器检查三个入口、窄屏布局、弹窗与模型预览。检查产物的 JS 与 CSS 实际体积，不能把“使用 Tailwind”当作体积一定变小的结论。
+运行 `pnpm build`、`pnpm check:bundle`、`pnpm check:routes`；涉及交互时在浏览器检查四个入口、窄屏布局、弹窗与模型预览。检查产物的 JS 与 CSS 实际体积，不能把“使用 Tailwind”当作体积一定变小的结论。
 
 官方资料：[Vite 接入](https://tailwindcss.com/docs/installation/using-vite)、[类名扫描](https://tailwindcss.com/docs/detecting-classes-in-source-files)、[Preflight](https://tailwindcss.com/docs/preflight)。

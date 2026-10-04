@@ -1,5 +1,6 @@
 import { categories, stages, licenses, KEY, webUrl, validateLibrary, emptyLibrary, mergeLibrary } from './store.js';
 import { setupPreview } from './preview.js';
+import { SCENE_ASSETS } from '../scene-assets/catalog.js';
 
 const $ = selector => document.querySelector(selector);
 let selectedCategory = 'all';
@@ -15,7 +16,7 @@ const preview = setupPreview({
 function toast(message) { clearTimeout(toastTimeout); $('#toast').textContent = message; $('#toast').hidden = false; toastTimeout = setTimeout(() => { $('#toast').hidden = true; }, 6000); }
 function options(select, values) { for (const [value, label] of Object.entries(values)) select.add(new Option(label, value)); }
 options($('#stage'), stages);
-const tabLabels = { all: '全部', boat: '船艇', prop: '道具', nature: '植被', structure: '建筑', material: '其他' };
+const tabLabels = { all: '全部', boat: '船艇', prop: '道具', nature: '植被', structure: '建筑', material: '其他', scene: '观赏资产' };
 $('#categories').innerHTML = Object.entries(tabLabels).map(([id, label]) => `<button id="tab-${id}" role="tab" aria-controls="model-panel" aria-selected="${id === 'all'}" tabindex="${id === 'all' ? 0 : -1}" data-category="${id}">${label}</button>`).join('');
 function activateCategory(tab) {
   selectedCategory = tab.dataset.category;
@@ -80,8 +81,12 @@ function renderDetail() {
   $('#info-open').disabled = !item;
   if (!item) { $('#reset-view').hidden = $('#wireframe').hidden = true; return; }
   const measured = stats.get(item.id), triangles = measured?.triangles ?? item.triangles;
-  const detailFacts = [ ['文件大小', item.bytes ? (item.bytes / 1048576).toFixed(2) + ' MB' : '—'], ['三角面', triangles != null ? triangles.toLocaleString() : '—'], ['类型', item.path ? 'GLB 模型' : item.kind === 'procedural' ? '程序生成' : '候选链接'] ];
-  $('#detail-content').innerHTML = `<div class="detail-title"><div><span class="detail-kicker">${escape(categories[item.category])} / ${stages[item.stage]}</span><h2>${escape(item.name)}</h2></div><button id="edit">${item.id.startsWith('builtin-') ? '编辑备注' : '编辑收藏'} ↗</button></div><div class="tags">${String(item.tags || '').split(/[,，]/).map(tag => tag.trim()).filter(Boolean).map(tag => `<span>${escape(tag)}</span>`).join('')}${item.aiGenerated ? '<span>来源标记：AI 辅助</span>' : ''}</div><dl class="facts">${detailFacts.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><dl class="provenance"><dt>作者</dt><dd>${escape(item.author || '待补充')}</dd><dt>使用许可</dt><dd>${link(item.licenseUrl, licenses[item.license] || item.license)}${item.license === 'unknown' ? ' · 尚未确认' : ''}</dd><dt>来源</dt><dd>${item.source ? link(item.source, new URL(item.source).hostname) : item.kind === 'procedural' ? '本项目制作' : '待补充原始链接'}</dd><dt>使用位置</dt><dd>${escape(item.usage || '尚未接入场景')}</dd>${item.path || item.code ? `<dt>项目路径</dt><dd>${escape(item.path || item.code)}</dd>` : ''}${measured ? `<dt>模型实测</dt><dd>${measured.meshes} 个网格 · ${measured.materials} 个材质 · ${measured.animations} 段动画</dd>` : ''}</dl><p class="notes">${escape(item.notes || '还没有备注。记下你喜欢它的理由，以及接入前要处理的事项。')}</p>`;
+  const detailFacts = item.kind === 'scene'
+    ? [['类型', '观赏场景'], ['观看方式', '自动巡游']]
+    : [['文件大小', item.bytes ? (item.bytes / 1048576).toFixed(2) + ' MB' : '—'], ['三角面', triangles != null ? triangles.toLocaleString() : '—'], ['类型', item.path ? 'GLB 模型' : item.kind === 'procedural' ? '程序生成' : '候选链接']];
+  const sourceUrl = webUrl(item.source);
+  const sourceLabel = sourceUrl ? new URL(sourceUrl).hostname : item.source || (['procedural', 'scene'].includes(item.kind) ? '本项目制作' : '待补充原始链接');
+  $('#detail-content').innerHTML = `<div class="detail-title"><div><span class="detail-kicker">${escape(categories[item.category])} / ${stages[item.stage]}</span><h2>${escape(item.name)}</h2></div><button id="edit">${item.id.startsWith('builtin-') ? '编辑备注' : '编辑收藏'} ↗</button></div><div class="tags">${String(item.tags || '').split(/[,，]/).map(tag => tag.trim()).filter(Boolean).map(tag => `<span>${escape(tag)}</span>`).join('')}${item.aiGenerated ? '<span>来源标记：AI 辅助</span>' : ''}</div><dl class="facts">${detailFacts.map(([key, value]) => `<div><dt>${key}</dt><dd>${value}</dd></div>`).join('')}</dl><dl class="provenance"><dt>作者</dt><dd>${escape(item.author || '待补充')}</dd><dt>使用许可</dt><dd>${link(item.licenseUrl, licenses[item.license] || item.license)}${item.license === 'unknown' ? ' · 尚未确认' : ''}</dd><dt>来源</dt><dd>${link(sourceUrl, sourceLabel)}</dd><dt>使用位置</dt><dd>${escape(item.usage || '尚未接入场景')}</dd>${item.kind !== 'scene' && (item.path || item.code) ? `<dt>项目路径</dt><dd>${escape(item.path || item.code)}</dd>` : ''}${measured ? `<dt>模型实测</dt><dd>${measured.meshes} 个网格 · ${measured.materials} 个材质 · ${measured.animations} 段动画</dd>` : ''}</dl><p class="notes">${escape(item.notes || '还没有备注。记下你喜欢它的理由，以及接入前要处理的事项。')}</p>`;
   $('#edit').onclick = () => openEditor(item.id);
 }
 function select(id) { const changed = selectedId !== id; selectedId = id; renderList(); renderDetail(); if (changed) preview.select(records().find(item => item.id === id)); }
@@ -163,7 +168,7 @@ async function init() {
     const fetchJson = async path => { const response = await fetch(new URL(path, document.baseURI)); if (!response.ok) throw new Error('清单读取失败'); return response.json(); };
     const [catalog, swamp] = await Promise.all([fetchJson('../assets/library/catalog.json'), fetchJson('../assets/swamp/asset-manifest.json')]);
     retiredAssets = catalog.retiredAssets || [];
-    builtins = [catalog.assets[0], ...swamp.assets.map(item => ({ ...item, id: 'builtin-' + item.id, category: item.role === 'boat' ? 'boat' : 'nature', stage: 'integrated', kind: 'model', usage: item.role === 'boat' ? '月下湿地 · 探索艇' : '月下湿地 · 岸景', tags: item.tags || (item.role === 'boat' ? '探索艇, 湿地' : '自然, 湿地, 岸景'), notes: item.changes.join('\n'), favorite: false })), ...catalog.assets.slice(1)];
+    builtins = [catalog.assets[0], ...swamp.assets.map(item => ({ ...item, id: 'builtin-' + item.id, category: item.role === 'boat' ? 'boat' : 'nature', stage: 'integrated', kind: 'model', usage: item.usage || (item.role === 'boat' ? '月下湿地 · 探索艇' : '月下湿地 · 岸景'), tags: item.tags || (item.role === 'boat' ? '探索艇, 湿地' : '自然, 湿地, 岸景'), notes: item.changes.join('\n'), favorite: false })), ...catalog.assets.slice(1), ...SCENE_ASSETS];
     select(builtins[0]?.id || library.candidates[0]?.id || null);
   } catch { $('#preview-message').textContent = '项目素材清单加载失败，请刷新重试。'; toast('项目清单读取失败；个人收藏仍可使用。'); select(library.candidates[0]?.id || null); }
 }

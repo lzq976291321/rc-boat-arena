@@ -1,0 +1,13 @@
+@import "../shared/styles/tailwind.css";
+@import "../shared/viewing/page.css";
+@source "../../cove/index.html";
+@source "./*.js";
+@source "../shared/viewing/page.js";
+
+@layer components {
+  :root { --view-text: #fff9eb; --view-bg: #87beb9; --view-muted: #e4eadb; --gold: #ffdfae; --view-panel: #174f51cc; --view-solid: #174c50; --view-active: #f4dfb82e; --view-option: #174c50; }
+  .vignette { background: linear-gradient(180deg, #183e4c22, transparent 14%, transparent 78%, #12474518); box-shadow: none; }
+  .wordmark { text-shadow: 0 1px 6px #12343d80; }
+  .scene-caption { text-shadow: 0 2px 22px #154647; }
+  .status-dot { background: #ffe1ac; box-shadow: 0 0 10px #ffdda044; }
+}

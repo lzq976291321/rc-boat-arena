@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="zh-CN">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#eceee8"><meta name="description" content="RC Boat Arena 的船艇与场景素材库。收藏、筛选、检查模型，为下一片风景挑选素材。"><title>素材库 · RC Boat Arena</title><link rel="stylesheet" href="../src/library/style.css"></head>
+<head>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg" /><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#eceee8"><meta name="description" content="RC Boat Arena 的船艇与场景素材库。收藏、筛选、检查模型，为下一片风景挑选素材。"><title>素材库 · RC Boat Arena</title><link rel="stylesheet" href="../src/library/style.css"></head>
 <body>
 <main class="viewer-shell relative h-dvh min-h-[360px] overflow-hidden">
   <header class="topbar">
@@ -8,12 +9,12 @@
     <div id="categories" class="tabs" role="tablist" aria-label="素材分类"></div>
     <div class="header-actions ml-auto flex gap-2"><button id="add" aria-label="收藏素材" title="收藏素材">＋</button><button id="manage-open" aria-label="管理收藏" title="管理收藏">⋯</button></div>
   </header>
-  <section id="model-panel" class="model-panel" role="tabpanel" aria-label="模型预览">
+  <section id="model-panel" class="model-panel" role="tabpanel" aria-label="素材预览">
     <div id="viewport" class="absolute inset-0"></div><button id="load-preview" class="primary" hidden>重试预览</button><div id="preview-message" role="status">加载中…</div>
     <div id="empty" class="empty" hidden><p>暂无素材</p><button id="clear-filters">查看全部</button></div>
   </section>
   <div class="view-tools"><button id="reset-view" aria-label="重置视角" title="重置视角">↺</button><button id="wireframe" hidden aria-pressed="false">线框</button><button id="info-open" aria-label="素材信息" title="素材信息">ⓘ</button></div>
-  <footer class="collection"><div class="model-heading"><h2 id="model-name"></h2><span id="count"></span></div><div id="list" class="asset-list" aria-label="切换模型"></div></footer>
+  <footer class="collection"><div class="model-heading"><h2 id="model-name"></h2><span id="count"></span></div><div id="list" class="asset-list" aria-label="切换素材"></div></footer>
 </main>
 <dialog id="info"><button class="dialog-close" data-close="info" aria-label="关闭素材信息">×</button><div id="detail-content"></div></dialog>
 <dialog id="manage"><div class="dialog-heading"><h2>管理收藏</h2><button data-close="manage" aria-label="关闭管理">×</button></div>

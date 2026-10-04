@@ -1,5 +1,5 @@
 export const KEY = 'rc-asset-library-v1';
-export const categories = { boat: '船艇', prop: '道具', nature: '自然植被', structure: '场景建筑', material: '材质 / 其他' };
+export const categories = { boat: '船艇', prop: '道具', nature: '自然植被', structure: '场景建筑', material: '材质 / 其他', scene: '观赏资产' };
 export const stages = { candidate: '待筛选', shortlist: '已优选', ready: '待接入', integrated: '已接入' };
 export const licenses = { unknown: '待确认', 'CC0-1.0': 'CC0', 'CC-BY-4.0': 'CC BY 4.0', purchased: '已购许可', custom: '自定义许可' };
 export function webUrl(value) {

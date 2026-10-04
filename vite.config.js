@@ -3,13 +3,13 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [tailwindcss()],
-  // Relative URLs preserve DSH's /rc-boat-arena/ mount and all three page routes.
+  // Relative URLs preserve DSH's /rc-boat-arena/ mount and all four page routes.
   base: './',
   build: {
     outDir: 'dist', assetsDir: 'assets', target: 'es2020', sourcemap: false,
     manifest: true,
     rollupOptions: {
-      input: { arena: 'index.html', swamp: 'swamp/index.html', library: 'library/index.html' },
+      input: { arena: 'index.html', swamp: 'swamp/index.html', cove: 'cove/index.html', library: 'library/index.html' },
       output: {
         // Do not pull lazy dependencies into an eager vendor chunk.
         onlyExplicitManualChunks: true,

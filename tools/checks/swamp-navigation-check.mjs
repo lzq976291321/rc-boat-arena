@@ -5,7 +5,7 @@ import {
   createNavigation,
   stepNavigation,
   resetNavigation,
-} from "../../src/swamp/navigation.js";
+} from "../../src/scene-assets/moonwater/navigation.js";
 
 const run = (state, command, seconds, hz = 60) => {
   for (let i = 0; i < Math.round(seconds * hz); i++)

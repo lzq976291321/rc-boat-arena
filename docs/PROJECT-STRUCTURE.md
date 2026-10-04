@@ -8,6 +8,7 @@
 rc-boat-arena/
 ├── index.html                  竞速页面入口，对应 /
 ├── swamp/index.html            湿地页面入口，对应 /swamp/
+├── cove/index.html             晴湾页面入口，对应 /cove/
 ├── library/index.html          素材库页面入口，对应 /library/
 ├── src/                        浏览器运行代码
 │   ├── arena/                  松岚湖竞速
@@ -15,16 +16,24 @@ rc-boat-arena/
 │   │   ├── gameplay/           参数、赛道、物理、比赛、AI、回放、成绩
 │   │   ├── rendering/          船体、湖景、水面、道具、镜头
 │   │   └── ui/                 输入、界面和样式
-│   ├── swamp/                  湿地探索：航行、景观、水面、声音和页面
-│   ├── library/                素材库：收藏数据、异步预览、界面和样式
+│   ├── swamp/                  湿地观赏页面组装与样式
+│   ├── cove/                   晴湾观赏页面组装与暖浅海样式
+│   ├── scene-assets/           可独立消费的观赏资产
+│   │   ├── catalog.js          纯元数据，不依赖渲染引擎
+│   │   ├── moonwater/          湿地场景、岸景、水面、船艇、镜头与巡游
+│   │   ├── sunny-cove/         浅海湾场景、船坞组合、水面、船艇、镜头与靠泊巡游
+│   │   └── boat-water-interaction/ 船体浮态、共享波谱与船水尾流
+│   ├── library/                素材库：收藏数据、模型/观赏异步预览、界面和样式
 │   └── shared/                 已被多个功能实际使用的基础能力
 │       ├── assets/             模型字节缓存、请求去重、GLTF 异步加载
-│       ├── input/              竞速与湿地共用的移动端摇杆
+│       ├── input/              移动端驾驶摇杆，当前竞速使用
 │       ├── rendering/          资源释放与画布像素预算
-│       └── styles/             三个页面共用的 Tailwind 构建入口
+│       ├── viewing/            观赏 Canvas 宿主、页面行为/样式、水声和复用效果
+│       └── styles/             四个页面共用的 Tailwind 构建入口
 ├── public/                     原样复制到发布目录的公开资源
 │   └── assets/
 │       ├── swamp/              湿地模型、来源说明和 manifest
+│       ├── cove/               晴湾来源说明和 manifest；模型复用原有公开路径
 │       └── library/            项目素材目录、公开接入说明
 ├── tools/                      开发时执行的工具，不进入网站运行代码
 │   ├── checks/                 可重复执行的正式回归、模拟和路由检查
@@ -58,9 +67,12 @@ rc-boat-arena/
 | 改船的加速、碰撞、赛制或 AI | `src/arena/gameplay/` | 保持可在 Node 中运行的纯逻辑；成绩存储只在调用时访问浏览器存储 |
 | 改船外观、水面、岸景或镜头 | `src/arena/rendering/` | 负责 Three.js 对象，不把 DOM 界面放在这里 |
 | 改按键、触屏、HUD 或竞速页面样式 | `src/arena/ui/` | 输入采集与玩法计算分开 |
-| 改两个场地共用的触屏摇杆 | `src/shared/input/` | 共用触控、回中和样式；场地负责启停与转向坐标映射 |
-| 改湿地探索 | `src/swamp/` | 只服务湿地；模块较少，当前不继续拆目录 |
-| 改收藏、过滤、备份或模型预览 | `src/library/` | 收藏元数据与模型文件分别管理 |
+| 改触屏驾驶摇杆 | `src/shared/input/` | 触控、回中和样式；使用方负责启停与转向坐标映射 |
+| 改湿地或晴湾观赏页面 | `src/swamp/`、`src/cove/` | 页面只传配置和维护样式；共同操作使用 `shared/viewing/page.js`，通过观赏资产 API 控制画面 |
+| 改可复用的观赏画面与运镜 | `src/scene-assets/<资产名>/` | 场景与 Canvas 工厂分开；子模块暴露独立工厂，明确资源所有权和释放责任 |
+| 改多个观赏场景共同使用的能力 | `src/shared/viewing/` | 当前真实复用的 Canvas/页面宿主、声音和效果；场景差异由配置或独立工厂提供 |
+| 登记观赏资产 | `src/scene-assets/catalog.js` | 只放元数据，保留作者与组合许可，不静态依赖 Three.js |
+| 改收藏、过滤、备份或素材预览 | `src/library/` | 收藏元数据与运行资产分别管理；模型和观赏预览互斥，切换取消旧请求 |
 | 修改跨场景加载或渲染基础能力 | `src/shared/assets/`、`src/shared/rendering/` | 至少有真实消费者；说明缓存上限、资源所有权和释放方式 |
 | 调整 Tailwind 接入与样式约定 | `src/shared/styles/`、`docs/STYLING.md` | 页面分别声明扫描范围；普通布局用工具类，重复组件可用 `@apply` |
 | 接入可公开发布的模型和纹理 | `public/assets/<用途>/` | 登记来源、许可、尺寸、面数、字节数和加工记录；用户明确删除的资产同步清理运行引用 |
@@ -73,9 +85,11 @@ rc-boat-arena/
 
 ## 依赖与规模
 
-- HTML 入口只承载对应页面结构，行为代码在 `src/`；三个公开入口与现有模型 URL 保持稳定。
+- HTML 入口只承载对应页面结构，行为代码在 `src/`；四个公开入口与现有模型 URL 保持稳定。
 - `main.js` 负责组装模块；`gameplay/` 不依赖 `rendering/` 或 `ui/`。渲染、界面可以读取玩法参数与状态。
-- 湿地、竞速、素材库分别维护，通过 `shared/` 复用加载、缓存、资源释放与像素预算；共享层不反向依赖业务模块。素材库预览程序道具直接动态复用竞速的构造函数，不复制模型实现。新共享代码必须有真实消费者，不预建空服务层。
+- 湿地页、晴湾页分别与素材库消费同一份 `scene-assets/moonwater` 和 `scene-assets/sunny-cove`，不复制观赏画面实现；Canvas 工厂负责完整观赏生命周期，场景工厂允许已有 renderer 组合，独立镜头工厂接受调用方的 camera 与水道边界。接入方式见 [观赏资产](design/VIEWING-ASSETS.md)。
+- 竞速、观赏资产与素材库通过 `shared/` 复用加载、缓存、资源释放与像素预算；共享层不反向依赖业务模块。素材库预览程序道具直接动态复用竞速的构造函数。新共享代码必须有真实消费者，不预建空服务层。
+- 素材列表和观赏资产元数据不静态引入 Three.js。静态 GLB 预览按需绘制；观赏预览仅在可见且前台时持续动画，关闭时释放所属资源。查看、镜头切换与预览不写服务器。
 - 一个目录直接包含的代码文件以 3–8 个为宜。超过 10 个时先按具体职责拆分；不要只按文件扩展名机械分组。
 - `public/` 不是素材收件箱；`artifacts/` 不是运行资源；`dist/` 不是源码。收藏、成绩在浏览器存储，JSON 导出文件是用户备份，不是默认项目配置。
 - 根目录只放网页主入口、项目配置和维护入口文档；新的报告、脚本、模型均放入职责目录。
@@ -89,10 +103,13 @@ pnpm check:gameplay
 pnpm check:physics
 pnpm check:sim
 pnpm check:swamp
+pnpm check:viewing
+pnpm check:cove
+pnpm check:contact
 pnpm build
 pnpm check:routes
 pnpm check:assets
 pnpm check:bundle
 ```
 
-涉及 HTML 或渲染入口时，再用浏览器打开 `/`、`/swamp/`、`/library/` 检查页面、模型与控制台。构建通过、浏览器验收、提交推送与上线部署分别记录。
+涉及 HTML 或渲染入口时，再用浏览器打开 `/`、`/swamp/`、`/cove/`、`/library/` 检查页面、模型与控制台。构建通过、浏览器验收、提交推送与上线部署分别记录。

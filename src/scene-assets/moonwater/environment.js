@@ -1,53 +1,15 @@
 import * as THREE from "three";
-import { loadGLTF } from '../shared/assets/gltf.js';
+import { loadGLTF } from '../../shared/assets/gltf.js';
 
-import { disposeObjects } from "../shared/rendering/resources.js";
+import { disposeObjects } from "../../shared/rendering/resources.js";
+import { riverCenter } from "./navigation.js";
+export { riverCenter } from "./navigation.js";
 
-export const riverCenter = (z) =>
-  Math.sin(z * 0.018) * 12 + Math.sin(z * 0.045) * 3;
 export const riverHalfWidth = (z) =>
   20 + Math.sin(z * 0.027 + 0.4) * 1.1 + Math.sin(z * 0.071) * 0.6;
 
-export const MOODS = {
-  moonlight: {
-    name: "moonlight",
-    fogColor: "#304b53",
-    fogDensity: 0.0089,
-    waterColor: "#123a3e",
-    exposure: 1.12,
-    zenith: "#081426",
-    horizon: "#486469",
-    moonDirection: [-0.18, 0.24, -0.92],
-    lightColor: "#d2e8eb",
-    lightIntensity: 1.65,
-    hemisphere: "#8caebc",
-    ground: "#101d1e",
-    fillIntensity: 0.64,
-    moon: 1,
-    cloud: 0.64,
-    ambientIntensity: 0.09,
-    environmentIntensity: 0.43,
-  },
-  dawn: {
-    name: "dawn",
-    fogColor: "#829895",
-    fogDensity: 0.0053,
-    waterColor: "#486e6b",
-    exposure: 1.0,
-    zenith: "#4c7798",
-    horizon: "#e6c0a0",
-    moonDirection: [-0.48, 0.26, -0.84],
-    lightColor: "#ffdaad",
-    lightIntensity: 2.5,
-    hemisphere: "#bbd7e2",
-    ground: "#374c3c",
-    fillIntensity: 0.9,
-    moon: 0,
-    cloud: 0.48,
-    ambientIntensity: 0.12,
-    environmentIntensity: 0.72,
-  },
-};
+import { MOODS, MOOD_TRANSITION_SECONDS } from "./presets.js";
+export { MOODS } from "./presets.js";
 
 function randomFrom(seed) {
   let state = seed >>> 0;
@@ -370,43 +332,53 @@ function fallbackTree(seed, leafTexture) {
   ];
 }
 
-async function loadTreeParts(url) {
-  const gltf = await loadGLTF(url);
-  gltf.scene.updateMatrixWorld(true);
-  const bounds = new THREE.Box3().setFromObject(gltf.scene, true),
-    size = bounds.getSize(new THREE.Vector3());
-  const center = bounds.getCenter(new THREE.Vector3());
-  if (size.y <= 0 || !Number.isFinite(size.y))
-    throw new Error("Tree asset has invalid bounds");
-  const normalize = new THREE.Matrix4()
-    .makeScale(1 / size.y, 1 / size.y, 1 / size.y)
-    .multiply(
-      new THREE.Matrix4().makeTranslation(-center.x, -bounds.min.y, -center.z),
-    );
+async function loadTreeParts(url, signal) {
+  const gltf = await loadGLTF(url, { signal });
   const parts = [];
-  gltf.scene.traverse((mesh) => {
-    if (!mesh.isMesh || mesh.isSkinnedMesh) return;
-    const geometry = mesh.geometry
-      .clone()
-      .applyMatrix4(normalize.clone().multiply(mesh.matrixWorld));
-    const material = Array.isArray(mesh.material)
-      ? mesh.material.map((m) => m.clone())
-      : mesh.material.clone();
-    for (const mat of Array.isArray(material) ? material : [material]) {
-      if (mat.alphaTest > 0 || /leaf|foliage|leaves/i.test(mat.name)) {
-        mat.side = THREE.DoubleSide;
-        mat.alphaTest = Math.max(0.35, mat.alphaTest);
-        mat.transparent = false;
+  // Cloned materials still share the imported textures. Retain all textures,
+  // including unused GLTF scenes, until their single owner releases the asset.
+  parts.sourceTextures = new Set();
+  try {
+    for (const root of gltf.scenes) root.traverse((mesh) => {
+      for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+        for (const value of Object.values(material ?? {}))
+          if (value?.isTexture) parts.sourceTextures.add(value);
       }
-    }
-    parts.push({
-      geometry,
-      material,
-      foliage: /leaf|foliage|leaves/i.test(mesh.name),
     });
-  });
-  disposeObjects(gltf.scenes, { textures: false });
-  return parts;
+    gltf.scene.updateMatrixWorld(true);
+    const bounds = new THREE.Box3().setFromObject(gltf.scene, true),
+      size = bounds.getSize(new THREE.Vector3());
+    const center = bounds.getCenter(new THREE.Vector3());
+    if (size.y <= 0 || !Number.isFinite(size.y))
+      throw new Error("Tree asset has invalid bounds");
+    const normalize = new THREE.Matrix4()
+      .makeScale(1 / size.y, 1 / size.y, 1 / size.y)
+      .multiply(
+        new THREE.Matrix4().makeTranslation(-center.x, -bounds.min.y, -center.z),
+      );
+    gltf.scene.traverse((mesh) => {
+      if (!mesh.isMesh || mesh.isSkinnedMesh) return;
+      const geometry = mesh.geometry
+        .clone()
+        .applyMatrix4(normalize.clone().multiply(mesh.matrixWorld));
+      const material = Array.isArray(mesh.material)
+        ? mesh.material.map((m) => m.clone())
+        : mesh.material.clone();
+      parts.push({ geometry, material, foliage: /leaf|foliage|leaves/i.test(mesh.name) });
+      for (const mat of Array.isArray(material) ? material : [material]) {
+        if (mat.alphaTest > 0 || /leaf|foliage|leaves/i.test(mat.name)) {
+          mat.side = THREE.DoubleSide;
+          mat.alphaTest = Math.max(0.35, mat.alphaTest);
+          mat.transparent = false;
+        }
+      }
+    });
+    disposeObjects(gltf.scenes, { textures: false });
+    return parts;
+  } catch (error) {
+    disposeObjects([...gltf.scenes, ...parts.map(part => new THREE.Mesh(part.geometry, part.material))]);
+    throw error;
+  }
 }
 
 function placeTrees(group, variants, quality, colliders, importedCount = 0) {
@@ -493,12 +465,14 @@ function placeTrees(group, variants, quality, colliders, importedCount = 0) {
   return positions;
 }
 
-async function placeGroundAsset(group, url, kind, quality, warnings) {
+async function placeGroundAsset(group, url, kind, quality, warnings, signal, ownParts) {
   if (!url) return;
   let parts;
   try {
-    parts = await loadTreeParts(url);
+    parts = await loadTreeParts(url, signal);
+    ownParts(parts);
   } catch (error) {
+    if (signal?.aborted) throw error;
     warnings.push(
       `${kind} unavailable: ${error instanceof Error ? error.message : String(error)}`,
     );
@@ -818,132 +792,189 @@ function createEnvironmentMap(preset) {
 /** Self-contained scenery. Geometry stays outside the navigable river corridor. */
 export async function createEnvironment(
   scene,
-  { renderer, quality = "balanced", assets = {} } = {},
+  { renderer, quality = "balanced", assets = {}, signal, mood: initialMood = "moonlight" } = {},
 ) {
-  const previous = {
-    fog: scene.fog,
-    environment: scene.environment,
-    environmentIntensity: scene.environmentIntensity,
-  };
+  signal?.throwIfAborted();
+  if (!Object.hasOwn(MOODS, initialMood)) throw new Error(`Unknown swamp mood: ${initialMood}`);
   const group = new THREE.Group();
-  group.name = "Stillwater swamp environment";
-  scene.add(group);
-  const colliders = [],
-    warnings = [],
-    sky = createSky();
-  group.add(sky.mesh);
-  createBanks(group);
-  const leafTexture = createLeafTexture();
-  const treeUrls = assets.treeUrls ?? (assets.treeUrl ? [assets.treeUrl] : []);
-  const variants = [];
-  for (const url of treeUrls.slice(0, 3)) {
-    try {
-      const parts = await loadTreeParts(url);
-      if (parts.length) variants.push(parts);
-    } catch (error) {
-      warnings.push(
-        `Tree asset unavailable: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    }
-  }
-  const importedCount = variants.length,
-    importedTrees = importedCount > 0;
-  for (let i = 0; i < 3; i++)
-    variants.push(fallbackTree(523 + i * 151, leafTexture));
-  const trees = placeTrees(group, variants, quality, colliders, importedCount);
-  createUnderstory(group, quality);
-  createShoreDetails(group, trees, quality);
-  await Promise.all([
-    placeGroundAsset(group, assets.deadTreeUrl, "log", quality, warnings),
-    placeGroundAsset(group, assets.fernUrl, "fern", quality, warnings),
-  ]);
-  const mistMaterial = createMist(group);
-  const sun = new THREE.DirectionalLight();
-  sun.castShadow = true;
-  sun.shadow.mapSize.setScalar(quality === "low" ? 1024 : 2048);
-  sun.shadow.camera.left = sun.shadow.camera.bottom = -42;
-  sun.shadow.camera.right = sun.shadow.camera.top = 42;
-  sun.shadow.camera.near = 1;
-  sun.shadow.camera.far = 380;
-  sun.shadow.bias = -0.00015;
-  sun.shadow.normalBias = 0.035;
-  sun.shadow.radius = 2;
-  const hemi = new THREE.HemisphereLight(),
-    ambient = new THREE.AmbientLight();
-  group.add(sun, sun.target, hemi, ambient);
-  if (renderer) {
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-  }
-  const environmentMaps = Object.fromEntries(
-    Object.entries(MOODS).map(([name, preset]) => [
-      name,
-      createEnvironmentMap(preset),
-    ]),
-  );
-  const direction = new THREE.Vector3(),
-    target = new THREE.Vector3();
-  let mood = "moonlight";
-  const setMood = (name) => {
-    if (!(name in MOODS)) throw new Error(`Unknown swamp mood: ${name}`);
-    mood = name;
-    const preset = MOODS[name];
-    scene.fog = new THREE.FogExp2(preset.fogColor, preset.fogDensity);
-    scene.environment = environmentMaps[name];
-    scene.environmentIntensity = preset.environmentIntensity;
-    direction.fromArray(preset.moonDirection).normalize();
-    sky.material.uniforms.uZenith.value.set(preset.zenith);
-    sky.material.uniforms.uHorizon.value.set(preset.horizon);
-    sky.material.uniforms.uMoonDir.value.copy(direction);
-    sky.material.uniforms.uMoon.value = preset.moon;
-    sky.material.uniforms.uCloud.value = preset.cloud;
-    sun.color.set(preset.lightColor);
-    sun.intensity = preset.lightIntensity;
-    hemi.color.set(preset.hemisphere);
-    hemi.groundColor.set(preset.ground);
-    hemi.intensity = preset.fillIntensity;
-    ambient.color.set(preset.hemisphere);
-    ambient.intensity = preset.ambientIntensity;
-    mistMaterial.uniforms.uColor.value.set(preset.fogColor);
-    mistMaterial.uniforms.uOpacity.value = name === "moonlight" ? 0.26 : 0.17;
-    return preset;
+  group.name = "Moonwater wetland landscape";
+  const colliders = [], warnings = [], prototypes = [], ownedTextures = new Set();
+  const environmentMaps = {};
+  let previous, sun, disposed = false;
+  let lastExposure, lastEnvironmentIntensity;
+  const ownParts = (parts) => {
+    for (const part of parts) prototypes.push(new THREE.Mesh(part.geometry, part.material));
+    for (const texture of parts.sourceTextures ?? []) ownedTextures.add(texture);
+    return parts;
   };
-  const update = (dt, time, boat) => {
-    sky.material.uniforms.uTime.value = time;
-    mistMaterial.uniforms.uTime.value = time;
-    const x = boat?.x ?? boat?.position?.x ?? 0,
-      z = boat?.z ?? boat?.position?.z ?? 25;
-    target.set(Math.round(x * 16) / 16, 1.2, Math.round((z - 12) * 16) / 16);
-    sun.target.position.copy(target);
-    sun.position.copy(target).addScaledVector(direction, 210);
-    sun.target.updateMatrixWorld();
-  };
-  setMood("moonlight");
-  update(0, 0, { x: riverCenter(25), z: 25 });
+  const fog = new THREE.FogExp2();
   const dispose = () => {
-    disposeObjects(group, { extraTextures: [leafTexture, ...Object.values(environmentMaps)] });
-    sun.shadow.map?.dispose();
+    if (disposed) return;
+    disposed = true;
+    signal?.removeEventListener("abort", dispose);
     group.removeFromParent();
-    scene.fog = previous.fog;
-    scene.environment = previous.environment;
-    scene.environmentIntensity = previous.environmentIntensity;
+    // Only restore values still owned by this asset; never dispose caller resources.
+    if (previous) {
+      if (scene.fog === fog) scene.fog = previous.fog;
+      if (Object.values(environmentMaps).includes(scene.environment)) {
+        scene.environment = previous.environment;
+        if (scene.environmentIntensity === lastEnvironmentIntensity)
+          scene.environmentIntensity = previous.environmentIntensity;
+      }
+      if (renderer) {
+        if (renderer.toneMappingExposure === lastExposure)
+          renderer.toneMappingExposure = previous.exposure;
+        if (renderer.shadowMap.type === THREE.PCFSoftShadowMap)
+          renderer.shadowMap.type = previous.shadowType;
+        if (renderer.shadowMap.enabled) renderer.shadowMap.enabled = previous.shadows;
+      }
+    }
+    disposeObjects([group, ...prototypes], {
+      extraTextures: [...ownedTextures, ...Object.values(environmentMaps)],
+    });
+    sun?.shadow.dispose();
+    group.clear();
+    prototypes.length = 0;
+    ownedTextures.clear();
   };
-  return {
-    group,
-    sky,
-    lights: { sun, hemi, ambient },
-    colliders,
-    trees,
-    importedTrees,
-    warnings,
-    update,
-    setMood,
-    dispose,
-    get mood() {
-      return mood;
-    },
-    get preset() {
-      return MOODS[mood];
-    },
-  };
+  try {
+    const sky = createSky();
+    group.add(sky.mesh);
+    createBanks(group);
+    const leafTexture = createLeafTexture();
+    ownedTextures.add(leafTexture);
+    const treeUrls = assets.treeUrls ?? (assets.treeUrl ? [assets.treeUrl] : []);
+    const variants = [];
+    for (const url of treeUrls.slice(0, 3)) {
+      try {
+        const parts = ownParts(await loadTreeParts(url, signal));
+        if (parts.length) variants.push(parts);
+      } catch (error) {
+        if (signal?.aborted) throw error;
+        warnings.push(`Tree asset unavailable: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
+    const importedCount = variants.length, importedTrees = importedCount > 0;
+    for (let i = 0; i < 3; i++) variants.push(ownParts(fallbackTree(523 + i * 151, leafTexture)));
+    const trees = placeTrees(group, variants, quality, colliders, importedCount);
+    createUnderstory(group, quality);
+    createShoreDetails(group, trees, quality);
+    // Settle every independent load before cleanup, so no late result can attach
+    // geometry to an already disposed landscape.
+    const groundResults = await Promise.allSettled([
+      placeGroundAsset(group, assets.deadTreeUrl, "log", quality, warnings, signal, ownParts),
+      placeGroundAsset(group, assets.fernUrl, "fern", quality, warnings, signal, ownParts),
+    ]);
+    signal?.throwIfAborted();
+    for (const result of groundResults) if (result.status === "rejected") throw result.reason;
+    const mistMaterial = createMist(group);
+    sun = new THREE.DirectionalLight();
+    sun.castShadow = true;
+    sun.shadow.mapSize.setScalar(quality === "low" ? 1024 : 2048);
+    sun.shadow.camera.left = sun.shadow.camera.bottom = -42;
+    sun.shadow.camera.right = sun.shadow.camera.top = 42;
+    sun.shadow.camera.near = 1;
+    sun.shadow.camera.far = 380;
+    sun.shadow.bias = -0.00015;
+    sun.shadow.normalBias = 0.035;
+    sun.shadow.radius = 2;
+    const hemi = new THREE.HemisphereLight(), ambient = new THREE.AmbientLight();
+    group.add(sun, sun.target, hemi, ambient);
+    for (const [name, preset] of Object.entries(MOODS)) environmentMaps[name] = createEnvironmentMap(preset);
+    // Capture caller state only when mounting, after asynchronous work is done.
+    previous = {
+      fog: scene.fog,
+      environment: scene.environment,
+      environmentIntensity: scene.environmentIntensity,
+      exposure: renderer?.toneMappingExposure,
+      shadows: renderer?.shadowMap.enabled,
+      shadowType: renderer?.shadowMap.type,
+    };
+    scene.add(group);
+    scene.fog = fog;
+    if (renderer) {
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    }
+    const direction = new THREE.Vector3(), target = new THREE.Vector3();
+    const skyUniforms = sky.material.uniforms;
+    let mood = initialMood, elapsed = MOOD_TRANSITION_SECONDS, from, to;
+    const colorFields = ["fogColor", "zenith", "horizon", "lightColor", "hemisphere", "ground"];
+    const scalarFields = ["fogDensity", "exposure", "lightIntensity", "fillIntensity", "moon", "cloud", "ambientIntensity", "environmentIntensity", "mistOpacity"];
+    const current = {};
+    for (const field of colorFields) current[field] = new THREE.Color(MOODS[initialMood][field]);
+    for (const field of scalarFields) current[field] = MOODS[initialMood][field];
+    current.direction = new THREE.Vector3().fromArray(MOODS[initialMood].moonDirection).normalize();
+    const apply = (progress) => {
+      for (const field of colorFields) current[field].lerpColors(from[field], to[field], progress);
+      for (const field of scalarFields) current[field] = THREE.MathUtils.lerp(from[field], to[field], progress);
+      current.direction.lerpVectors(from.direction, to.direction, progress).normalize();
+      fog.color.copy(current.fogColor);
+      fog.density = current.fogDensity;
+      lastEnvironmentIntensity = current.environmentIntensity;
+      scene.environmentIntensity = lastEnvironmentIntensity;
+      if (progress >= 0.5) scene.environment = environmentMaps[mood];
+      direction.copy(current.direction);
+      skyUniforms.uZenith.value.copy(current.zenith);
+      skyUniforms.uHorizon.value.copy(current.horizon);
+      skyUniforms.uMoonDir.value.copy(direction);
+      skyUniforms.uMoon.value = current.moon;
+      skyUniforms.uCloud.value = current.cloud;
+      sun.color.copy(current.lightColor);
+      sun.intensity = current.lightIntensity;
+      hemi.color.copy(current.hemisphere);
+      hemi.groundColor.copy(current.ground);
+      hemi.intensity = current.fillIntensity;
+      ambient.color.copy(current.hemisphere);
+      ambient.intensity = current.ambientIntensity;
+      mistMaterial.uniforms.uColor.value.copy(current.fogColor);
+      mistMaterial.uniforms.uOpacity.value = current.mistOpacity;
+      if (renderer) {
+        lastExposure = current.exposure;
+        renderer.toneMappingExposure = lastExposure;
+      }
+    };
+    const setMood = (name, { immediate = false } = {}) => {
+      if (!Object.hasOwn(MOODS, name)) throw new Error(`Unknown swamp mood: ${name}`);
+      const preset = MOODS[name];
+      if (disposed) return preset;
+      mood = name;
+      from = { ...current, direction: current.direction.clone() };
+      to = { ...preset, direction: new THREE.Vector3().fromArray(preset.moonDirection).normalize() };
+      for (const field of colorFields) {
+        from[field] = current[field].clone();
+        to[field] = new THREE.Color(preset[field]);
+      }
+      elapsed = immediate ? MOOD_TRANSITION_SECONDS : 0;
+      if (immediate) apply(1);
+      return preset;
+    };
+    const update = (dt, time, boat) => {
+      if (disposed) return;
+      if (elapsed < MOOD_TRANSITION_SECONDS) {
+        elapsed = Math.min(MOOD_TRANSITION_SECONDS, elapsed + Math.max(0, dt));
+        const progress = elapsed / MOOD_TRANSITION_SECONDS;
+        apply(progress * progress * (3 - 2 * progress));
+      }
+      skyUniforms.uTime.value = time;
+      mistMaterial.uniforms.uTime.value = time;
+      const x = boat?.x ?? boat?.position?.x ?? 0, z = boat?.z ?? boat?.position?.z ?? 25;
+      target.set(Math.round(x * 16) / 16, 1.2, Math.round((z - 12) * 16) / 16);
+      sun.target.position.copy(target);
+      sun.position.copy(target).addScaledVector(direction, 210);
+      sun.target.updateMatrixWorld();
+    };
+    setMood(initialMood, { immediate: true });
+    update(0, 0, { x: riverCenter(25), z: 25 });
+    signal?.addEventListener("abort", dispose, { once: true });
+    return {
+      group, sky, lights: { sun, hemi, ambient }, colliders, trees,
+      importedTrees, warnings, update, setMood, dispose,
+      get mood() { return mood; },
+      get preset() { return MOODS[mood]; },
+    };
+  } catch (error) {
+    dispose();
+    throw error;
+  }
 }

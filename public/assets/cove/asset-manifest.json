@@ -1,0 +1,162 @@
+{
+  "version": 1,
+  "scene": "sunny-cove",
+  "assets": [
+    {
+      "name": "Riva Aquarama · 经典木质快艇",
+      "path": "/assets/library/riva-aquarama/model.glb",
+      "author": "Anton Kovalev",
+      "license": "CC-BY-4.0",
+      "source": "https://sketchfab.com/3d-models/riva-aquarama-lamborghini-9d5716a2ab6645b9a1452f1d6b0372ef",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "bytes": 3169824,
+      "triangles": 4458,
+      "sha256": "7a8597cad5aa8d579f2debd2f708ccac0ee37e56e24e2748c6a348ca650a7aea",
+      "id": "riva-aquarama",
+      "role": "boat",
+      "changes": [
+        "GLB 文件不变；独立挂载层将 +X 船首旋转到 -Z，等比缩放为 2.4 米，默认吃水 0.11 米且可配置。",
+        "保留原始 UV、贴图与 ORM 分区，运行时为木材增加清漆，调整镀铬、皮革与独立风挡材质。"
+      ],
+      "usage": "晴湾船坞 · 观赏船艇"
+    },
+    {
+      "name": "Modular Wooden Pier · 做旧木码头",
+      "path": "/assets/library/modular-wooden-pier/model.glb",
+      "author": "Rico Cilliers",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/modular_wooden_pier",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 7833500,
+      "triangles": 84780,
+      "sha256": "d601cf30319b985bef3cc14facafaff166160ceffb824debcebf567de92e2044",
+      "id": "modular-wooden-pier",
+      "role": "environment",
+      "changes": [
+        "GLB 文件不变；仅选择 modular_wooden_pier_planks 节点，加厚板边后构建三段码头。",
+        "支柱与梁使用程序生成的木纹、水线风化和端木年轮；增加帆布缝边、绳索、金属连接件等自有几何。"
+      ],
+      "usage": "晴湾船坞 · 码头与岸景"
+    },
+    {
+      "name": "掉漆木长椅",
+      "path": "/assets/library/painted-wooden-bench/model.glb",
+      "author": "Kirill Sannikov",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/painted_wooden_bench",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 1988600,
+      "triangles": 630,
+      "sha256": "01366dba8fbdea38c2945ba6eaf91486f268785d6e849913d1df579651df05ef",
+      "id": "painted-wooden-bench",
+      "role": "environment",
+      "changes": [
+        "GLB 文件不变；缩放并放置到码头休息区。"
+      ],
+      "usage": "晴湾船坞 · 码头与岸景"
+    },
+    {
+      "name": "Wooden Crate · 绳柄货箱",
+      "path": "/assets/library/wooden-crate-02/model.glb",
+      "author": "James Ray Cock, Jurita Burger",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/wooden_crate_02",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 2234644,
+      "triangles": 5176,
+      "sha256": "0601279966337ab52ef4eaf95a71a7e32ac5154eb086bd157e4980df5066da8c",
+      "id": "wooden-crate-02",
+      "role": "environment",
+      "changes": [
+        "GLB 文件不变；缩放并放置到码头。"
+      ],
+      "usage": "晴湾船坞 · 码头与岸景"
+    },
+    {
+      "name": "Lifebuoy · 救生圈",
+      "path": "/assets/library/lifebuoy/model.glb",
+      "author": "Hank Kaamura",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/lifebuoy",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 2620520,
+      "triangles": 10728,
+      "sha256": "f5ad7afd6984e322041a61d8734decd932b8405b4b27150f7edd67d43e0f475d",
+      "id": "lifebuoy",
+      "role": "environment",
+      "changes": [
+        "GLB 文件不变；挂载到码头泊位。"
+      ],
+      "usage": "晴湾船坞 · 码头与岸景"
+    },
+    {
+      "name": "灰褐层理岸石",
+      "path": "/assets/library/rock-09/model.glb",
+      "author": "Jenelle van Heerden",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/rock_09",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 1963436,
+      "triangles": 12416,
+      "sha256": "6be049785bd00a91ecfd0daa36c5dc3d4b3cd4de70668772d3055fd872b7bcd6",
+      "id": "rock-09",
+      "role": "environment",
+      "changes": [
+        "GLB 文件不变；作为岸石与水下浅滩石块，重复实例共用所属场景资源。"
+      ],
+      "usage": "晴湾船坞 · 码头与岸景"
+    },
+    {
+      "name": "层理岩壁",
+      "path": "/assets/library/rock-face-01/model.glb",
+      "author": "Dario Barresi",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/rock_face_01",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 3048988,
+      "triangles": 20174,
+      "sha256": "1a94fa37c0f0c04becbed033d72833690884268180648df63e8119101e7f16ed",
+      "id": "rock-face-01",
+      "role": "environment",
+      "changes": [
+        "GLB 文件不变；缩放、旋转并实例化为错落岩面，保留原 PBR 细节；下方连续地形由程序生成。"
+      ],
+      "usage": "晴湾船坞 · 码头与岸景"
+    },
+    {
+      "name": "蓝花楹 · 宽展绿冠 · Jacaranda Tree",
+      "path": "/assets/library/jacaranda-tree/model.glb",
+      "author": "Rico Cilliers（制作）, Rob Tuytel（指导）",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/jacaranda_tree",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 34812616,
+      "triangles": 457442,
+      "sha256": "450899e58deb81210646dfa16b4162438d41f1129232808c1fb42c6a6c2c5a45",
+      "id": "jacaranda-tree",
+      "role": "environment",
+      "usage": "晴湾船坞 · 主树与低冠层",
+      "changes": [
+        "源 GLB 保持不变；运行时仅使用 leaves 和 trunk 部件，省去细枝，共 334314 三角面每棵；两棵共享所属场景资源。",
+        "从原叶片几何选取完整三角面构成少量岩顶叶簇，保留 UV 和材质，轻调暖绿色。"
+      ]
+    },
+    {
+      "name": "低矮灌丛 04",
+      "path": "/assets/library/shrub-04/model.glb",
+      "author": "Rico Cilliers",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/shrub_04",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 1906472,
+      "triangles": 27327,
+      "sha256": "8216d487bdc1597d5bab84976b983972f4879803c89b39fd345011005043bbeb",
+      "id": "shrub-04",
+      "role": "environment",
+      "usage": "晴湾船坞 · 岩缝灌木",
+      "changes": [
+        "源 GLB 保持不变；按展示植株之间的真实几何空隙，在运行时分离两株完整灌木，分别居中后实例化。"
+      ]
+    }
+  ]
+}

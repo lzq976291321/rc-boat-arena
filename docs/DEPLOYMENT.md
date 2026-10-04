@@ -14,7 +14,7 @@ GitHub 仓库：`lzq976291321/rc-boat-arena`（私有）。Vercel 项目：`rc-b
 | 安装 | `corepack pnpm install --frozen-lockfile` |
 | 构建 | `pnpm run build` |
 | 输出 | `dist/` |
-| 页面 | `/`、`/swamp/`、`/library/` |
+| 页面 | `/`、`/swamp/`、`/cove/`、`/library/` |
 
 `package.json` 固定 pnpm 版本，`pnpm-lock.yaml` 固定依赖，`pnpm-workspace.yaml` 允许 esbuild 必需的安装脚本。Vercel 项目当前使用 Node.js 24.x。
 
@@ -24,7 +24,7 @@ GitHub 仓库：`lzq976291321/rc-boat-arena`（私有）。Vercel 项目：`rc-b
 
 | 域名 | 目标项目与用途 |
 | --- | --- |
-| `www.rcmyq.cn` | `rc-boat-arena`：`/` 竞速、`/swamp/` 湿地、`/library/` 素材库 |
+| `www.rcmyq.cn` | `rc-boat-arena`：`/` 竞速、`/swamp/` 湿地、`/cove/` 晴湾、`/library/` 素材库 |
 | `rcmyq.cn` | 同属 `rc-boat-arena`，308 跳转到 `www.rcmyq.cn`，保留路径和查询参数 |
 | `forum.rcmyq.cn` | 原论坛项目，保留论坛原有路径 |
 | `rc-forum.vercel.app` | 308 跳转到 `forum.rcmyq.cn` |
@@ -53,13 +53,16 @@ pnpm check:gameplay
 pnpm check:physics
 pnpm check:sim
 pnpm check:swamp
+pnpm check:viewing
+pnpm check:cove
+pnpm check:contact
 pnpm check:assets
 pnpm build
 pnpm check:routes
 pnpm check:bundle
 ```
 
-部署后核对 Vercel 记录的提交 SHA、来源 `git`、目标 `production` 和状态 `READY`，再打开三个生产页面检查模型、页面交互和控制台。GitHub 推送成功本身不代表网站已发布成功。
+部署后核对 Vercel 记录的提交 SHA、来源 `git`、目标 `production` 和状态 `READY`，再打开四个生产页面检查模型、页面交互和控制台；晴湾另外核对船侧近观、光照切换、暂停与照片导出。GitHub 推送成功本身不代表网站已发布成功。
 
 网页只发布 Vite 构建输出。源码与公开运行素材进入 Git；`.env*`、本机 DSH 状态、依赖、构建输出、`tools/local/`、模型原始工程和 `artifacts/` 按 `.gitignore` 保持本地。模型转换工具位于 `tools/assets/`，本地转换产物只有在完成运行接入和来源许可核对后才进入 `public/`。
 

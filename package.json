@@ -15,6 +15,9 @@
     "dsh:disable": "node dsh-plugin/install.mjs disable",
     "check:gameplay": "node tools/checks/gameplay-check.mjs",
     "check:swamp": "node tools/checks/swamp-navigation-check.mjs",
+    "check:viewing": "node tools/checks/viewing-camera-check.mjs && node tools/checks/viewing-audio-check.mjs",
+    "check:cove": "node tools/checks/cove-navigation-check.mjs",
+    "check:contact": "node --test tools/checks/boat-water-motion-check.mjs tools/checks/boat-water-interaction-check.mjs",
     "check:routes": "node tools/checks/swamp-routes-check.mjs",
     "check:assets": "node tools/checks/assets-check.mjs",
     "check:bundle": "node tools/checks/bundle-check.mjs"

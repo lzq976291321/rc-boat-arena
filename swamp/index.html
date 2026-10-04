@@ -1,134 +1,62 @@
 <!doctype html>
 <html lang="zh-CN">
   <head>
+<link rel="icon" type="image/svg+xml" href="../favicon.svg" />
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#101e20" />
-    <meta
-      name="description"
-      content="驾驶一艘探索艇，穿过月光、倒影与晨雾。一个使用开放许可模型制作的 Three.js 湿地航行体验。"
-    />
+    <meta name="description" content="月光、晨雾与夕照中的船模观赏。自动巡游，自由切换镜头，留下一张水面的照片。" />
     <title>Moonwater · 月下湿地</title>
     <link rel="stylesheet" href="../src/swamp/style.css" />
   </head>
   <body>
-    <canvas id="world" class="fixed inset-0 block w-full h-full" aria-label="月下湿地三维航行场景"></canvas>
+    <canvas id="world" class="fixed inset-0 block h-full w-full" aria-label="月下湿地，自动巡游的船模与水面倒影"></canvas>
     <div class="vignette" aria-hidden="true"></div>
-    <header class="masthead">
-      <a class="wordmark" href="../" title="返回 RC Boat Arena"
-        ><span class="seal" aria-hidden="true">≋</span
-        ><span>MOONWATER<small>月下湿地 · 航行志</small></span></a
-      >
-      <div class="coordinates">
-        <span class="tiny-star">✧</span><span id="mood-name">月光水道</span
-        ><i></i><span id="clock">22:16</span>
-      </div>
-      <nav aria-label="场景操作">
-        <button
-          id="sound"
-          aria-label="切换环境水声"
-          aria-pressed="false"
-          title="环境声音"
-        >
-          <span aria-hidden="true">◌</span>
-          <span class="sound-label">声音关闭</span></button
-        ><button id="credits-open">
-          素材来源 <span aria-hidden="true">↗</span>
-        </button>
+    <header class="masthead flex items-center justify-between" data-interface>
+      <a class="wordmark flex items-center gap-3" href="../" title="返回 RC Boat Arena">
+        <span class="seal" aria-hidden="true">≋</span>
+        <span>MOONWATER<small>月下湿地</small></span>
+      </a>
+      <nav class="flex items-center gap-3 sm:gap-7" aria-label="观赏操作">
+        <a class="scene-link" href="../cove/" title="切换到晴湾船坞">晴湾 ↗</a>
+        <button id="sound" data-ready disabled aria-label="切换环境水声" aria-pressed="false"><span aria-hidden="true">◌</span><span id="sound-label">开启水声</span></button>
+        <button id="capture" data-ready disabled aria-label="保存当前画面"><span aria-hidden="true">⌑</span><span>拍照</span></button>
+        <button id="immerse" data-ready disabled aria-label="隐藏界面，沉浸观赏"><span aria-hidden="true">⛶</span><span>沉浸</span></button>
+        <button id="credits-open" aria-label="查看素材来源">来源 ↗</button>
       </nav>
     </header>
     <main>
-      <section class="intro" id="intro">
-        <p class="eyebrow"><span>FIELD NOTES</span> <i></i> VOL. 02</p>
-        <h1>循着月光，<br /><em>驶入静处。</em></h1>
-        <p class="description">让水声慢下来。<br />穿过林影，留下一道微光。</p>
-        <div class="intro-actions flex items-center">
-          <button class="primary" id="start" disabled>
-            准备夜航 <span aria-hidden="true">↗</span></button
-          ><button class="quiet" id="tour" disabled>
-            随水漫游 <span aria-hidden="true">▷</span>
-          </button>
-        </div>
-        <p class="intro-hint" id="intro-hint">
-          WASD 驾驶 <span>·</span> C 切换镜头 <span>·</span> ESC 停泊
-        </p>
-      </section>
-      <div class="journey" id="journey" hidden>
-        <span class="eyebrow">EXPLORING THE WETLANDS</span>
-        <h2 id="place-name">月光水道</h2>
-        <p id="journey-note">循着水道，慢慢向前。</p>
+      <div class="scene-caption" data-interface>
+        <p class="eyebrow"><span id="mood-label">月夜</span><i></i><span id="clock">22:16</span></p>
+        <h1>月下湿地</h1>
+        <p id="weather">薄云 · 静水</p>
       </div>
-      <div class="right-rail">
-        <span class="rail-line"></span><span>DRIFT. BREATHE. EXPLORE.</span
-        ><span class="rail-number">02 / RC</span>
+      <div class="shot-caption" data-interface><span class="status-dot"></span><span id="shot-name">贴水跟随</span></div>
+      <div id="loading" class="loading flex items-center gap-3" role="status" aria-live="polite">
+        <span id="loader" class="loader" aria-hidden="true"></span><span id="load-text">正在准备水面与林影…</span><button id="retry" hidden>重新载入</button>
       </div>
-      <div class="loading" id="loading" role="status">
-        <span class="loader"></span
-        ><span id="load-text">正在准备船艇与树林…</span
-        ><button id="retry" hidden>重新载入</button>
-      </div>
-      <div class="toast" id="toast" role="status"></div>
+      <div id="toast" class="toast" role="status" hidden></div>
     </main>
-    <footer class="bottom-bar">
-      <div class="environment">
-        <span class="status-dot"></span><span id="weather">薄云 · 静水</span
-        ><span class="separator">/</span><span>开放湿地</span>
+    <footer class="viewing-bar flex flex-wrap items-center justify-center gap-3 sm:gap-5" data-interface>
+      <div class="mood-switch flex items-center" role="group" aria-label="光照时段">
+        <button data-mood="moonlight" data-ready disabled aria-pressed="true"><span aria-hidden="true">☾</span> 月夜</button>
+        <button data-mood="dawn" data-ready disabled aria-pressed="false"><span aria-hidden="true">☼</span> 晨雾</button>
+        <button data-mood="sunset" data-ready disabled aria-pressed="false"><span aria-hidden="true">◒</span> 夕照</button>
       </div>
-      <div class="mood-switch" role="group" aria-label="光照时段">
-        <button class="selected" data-mood="moonlight" aria-pressed="true">
-          ☾ <span>月夜</span></button
-        ><button data-mood="dawn" aria-pressed="false">
-          ☀ <span>晨雾</span>
-        </button>
-      </div>
-      <div class="distance">
-        <span id="distance">000</span><small>m 航程</small>
-      </div>
+      <span class="bar-divider" aria-hidden="true"></span>
+      <label class="camera-control flex items-center gap-2" for="camera"><span>镜头</span><select id="camera" data-ready disabled aria-label="观赏镜头"><option>自动运镜</option></select></label>
+      <button id="pause" class="pause-control flex items-center justify-center gap-2" data-ready disabled aria-label="暂停观赏" aria-pressed="false"><span id="pause-icon" aria-hidden="true">Ⅱ</span><span id="pause-label">暂停</span></button>
     </footer>
-    <div class="drive-toolbar" id="drive-toolbar" hidden>
-      <button id="cruise" aria-pressed="false">▷ 自动巡航</button
-      ><button id="camera">镜头 · 跟随</button><button id="pause">Ⅱ 停泊</button
-      ><span class="speed"><b id="speed">0.0</b> <small>km/h</small></span>
-    </div>
-    <div id="touch-controls" hidden aria-label="触屏驾驶"></div>
-    <dialog id="pause-dialog" class="panel">
-      <button class="close" data-close aria-label="关闭停泊菜单">×</button>
-      <p class="eyebrow">A MOMENT OF STILLNESS</p>
-      <h2>在这里，<em>停一会儿。</em></h2>
-      <p>水道会等你回来。</p>
-      <button id="resume" class="primary">继续航行 <span>↗</span></button
-      ><button id="reset" class="quiet">回到出发点</button
-      ><a href="../" class="back-link">返回松岚湖竞速 ↗</a>
-    </dialog>
-    <dialog id="credits-dialog" class="panel credits-panel">
-      <button class="close" data-close aria-label="关闭素材来源">×</button>
-      <p class="eyebrow">MADE WITH OPEN ASSETS</p>
-      <h2>每一处风景，<em>都有来处。</em></h2>
-      <p class="credits-lead">
-        模型来自开放许可创作者。月光、水面、雾与航行效果由本项目实时生成。
-      </p>
-      <div id="credits-list"></div>
+    <button id="restore" class="restore" aria-label="显示观赏操作界面" hidden>显示界面 <span aria-hidden="true">⛶</span></button>
+    <dialog id="credits-dialog" class="panel">
+      <button id="credits-close" class="close" aria-label="关闭素材来源">×</button>
+      <p class="eyebrow">MOONWATER / CREDITS</p>
+      <h2>风景的来处</h2>
+      <div id="credits-list">正在读取素材来源…</div>
       <div class="craft-note">
-        <b>场景与渲染</b>
-        <p>
-          Three.js · 平面反射 · Fresnel 水面 · 分层雾 · 程序化天空 ·
-          航行尾流。部分远景几何由代码制作。
-        </p>
-        <p>
-          视觉参考
-          <a
-            href="https://x.com/chetanankola/status/2101595285675970853"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Chetan Ankola / Stillwater ↗</a
-          >。此为独立实现，未使用原作模型或源码。
-        </p>
-        <a href="../library/">浏览素材库 ↗</a><br><a href="../assets/swamp/SOURCES.md" target="_blank" rel="noopener"
-          >完整素材记录 ↗</a
-        >
+        <p>水面、天空、雾、尾流、镜头与环境水声由本项目制作。船艇与植被保留各自作者和许可。</p>
+        <p>视觉参考 <a href="https://x.com/chetanankola/status/2101595285675970853" target="_blank" rel="noopener noreferrer">Chetan Ankola / Stillwater ↗</a>，场景为独立实现。</p>
+        <div class="flex flex-wrap gap-5"><a href="../library/">浏览观赏资产 ↗</a><a href="../assets/swamp/SOURCES.md" target="_blank" rel="noopener">完整来源记录 ↗</a></div>
       </div>
     </dialog>
     <script type="module" src="../src/swamp/main.js"></script>
