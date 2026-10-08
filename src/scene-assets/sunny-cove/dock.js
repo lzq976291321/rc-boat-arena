@@ -6,7 +6,7 @@ import { disposeObjects } from '../../shared/rendering/resources.js';
 
 /** Internal cove loader: parsed scenes own all originals; instances borrow them. */
 export async function loadCoveModel(url, { signal, nodeName } = {}) {
-  const gltf = await loadGLTF(url, { signal });
+  const gltf = await loadGLTF(url, { signal, delivery: 'scene' });
   try {
     gltf.scene.updateMatrixWorld(true);
     const selected = nodeName ? gltf.scene.getObjectByName(nodeName) : gltf.scene;
@@ -62,7 +62,7 @@ const MODELS = [
 
 /** A standalone, eight-metre timber dock. Coordinates and anchors are in metres. */
 export async function createCoveDock(scene, {
-  assetBaseUrl, signal, position = [-7, 0, 0.25], rotation = 0, furniture = true,
+  assetBaseUrl, signal, position = [-7, 0, 0.25], rotation = 0, furniture = true, deferDetails = false,
 } = {}) {
   if (!assetBaseUrl) throw new Error('Cove dock requires assetBaseUrl');
   signal?.throwIfAborted();
@@ -71,21 +71,69 @@ export async function createCoveDock(scene, {
   group.position.fromArray(Array.isArray(position) ? position : [position.x, position.y, position.z]);
   group.rotation.y = rotation;
   const models = {}, resources = [], warnings = [], anchors = {};
-  let disposed = false;
+  const detailController = new AbortController();
+  const detailState = { status: furniture ? 'waiting' : 'ready', error: null };
+  let disposed = false, detailsStarted = false, detailFrame = 0, mountDetails;
+  let resolveDetails, rejectDetails;
+  const detailReady = new Promise((resolve, reject) => { resolveDetails = resolve; rejectDetails = reject; });
+  // Optional detail failures are inspectable without becoming unhandled rejections.
+  detailReady.catch(() => {});
+  if (!furniture) resolveDetails();
+  async function loadModels(records, loadSignal) {
+    const results = await Promise.allSettled(records.map(async ({ key, id, nodeName }) => {
+      const model = await loadCoveModel(new URL(`library/${id}/model.glb`, assetBaseUrl).href,
+        { signal: loadSignal, nodeName });
+      // A decoder may finish after cancellation. Its roots never enter a disposed owner.
+      if (disposed || loadSignal?.aborted) {
+        disposeObjects(model.roots);
+        throw loadSignal?.reason || new DOMException('Dock loading cancelled', 'AbortError');
+      }
+      models[key] = model; resources.push(...model.roots);
+    }));
+    loadSignal?.throwIfAborted();
+    const failure = results.find(result => result.status === 'rejected' && result.reason?.name !== 'AbortError')
+      ?? results.find(result => result.status === 'rejected');
+    if (failure) throw failure.reason;
+  }
+  async function loadDetails() {
+    detailFrame = 0;
+    if (disposed) return;
+    detailState.status = 'loading';
+    try {
+      await loadModels(MODELS.slice(1), detailController.signal);
+      detailController.signal.throwIfAborted();
+      mountDetails();
+      detailState.status = 'ready'; resolveDetails();
+    } catch (error) {
+      detailState.status = 'error'; detailState.error = String(error);
+      if (!disposed && error?.name !== 'AbortError') warnings.push(`Dock furniture unavailable: ${String(error)}`);
+      rejectDetails(error);
+    }
+  }
+  function startDetails() {
+    if (disposed || detailsStarted || !furniture || !deferDetails) return detailReady;
+    detailsStarted = true;
+    // The host gets a painted frame before optional furniture starts competing for bandwidth.
+    detailFrame = requestAnimationFrame(() => {
+      if (!disposed) detailFrame = requestAnimationFrame(() => { void loadDetails(); });
+    });
+    return detailReady;
+  }
   const dispose = () => {
     if (disposed) return;
     disposed = true; signal?.removeEventListener('abort', dispose); group.removeFromParent();
+    cancelAnimationFrame(detailFrame); detailFrame = 0;
+    const cancelled = new DOMException('Dock details cancelled', 'AbortError');
+    detailController.abort(cancelled);
+    if (detailState.status === 'waiting' || detailState.status === 'loading') {
+      detailState.status = 'error'; detailState.error = String(cancelled); rejectDetails(cancelled);
+    }
     disposeObjects([group, ...resources]); group.clear(); resources.length = 0;
   };
   try {
     const selectedModels = furniture ? MODELS : MODELS.slice(0, 1);
-    const results = await Promise.allSettled(selectedModels.map(async ({ key, id, nodeName }) => {
-      const model = await loadCoveModel(new URL(`library/${id}/model.glb`, assetBaseUrl).href, { signal, nodeName });
-      models[key] = model; resources.push(...model.roots);
-    }));
+    await loadModels(deferDetails ? MODELS.slice(0, 1) : selectedModels, signal);
     signal?.throwIfAborted();
-    const failure = results.find(result => result.status === 'rejected');
-    if (failure) throw failure.reason;
     const deckTop = 0.56, deckWidth = 8, deckScale = deckWidth / (3 * models.pier.size.x);
     const deckDepth = models.pier.size.z * deckScale;
     group.userData.bounds = { width: deckWidth, depth: deckDepth, deckTop };
@@ -246,7 +294,7 @@ export async function createCoveDock(scene, {
     mergeDetails(endGrain, new THREE.MeshStandardMaterial({ map: createEndGrainTexture(), roughness: 0.9 }), 'Exposed annual rings on cut post tops');
     mergeDetails(hardware, new THREE.MeshStandardMaterial({ color: '#8f8d7d', metalness: 0.78, roughness: 0.44 }), 'Galvanised brackets, bolts, cleats and canvas eyelets');
     mergeDetails(hems, clothMaterial, 'Rolled canvas hems and raised stitched seams');
-    if (furniture) {
+    mountDetails = () => {
       group.add(instanceCoveModel(models.bench, [{ x: -0.55, y: deckTop, z: -0.46, scale: 1.24, yaw: Math.PI }], 'Wooden bench beside the canvas shade'));
       group.add(instanceCoveModel(models.crate, [
         { x: 0.85, y: deckTop, z: -0.15, scale: 0.74, yaw: Math.PI / 2 },
@@ -254,6 +302,9 @@ export async function createCoveDock(scene, {
       ], 'Two small rope-handled timber crates'));
       group.add(instanceCoveModel(models.lifebuoy, [{ x: 1.35, y: 0.3, z: 1.08, scale: 0.8 }], 'Life ring on the inner front timber pile'));
       createCrateDetails(group, 0.85, deckTop + models.crate.size.y * 0.74, -0.15, clothTexture);
+    };
+    if (furniture && !deferDetails) {
+      mountDetails(); detailState.status = 'ready'; resolveDetails();
     }
     for (const [name, point] of Object.entries({ berth: [2, 0, 3.25], approach: [5.2, 0, 5.95], launch: [2.4, 0, 5.75] })) {
       const anchor = new THREE.Object3D(); anchor.name = `Dock anchor / ${name}`;
@@ -261,7 +312,7 @@ export async function createCoveDock(scene, {
     }
     signal?.throwIfAborted(); scene.add(group); signal?.addEventListener('abort', dispose, { once: true });
     return {
-      group, anchors, warnings, update() {}, dispose,
+      group, anchors, warnings, detailState, detailReady, startDetails, update() {}, dispose,
       getAnchor(name) {
         if (!anchors[name]) throw new Error(`Unknown cove dock anchor: ${name}`);
         group.updateMatrixWorld(true);

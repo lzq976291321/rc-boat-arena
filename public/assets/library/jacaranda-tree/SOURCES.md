@@ -1,5 +1,7 @@
 # 蓝花楹 · 宽展绿冠 / Jacaranda Tree
 
+> 2026-10-05 交付优化：当前文件 **23,856,424 字节**，SHA-256 `2b5572edfcb4a8a35a50bb0ecee295a93e322a2c028cf749c3a14b974843c264`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：Rico Cilliers（制作）；Rob Tuytel（指导）
 
 来源：[Jacaranda Tree](https://polyhaven.com/a/jacaranda_tree)

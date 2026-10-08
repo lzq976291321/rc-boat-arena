@@ -1,5 +1,7 @@
 # 灰褐层理岸石 / Rock 09
 
+> 2026-10-05 交付优化：当前文件 **1,215,568 字节**，SHA-256 `6cc5612455fcbbf6034860b84c473434153313eccda50c7935540f6f5a88936f`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：Jenelle van Heerden
 
 来源：[Rock 09](https://polyhaven.com/a/rock_09)

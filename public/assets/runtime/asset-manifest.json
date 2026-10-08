@@ -1,0 +1,553 @@
+{
+  "version": 1,
+  "purpose": "Scene delivery; full models stay at sourcePath",
+  "core": {
+    "arena": [
+      "maverick-gt",
+      "ocean-buoy"
+    ],
+    "swamp": [
+      "futuristic-speedboat"
+    ],
+    "cove": [
+      "riva-aquarama",
+      "modular-wooden-pier",
+      "rock-09",
+      "rock-face-01"
+    ]
+  },
+  "assets": [
+    {
+      "id": "futuristic-speedboat",
+      "path": "/assets/runtime/futuristic-speedboat.glb",
+      "bytes": 1466616,
+      "sha256": "b24f1bbe54a7d020eb44d11f97d2b60ad0504101bd68f93b2597e2ab991d4fbd",
+      "sourcePath": "/assets/library/futuristic-speedboat/model.glb",
+      "sourceRecord": "/assets/library/futuristic-speedboat/SOURCES.md",
+      "originalSha256": "e65d0a188ddc706329ca0d2356bf4a41bd9da83c3d4cb5f91c0116cc7d713094",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 162766,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 5310222,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "dylanheyes",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://sketchfab.com/3d-models/futuristic-speedboat-5a8f4d21472e4b2b8ec4d23f70cf8cbc",
+      "name": "Futuristic Speedboat · 科幻快艇",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "lifebuoy",
+      "path": "/assets/runtime/lifebuoy.glb",
+      "bytes": 206280,
+      "sha256": "91267c820aaa65f46f03ef54263edc6565d0b3ce4db3ea1a139c39911afdd176",
+      "sourcePath": "/assets/library/lifebuoy/model.glb",
+      "sourceRecord": "/assets/library/lifebuoy/SOURCES.md",
+      "originalSha256": "f5ad7afd6984e322041a61d8734decd932b8405b4b27150f7edd67d43e0f475d",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 10728,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 351864,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Hank Kaamura",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/lifebuoy",
+      "name": "Lifebuoy · 救生圈",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "maverick-gt",
+      "path": "/assets/runtime/maverick-gt.glb",
+      "bytes": 1149484,
+      "sha256": "879ad45fc0adf3dc5653f40b688f08e65da254e78a2682486212e3ae063583a8",
+      "sourcePath": "/assets/library/maverick-gt/model.glb",
+      "sourceRecord": "/assets/library/maverick-gt/SOURCES.md",
+      "originalSha256": "f184e29f3cef989484433ab16b907676b0a37131ce548d7ead0f8e1ecf563f4a",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 127081,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 3248560,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "dannzjs",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://sketchfab.com/3d-models/maverick-gt-1cbe1b65836d4536bade28ca351ba164",
+      "name": "MAVERICK GT · 运动摩托艇",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "modular-wooden-pier",
+      "path": "/assets/runtime/modular-wooden-pier.glb",
+      "bytes": 180764,
+      "sha256": "c6b6392c68c0768e699e8fb9062cb51bc750e4b33005c7487fc0879687a0ceca",
+      "sourcePath": "/assets/library/modular-wooden-pier/model.glb",
+      "sourceRecord": "/assets/library/modular-wooden-pier/SOURCES.md",
+      "originalSha256": "d601cf30319b985bef3cc14facafaff166160ceffb824debcebf567de92e2044",
+      "selectedNodes": [
+        "modular_wooden_pier_planks"
+      ],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 5512,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 293936,
+        "indicesExact": true,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Rico Cilliers",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/modular_wooden_pier",
+      "name": "Modular Wooden Pier · 做旧木码头",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "ocean-buoy",
+      "path": "/assets/runtime/ocean-buoy.glb",
+      "bytes": 293788,
+      "sha256": "071204767ce704df182ffef1f8deaa22656f496608ae098bde43ceed02504f9d",
+      "sourcePath": "/assets/library/ocean-buoy/model.glb",
+      "sourceRecord": "/assets/library/ocean-buoy/SOURCES.md",
+      "originalSha256": "ab3bb19bac7ed63d9f134e4fbe628836378f9b544474e61849c9ce35b8db2fd2",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 12240,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 561294,
+        "indicesExact": true,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Mateusz Sadek",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/ocean_buoy",
+      "name": "Ocean Buoy · 做旧航标浮标",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "painted-wooden-bench",
+      "path": "/assets/runtime/painted-wooden-bench.glb",
+      "bytes": 79188,
+      "sha256": "665070408f97ac7e802dc82c88ea57466456d1ae5ec3ade11ff226c6adb59770",
+      "sourcePath": "/assets/library/painted-wooden-bench/model.glb",
+      "sourceRecord": "/assets/library/painted-wooden-bench/SOURCES.md",
+      "originalSha256": "01366dba8fbdea38c2945ba6eaf91486f268785d6e849913d1df579651df05ef",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 630,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 92374,
+        "indicesExact": true,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Kirill Sannikov",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/painted_wooden_bench",
+      "name": "掉漆木长椅",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "riva-aquarama",
+      "path": "/assets/runtime/riva-aquarama.glb",
+      "bytes": 673008,
+      "sha256": "258475a6e8b8cc3bc0fa5c158738f60bc661a3228e5557e584d69269a61e3497",
+      "sourcePath": "/assets/library/riva-aquarama/model.glb",
+      "sourceRecord": "/assets/library/riva-aquarama/SOURCES.md",
+      "originalSha256": "7a8597cad5aa8d579f2debd2f708ccac0ee37e56e24e2748c6a348ca650a7aea",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 4458,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 792022,
+        "indicesExact": true,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Anton Kovalev",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "source": "https://sketchfab.com/3d-models/riva-aquarama-lamborghini-9d5716a2ab6645b9a1452f1d6b0372ef",
+      "name": "Riva Aquarama · 经典木质快艇",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "rock-09",
+      "path": "/assets/runtime/rock-09.glb",
+      "bytes": 212396,
+      "sha256": "a5d318ba9f81b677e4393d644b88582319f985146a5cc8ebaa3a6c475606e124",
+      "sourcePath": "/assets/library/rock-09/model.glb",
+      "sourceRecord": "/assets/library/rock-09/SOURCES.md",
+      "originalSha256": "6be049785bd00a91ecfd0daa36c5dc3d4b3cd4de70668772d3055fd872b7bcd6",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 12416,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 370832,
+        "indicesExact": true,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Jenelle van Heerden",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/rock_09",
+      "name": "灰褐层理岸石",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "rock-face-01",
+      "path": "/assets/runtime/rock-face-01.glb",
+      "bytes": 346992,
+      "sha256": "7cbbac399f34512be874ee64d8748fd8b7a638c681bde5750005686ec84c3d58",
+      "sourcePath": "/assets/library/rock-face-01/model.glb",
+      "sourceRecord": "/assets/library/rock-face-01/SOURCES.md",
+      "originalSha256": "1a94fa37c0f0c04becbed033d72833690884268180648df63e8119101e7f16ed",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 20174,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 611913,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Dario Barresi",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/rock_face_01",
+      "name": "层理岩壁",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "wooden-crate-02",
+      "path": "/assets/runtime/wooden-crate-02.glb",
+      "bytes": 143248,
+      "sha256": "46de434420269101b1920517b1937b74c90f2983220cf4e705c8c726dd2b3e48",
+      "sourcePath": "/assets/library/wooden-crate-02/model.glb",
+      "sourceRecord": "/assets/library/wooden-crate-02/SOURCES.md",
+      "originalSha256": "0601279966337ab52ef4eaf95a71a7e32ac5154eb086bd157e4980df5066da8c",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 5176,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 232954,
+        "indicesExact": true,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "James Ray Cock, Jurita Burger",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/wooden_crate_02",
+      "name": "Wooden Crate · 绳柄货箱",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    }
+  ]
+}

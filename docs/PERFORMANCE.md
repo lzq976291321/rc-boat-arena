@@ -1,5 +1,74 @@
 # 加载、复用与资源管理
 
+## 2026-10-05 第二轮：首屏可用低于 3 秒
+
+本地生产构建完成，尚未提交、推送或部署。Chromium、1280×800、DPR 1、减少动态效果；每次新建浏览器上下文并禁用缓存，CDP 下载 1,250,000 B/s（10 Mbps）、延迟 40 ms。四入口各测三次，以下为最终构建的实际结果：
+
+| 页面 | 三次首屏可用 | 最慢一次 | 核心 GLB |
+| --- | --- | ---: | ---: |
+| 竞速 | 1.621 s / 1.600 s / 1.607 s | 1.621 s | 1.443 MB |
+| 晴湾 | 1.647 s / 1.589 s / 1.586 s | 1.647 s | 1.413 MB |
+| 湿地 | 1.655 s / 1.641 s / 1.629 s | 1.655 s | 1.467 MB |
+| 素材库完整首个船模 | 2.443 s / 2.414 s / 2.404 s | 2.443 s | 2.217 MB |
+
+验收终点同时要求真实模型准备好、Canvas 已完成绘制且主要操作可用。竞速检查 `ready`、`firstReadyFrameAt` 和开始按钮；晴湾/湿地检查 `ready`、`renderCount` 和暂停按钮；素材库检查首个完整模型的 `ready` 与预览容器的 `renderCount`。所有计时从页面 navigation start 起，包含代码下载、GLB 下载与解析、初始化和首次绘制。较第一轮仅观察 ready 的方式更严格，旧数值保留作历史记录。未用空画布或纯加载提示代替验收。另按默认持续动画模式各冷启动一次，竞速 1.623 s、晴湾 1.625 s、湿地 1.649 s、素材库 2.411 s，同样全部低于 3 s。
+
+此次为场景新增 10 个独立 runtime 变体，每组首屏模型小于 1.5 MB，并在 HTML 预加载关键模型。GLTF 模块直接带入小型 MeshoptDecoder，避免它在大模型下载后排队；纯素材列表仍不静态依赖 Three.js。实际浏览器每个预加载 GLB 只出现一次资源请求。完整单模型素材库保持原 URL、原完整文件与预览行为。
+
+场景变体不减面，船模最长贴图边 512、其他变体 256，几何 FLOAT 使用有界精度编码。最大实测位置误差为原模型单位的 0.000122071，法线/切线分量 0.000488282，UV 分量 0.000244141；码头文件只包含实际使用的 planks 节点及依赖。与第一轮完整模型的无损几何压缩不同，此批变体允许明确的精度/贴图分辨率取舍。来源、许可、加工说明和 SHA 见 `public/assets/runtime/`。源码工具从未压缩原始文件生成，并通过独立重建确认 10 个 SHA 全部一致。
+
+晴湾先显示船、水面、完整码头结构与岩岸，树冠/灌木/家具稍后补齐；湿地先显示船、程序树林、岸线与水面，扫描树木在相同位置替换，树位、碰撞和根系不重复。暂停时详情完成或部分失败都会补画，关闭/切换和独立宿主的取消信号均终止详情请求。细节失败保留首屏及可用操作；关键模型失败仍显示重试。
+
+**3 秒是首屏可用目标，不是所有景物下载完成。** 同一限速的全流程测量：晴湾全部细节约 22.46 s，湿地约 8.75 s；竞速全部 GLB 下载约 22.40 s。相应全部 GLB 分别约 26.96 / 9.94 / 26.97 MB。测速未模拟慢 CPU，未覆盖实体手机或公网部署，因此不能声称所有设备与网络都低于 3 秒。
+
+已完成浏览器截图对照、10 个 runtime 经生产加载器解析、四入口模拟手机视口、开始驾驶、失败/重试、后台细节失败与暂停重绘、素材库切换取消和静止停止绘制。构建及 `check:assets`、`check:delivery`、`check:bundle`、`check:routes`、`check:gameplay`、`check:swamp`、`check:viewing`、`check:cove`、`check:contact` 通过。交付检查覆盖 57 个 GLB、366 个压缩视图、48 项映射/完整模型选择断言，三场景核心预算固定为 1,500,000 B。
+
+证据位于 `artifacts/performance/2026-10-05/`：`round2-repeat.json`（12 次计时与逐请求）、`round2-normal-motion.json`（默认动画模式）、`round2-probe.json`（含完整细节）、`startup-models.json`（逐属性误差/可复现命令/工具 SHA）、`round2-browser-acceptance.json` 与 `round2-details.json`（浏览器检查）以及 `round2-*.png`。生成工具：
+
+```bash
+node tools/assets/build-startup-models.mjs --python /path/to/python-with-pillow --source-root /path/to/originals/assets/library --output-root tools/local/startup-models
+pnpm check:assets
+pnpm check:delivery
+pnpm build
+pnpm check:bundle
+```
+
+## 2026-10-05 第一轮历史测量
+
+已完成本地实现、生产构建和浏览器核验；未提交、推送或部署。以下为同一台机器上的 Chromium、1280×800、DPR 1、减少动态效果、冷缓存，CDP 固定 10 Mbps 下载和 40 ms 延迟的单次前后测量，不是公网或实体手机测速。
+
+| 页面 | 优化前可用 | 优化后可用 | 原先必等 GLB | 当前必等 GLB | 当前完整 GLB |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| 竞速 `/` | 52.45 s | 3.67 s | 64.86 MB | 4.03 MB | 40.18 MB |
+| 晴湾 `/cove/` | 48.73 s | 12.70 s | 59.58 MB | 15.21 MB | 39.07 MB |
+| 湿地 `/swamp/` | 17.39 s | 10.79 s | 21.11 MB | 12.76 MB | 12.76 MB |
+| 素材库首个船模 | 3.93 s | 2.33 s | 4.26 MB | 2.22 MB | 2.22 MB |
+
+MB 使用十进制，表中资源量仅为 GLB；计时包含页面代码、下载、模型解析及页面 ready。竞速先加载船与航标，开放驾驶并留出绘制机会后才请求 19 个岸景模型；`scenery.ready` / `scenery.userData.assetState` 独立报告背景结果。晴湾先显示船、码头、水面和岩岸，树冠稍后补齐；`snapshot().detailState` 与场景的 `detailReady` 区分可观赏和细节完成。相同限速下，晴湾完整树冠约 32.76 s 完成，竞速全部 GLB 下载约 33.14 s 完成，不能把首屏可用时间称为全量加载时间。
+
+26 个运行模型合计从 115,134,000 B 降为 73,380,900 B（减少 36.3%）。保留全部节点、顶点值、三角面、UV、材质通道和贴图尺寸；3 个船模索引按相同数值收窄为 uint16，再做无损 `EXT_meshopt_compression`。共享 GLTF 加载器异步载入 Three.js 随包的 MeshoptDecoder，新增约 22.10 KB JS / gzip 5.96 KB，无外部解码服务。纯素材列表仍不静态依赖 Three.js 或解码器。
+
+纹理仅重新编码，不缩小分辨率。透明 PNG 的解码像素保持一致；JPEG 允许少量像素误差，不抽样色度，颜色图 PSNR 至少 36 dB、法线/ORM 等数据图至少 40 dB，不达阈值则提高质量或保留原图。这减少传输字节，不代表 GPU 贴图内存或场景帧率同比改善。晴湾相同暂停镜头的前后截图已核对，完整树冠、船体、岸石与码头保持原有外观。
+
+可复现工具为 `tools/assets/optimize-glb.py`（Python + Pillow）和 `tools/assets/compress-gltf.mjs`。从原始、未压缩 GLB 开始，始终输出到独立候选路径，不反复重编码已发布模型：
+
+```bash
+python3 tools/assets/optimize-glb.py source.glb textures.glb --compact-indices --opaque-png-jpeg --report textures.json
+node tools/assets/compress-gltf.mjs textures.glb delivery.glb --report geometry.json
+pnpm check:assets
+pnpm check:delivery
+pnpm build
+pnpm check:bundle
+```
+
+压缩工具将输出重新解码后逐 bufferView 比对；`check:delivery` 核对 47 个公开模型的清单字节数、SHA-256、压缩缓冲区可解码性，以及竞速核心、晴湾核心/完整场景、湿地完整场景的模型体积预算。替换文件后同步所有相关 catalog / manifest 和 SOURCES，公开 URL 保持不变。
+
+证据保存在 `artifacts/performance/2026-10-05/`：`before.json`、`after.json` 为逐请求测量，`asset-optimization.json` 为逐模型/纹理误差与无损验证，截图记录首屏和完整晴湾，`originals/` 保留本次替换前的文件，包含用户尚未提交的素材。旧记录如下，数字不代表当前资源。
+
+本次浏览器还验证了 26 个压缩模型经生产加载器解析、竞速核心失败/重试与岸景失败仍可驾驶、晴湾细节失败仍可观赏、暂停时补齐植被会重绘、素材库切换取消后台树请求并保持单个模型画布，以及四入口 390×844 模拟手机视口。未出现未捕获页面错误；模拟手机视口不等于实体手机性能验收。相关 `check:assets`、`check:delivery`、`check:bundle`、`check:routes`、`check:gameplay`、`check:swamp`、`check:viewing`、`check:cove`、`check:contact` 均通过。
+
+## 2026-09-21 历史记录
+
 检查日期：2026-09-21。当前为本地实现与本机构建/浏览器验收，未部署。测量使用生产构建，字节数为未压缩 JS；gzip 为本地压缩估算，不是公网传输测量。
 
 ## 实际复用边界

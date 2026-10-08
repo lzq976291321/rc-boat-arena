@@ -10,7 +10,7 @@ export const RIVA_MOUNT = Object.freeze({ forward: "+X", yaw: Math.PI / 2, lengt
 
 export async function createCoveBoat(scene, url, { signal, length = RIVA_MOUNT.length,
   draft = RIVA_MOUNT.draft * length / RIVA_MOUNT.length } = {}) {
-  const gltf = await loadGLTF(url, { signal });
+  const gltf = await loadGLTF(url, { signal, delivery: 'scene' });
   const group = new THREE.Group(), visual = new THREE.Group(), mount = new THREE.Group();
   const sourceMaterials = new Map();
   let disposed = false;

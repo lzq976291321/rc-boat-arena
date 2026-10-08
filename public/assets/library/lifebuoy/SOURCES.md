@@ -1,5 +1,7 @@
 # Lifebuoy · 救生圈
 
+> 2026-10-05 交付优化：当前文件 **1,603,464 字节**，SHA-256 `d4218afd33c98800229f7ede8003046834c9119da9c3365d4ac873c650722a98`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：Hank Kaamura
 
 来源：[Lifebuoy](https://polyhaven.com/a/lifebuoy)

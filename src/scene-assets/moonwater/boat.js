@@ -3,7 +3,7 @@ import { loadGLTF } from "../../shared/assets/gltf.js";
 import { disposeObjects } from "../../shared/rendering/resources.js";
 
 export async function createSwampBoat(scene, url, { signal } = {}) {
-  const gltf = await loadGLTF(url, { signal });
+  const gltf = await loadGLTF(url, { signal, delivery: 'scene' });
   const group = new THREE.Group(), visual = new THREE.Group();
   let disposed = false;
   const dispose = () => {

@@ -34,6 +34,7 @@ rc-boat-arena/
 │   └── assets/
 │       ├── swamp/              湿地模型、来源说明和 manifest
 │       ├── cove/               晴湾来源说明和 manifest；模型复用原有公开路径
+│       ├── runtime/            场景专用轻量模型、来源与交付清单
 │       └── library/            项目素材目录、公开接入说明
 ├── tools/                      开发时执行的工具，不进入网站运行代码
 │   ├── checks/                 可重复执行的正式回归、模拟和路由检查

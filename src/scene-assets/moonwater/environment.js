@@ -381,7 +381,7 @@ async function loadTreeParts(url, signal) {
   }
 }
 
-function placeTrees(group, variants, quality, colliders, importedCount = 0) {
+function placeTrees(group, variants, quality, colliders, importedCount = 0, importedGroups = []) {
   const random = randomFrom(72342),
     count = quality === "low" ? 150 : quality === "high" ? 280 : 210;
   const heroCount = importedCount
@@ -431,53 +431,47 @@ function placeTrees(group, variants, quality, colliders, importedCount = 0) {
     if (depth < 8)
       colliders.push({ type: "circle", x, z, radius: 0.035 * height });
   }
-  const matrix = new THREE.Matrix4(),
-    position = new THREE.Vector3(),
-    rotation = new THREE.Quaternion();
   variants.forEach((parts, variant) => {
     const trees = positions.filter((p) => p.variant === variant);
-    for (const part of parts) {
-      const mesh = new THREE.InstancedMesh(
-        part.geometry,
-        part.material,
-        trees.length,
-      );
-      trees.forEach((tree, i) => {
-        position.set(tree.x, tree.y, tree.z);
-        rotation.setFromEuler(
-          new THREE.Euler(tree.leanX, tree.yaw, tree.leanZ),
-        );
-        matrix.compose(position, rotation, tree.scale);
-        mesh.setMatrixAt(i, matrix);
-        const shade = 0.77 + ((i * 0.61803) % 1) * 0.23;
-        mesh.setColorAt(
-          i,
-          new THREE.Color().setRGB(shade, shade, shade * 0.94),
-        );
-      });
-      mesh.name = part.foliage
-        ? "Irregular forest canopy"
-        : "Rooted branching trees";
-      mesh.castShadow = mesh.receiveShadow = true;
-      group.add(mesh);
-    }
+    // Near trees keep the same transforms when their scanned source arrives.
+    const target = variant < importedCount ? importedGroups[variant] : group;
+    addTreeInstances(target, parts, trees);
   });
   return positions;
 }
 
-async function placeGroundAsset(group, url, kind, quality, warnings, signal, ownParts) {
-  if (!url) return;
-  let parts;
-  try {
-    parts = await loadTreeParts(url, signal);
-    ownParts(parts);
-  } catch (error) {
-    if (signal?.aborted) throw error;
-    warnings.push(
-      `${kind} unavailable: ${error instanceof Error ? error.message : String(error)}`,
+function addTreeInstances(group, parts, trees) {
+  const matrix = new THREE.Matrix4(),
+    position = new THREE.Vector3(),
+    rotation = new THREE.Quaternion();
+  for (const part of parts) {
+    const mesh = new THREE.InstancedMesh(
+      part.geometry,
+      part.material,
+      trees.length,
     );
-    return;
+    trees.forEach((tree, i) => {
+      position.set(tree.x, tree.y, tree.z);
+      rotation.setFromEuler(
+        new THREE.Euler(tree.leanX, tree.yaw, tree.leanZ),
+      );
+      matrix.compose(position, rotation, tree.scale);
+      mesh.setMatrixAt(i, matrix);
+      const shade = 0.77 + ((i * 0.61803) % 1) * 0.23;
+      mesh.setColorAt(
+        i,
+        new THREE.Color().setRGB(shade, shade, shade * 0.94),
+      );
+    });
+    mesh.name = part.foliage
+      ? "Irregular forest canopy"
+      : "Rooted branching trees";
+    mesh.castShadow = mesh.receiveShadow = true;
+    group.add(mesh);
   }
+}
+
+function placeGroundAsset(group, parts, kind, quality) {
   const random = randomFrom(kind === "fern" ? 5401 : 6722);
   const count =
     kind === "fern"
@@ -802,16 +796,86 @@ export async function createEnvironment(
   const environmentMaps = {};
   let previous, sun, disposed = false;
   let lastExposure, lastEnvironmentIntensity;
+  const treeUrls = (assets.treeUrls ?? (assets.treeUrl ? [assets.treeUrl] : [])).slice(0, 3);
+  const importedGroups = treeUrls.map(() => new THREE.Group());
+  group.add(...importedGroups);
+  const detailSources = [
+    ...treeUrls.map((url, variant) => ({ url, variant, kind: "tree" })),
+    { url: assets.deadTreeUrl, kind: "log" },
+    { url: assets.fernUrl, kind: "fern" },
+  ].filter(source => source.url);
+  const detailController = new AbortController();
+  const detailState = { status: "waiting", error: null, loaded: 0, total: detailSources.length };
+  let resolveDetails, rejectDetails, detailFrame = 0, detailsStarted = false, importedTrees = false, trees;
+  const detailReady = new Promise((resolve, reject) => { resolveDetails = resolve; rejectDetails = reject; });
+  detailReady.catch(() => {});
   const ownParts = (parts) => {
+    // GLTF parsing can settle after disposal. A late result never joins this scene.
+    if (disposed || detailController.signal.aborted) {
+      disposeObjects(parts.map(part => new THREE.Mesh(part.geometry, part.material)), {
+        extraTextures: parts.sourceTextures ?? [],
+      });
+      throw detailController.signal.reason || new DOMException("Wetland details cancelled", "AbortError");
+    }
     for (const part of parts) prototypes.push(new THREE.Mesh(part.geometry, part.material));
     for (const texture of parts.sourceTextures ?? []) ownedTextures.add(texture);
     return parts;
   };
+  async function loadDetails() {
+    detailFrame = 0;
+    if (disposed) return;
+    detailState.status = "loading";
+    const failures = [];
+    // Bound decoding memory while keeping independent sources moving.
+    for (let offset = 0; offset < detailSources.length && !disposed; offset += 2) {
+      const results = await Promise.allSettled(detailSources.slice(offset, offset + 2).map(async source => {
+        const parts = ownParts(await loadTreeParts(source.url, detailController.signal));
+        if (!parts.length) throw new Error(`${source.kind} asset has no static meshes`);
+        if (source.kind === "tree") {
+          const replacement = new THREE.Group();
+          addTreeInstances(replacement, parts, trees.filter(tree => tree.variant === source.variant));
+          const previousTrees = importedGroups[source.variant];
+          // These instances share their procedural geometry/materials with the
+          // distant forest, so release instance buffers only when replacing them.
+          previousTrees.traverse(object => { if (object.isInstancedMesh) object.dispose(); });
+          previousTrees.removeFromParent(); previousTrees.clear();
+          group.add(replacement); importedGroups[source.variant] = replacement;
+          importedTrees = true;
+        } else placeGroundAsset(group, parts, source.kind, quality);
+        detailState.loaded++;
+      }));
+      for (const result of results) if (result.status === "rejected") failures.push(result.reason);
+    }
+    if (disposed) return;
+    if (failures.length) {
+      detailState.status = "error";
+      detailState.error = failures.map(error => String(error)).join("; ");
+      warnings.push(`Wetland details unavailable: ${detailState.error}`);
+      rejectDetails(new AggregateError(failures, detailState.error));
+    } else {
+      detailState.status = "ready"; resolveDetails();
+    }
+  }
+  function startDetails() {
+    if (disposed || detailsStarted) return detailReady;
+    detailsStarted = true;
+    // Let the host mount and paint the boat and full procedural forest first.
+    detailFrame = requestAnimationFrame(() => {
+      if (!disposed) detailFrame = requestAnimationFrame(() => { void loadDetails(); });
+    });
+    return detailReady;
+  }
   const fog = new THREE.FogExp2();
   const dispose = () => {
     if (disposed) return;
     disposed = true;
     signal?.removeEventListener("abort", dispose);
+    cancelAnimationFrame(detailFrame); detailFrame = 0;
+    const cancelled = new DOMException("Wetland details cancelled", "AbortError");
+    detailController.abort(cancelled);
+    if (detailState.status === "waiting" || detailState.status === "loading") {
+      detailState.status = "error"; detailState.error = String(cancelled); rejectDetails(cancelled);
+    }
     group.removeFromParent();
     // Only restore values still owned by this asset; never dispose caller resources.
     if (previous) {
@@ -843,30 +907,13 @@ export async function createEnvironment(
     createBanks(group);
     const leafTexture = createLeafTexture();
     ownedTextures.add(leafTexture);
-    const treeUrls = assets.treeUrls ?? (assets.treeUrl ? [assets.treeUrl] : []);
-    const variants = [];
-    for (const url of treeUrls.slice(0, 3)) {
-      try {
-        const parts = ownParts(await loadTreeParts(url, signal));
-        if (parts.length) variants.push(parts);
-      } catch (error) {
-        if (signal?.aborted) throw error;
-        warnings.push(`Tree asset unavailable: ${error instanceof Error ? error.message : String(error)}`);
-      }
-    }
-    const importedCount = variants.length, importedTrees = importedCount > 0;
-    for (let i = 0; i < 3; i++) variants.push(ownParts(fallbackTree(523 + i * 151, leafTexture)));
-    const trees = placeTrees(group, variants, quality, colliders, importedCount);
+    const fallbackVariants = Array.from({ length: 3 }, (_, i) => ownParts(fallbackTree(523 + i * 151, leafTexture)));
+    // Reserve imported variant slots up front: all tree, collision and root
+    // positions exactly match the completed landscape, without any extra trees.
+    const variants = [...treeUrls.map((_, i) => fallbackVariants[i]), ...fallbackVariants];
+    trees = placeTrees(group, variants, quality, colliders, treeUrls.length, importedGroups);
     createUnderstory(group, quality);
     createShoreDetails(group, trees, quality);
-    // Settle every independent load before cleanup, so no late result can attach
-    // geometry to an already disposed landscape.
-    const groundResults = await Promise.allSettled([
-      placeGroundAsset(group, assets.deadTreeUrl, "log", quality, warnings, signal, ownParts),
-      placeGroundAsset(group, assets.fernUrl, "fern", quality, warnings, signal, ownParts),
-    ]);
-    signal?.throwIfAborted();
-    for (const result of groundResults) if (result.status === "rejected") throw result.reason;
     const mistMaterial = createMist(group);
     sun = new THREE.DirectionalLight();
     sun.castShadow = true;
@@ -881,7 +928,7 @@ export async function createEnvironment(
     const hemi = new THREE.HemisphereLight(), ambient = new THREE.AmbientLight();
     group.add(sun, sun.target, hemi, ambient);
     for (const [name, preset] of Object.entries(MOODS)) environmentMaps[name] = createEnvironmentMap(preset);
-    // Capture caller state only when mounting, after asynchronous work is done.
+    // Capture caller state only when mounting the core landscape.
     previous = {
       fog: scene.fog,
       environment: scene.environment,
@@ -969,7 +1016,8 @@ export async function createEnvironment(
     signal?.addEventListener("abort", dispose, { once: true });
     return {
       group, sky, lights: { sun, hemi, ambient }, colliders, trees,
-      importedTrees, warnings, update, setMood, dispose,
+      detailState, detailReady, startDetails, warnings, update, setMood, dispose,
+      get importedTrees() { return importedTrees; },
       get mood() { return mood; },
       get preset() { return MOODS[mood]; },
     };

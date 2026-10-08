@@ -1,5 +1,7 @@
 # Wooden Crate · 绳柄货箱
 
+> 2026-10-05 交付优化：当前文件 **1,284,736 字节**，SHA-256 `3d035ccdb334303ddd011c59aae498b7cfaf73084a62fa4570c70a24f5fb4edb`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：James Ray Cock, Jurita Burger
 
 来源：[Wooden Crate · 绳柄货箱](https://polyhaven.com/a/wooden_crate_02)

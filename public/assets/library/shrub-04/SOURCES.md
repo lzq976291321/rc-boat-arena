@@ -1,5 +1,7 @@
 # 低矮灌丛 04 / Shrub 04
 
+> 2026-10-05 交付优化：当前文件 **1,258,844 字节**，SHA-256 `e04b5658f89983dbf11822ad5361faee909c863a9ccd2fdffb0e4563f9ce279a`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：Rico Cilliers
 
 来源：[Shrub 04](https://polyhaven.com/a/shrub_04)

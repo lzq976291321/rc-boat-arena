@@ -1,5 +1,7 @@
 # Futuristic Speedboat
 
+> 2026-10-05 交付优化：当前文件 **4,281,948 字节**，SHA-256 `2b1651f10c6fa66981e1bd3dbc82f7b48e8d9fd87147091cc1af90fa0dbe195f`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：[dylanheyes](https://sketchfab.com/dylanheyes)
 
 来源：[Futuristic Speedboat · 科幻快艇](https://sketchfab.com/3d-models/futuristic-speedboat-5a8f4d21472e4b2b8ec4d23f70cf8cbc)

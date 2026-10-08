@@ -1,5 +1,17 @@
 # Swamp scene asset sources
 
+> 第二轮首屏优化：场景显式使用 [runtime 变体](../runtime/SOURCES.md)；本页原素材路径继续保留完整版本。变体贴图降采样、几何有界精度及码头部件提取记录见该目录的交付清单。
+
+## 2026-10-05 交付优化
+
+2026-10-05：保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
+- `island-tree.glb`：6,188,792 bytes，SHA-256 `6109152cb5247879033c0584ead3c94be6f69af82e73b3017c46e06d96e5bc3d`。
+- `fern.glb`：641,100 bytes，SHA-256 `76cbdf4dffb54973a078ba94f501251c6d375cbadc5e3af1e8df8354e488dc8d`。
+- `dead-tree.glb`：1,644,320 bytes，SHA-256 `9f4e2c737bc82a6cbbbd357fd1b1cb21905e373a2dee1d38d2fbf71626bb5646`。
+
+下方 2026-09-21 文件字节数为历史记录；当前完整清单见 `asset-manifest.json`。
+
 The three vegetation assets use CC0 1.0. Futuristic Speedboat uses CC BY 4.0; author credit and license links are preserved here and in the experience.
 
 Checked: 2026-09-21. Every GLB is self-contained; runtime does not hotlink asset files.
@@ -40,3 +52,7 @@ The tree is a broadleaf island tree used as a wetland visual stand-in, not a bot
 `asset-manifest.json` includes original URLs, license URLs, SHA256 hashes, dimensions and transformations.
 
 Visual reference: [Chetan Ankola / Stillwater](https://x.com/chetanankola/status/2101595285675970853). This project uses an independent implementation and no proprietary Stillwater code or assets.
+
+## Racing shore reuse — 2026-09-22
+
+Island Tree 02 and Fern 02 are also used by the Songlan Lake race scene. The original GLB files and public URLs are unchanged. The racing scene owns its parsed geometries and materials, scales and grounds each instance, and batches planting by spatial sector. Source credits and licenses above apply to both scenes.

@@ -16,7 +16,7 @@ export function buildBuoys(scene, course) {
 
   // One parse and one geometry/material set for the entire course. Each source
   // mesh becomes one instanced draw, rather than a GLTF parse per marker.
-  const ready = loadGLTF('assets/library/ocean-buoy/model.glb', { signal: controller.signal }).then(gltf => {
+  const ready = loadGLTF('assets/library/ocean-buoy/model.glb', { signal: controller.signal, delivery: 'scene' }).then(gltf => {
     sourceScenes = gltf.scenes;
     if (disposed) { disposeObjects(sourceScenes); return; }
     const source = gltf.scene;

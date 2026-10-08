@@ -156,11 +156,75 @@ export async function createCoveEnvironment(scene, {
   signal?.throwIfAborted();
   const group = new THREE.Group(); group.name = 'Sunny Cove / open limestone bay';
   const resources = [], warnings = [], models = {}, maps = {}, mapTargets = [], looseTextures = [];
+  const detailSources = [
+    { key: 'tree', path: 'library/jacaranda-tree/model.glb' },
+    { key: 'bush', path: 'library/shrub-04/model.glb', nodeName: 'shrub_04' },
+  ];
+  const detailController = new AbortController();
+  const detailState = { status: 'waiting', error: null };
+  let resolveDetails, rejectDetails, detailFrame = 0, detailsStarted = false;
+  const detailReady = new Promise((resolve, reject) => { resolveDetails = resolve; rejectDetails = reject; });
+  // Details are optional: callers can inspect/await failure without an unhandled rejection.
+  detailReady.catch(() => {});
   let disposed = false, previous, lastExposure, lastIntensity, sun;
   const fog = new THREE.FogExp2();
+  async function loadDetails() {
+    detailFrame = 0;
+    if (disposed) return;
+    detailState.status = 'loading';
+    try {
+      const results = await Promise.allSettled(detailSources.map(record => loadCoveModel(
+        new URL(record.path, assetBaseUrl).href, { signal: detailController.signal, nodeName: record.nodeName })));
+      const loaded = results.filter(result => result.status === 'fulfilled').map(result => result.value);
+      const failure = results.find(result => result.status === 'rejected');
+      if (disposed || detailController.signal.aborted || failure) {
+        disposeObjects(loaded.flatMap(model => model.roots));
+        throw failure?.reason || detailController.signal.reason || new DOMException('Coastal details cancelled', 'AbortError');
+      }
+      results.forEach((result, index) => {
+        models[detailSources[index].key] = result.value;
+        resources.push(...result.value.roots);
+      });
+      prepareBushMaterials(models.bush);
+      group.userData.vegetation = createCoastalFoliage(group, { tree: models.tree, bush: models.bush }, quality);
+      detailState.status = 'ready'; resolveDetails();
+    } catch (error) {
+      detailState.status = 'error'; detailState.error = String(error);
+      if (!disposed && error.name !== 'AbortError') warnings.push(`Coastal foliage unavailable: ${String(error)}`);
+      rejectDetails(error);
+    }
+  }
+  function prepareBushMaterials(bush) {
+    for (const part of bush.parts) for (const material of Array.isArray(part.material) ? part.material : [part.material]) {
+      material.onBeforeCompile = shader => {
+        shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
+          #include <map_fragment>
+          float leaf = smoothstep(.80, 1.03, diffuseColor.g / max(.001, diffuseColor.r));
+          diffuseColor.rgb *= mix(vec3(1.), vec3(.84, 1.19, .78), leaf);`);
+      };
+      material.customProgramCacheKey = () => 'sunny-cove-living-coastal-foliage';
+      material.alphaToCoverage = true;
+    }
+  }
+  function startDetails() {
+    if (disposed || detailsStarted) return detailReady;
+    detailsStarted = true;
+    // The composition starts this only after boat, dock and core environment resolve.
+    // Two frames allow the host to mount and paint before the large tree request.
+    detailFrame = requestAnimationFrame(() => {
+      if (!disposed) detailFrame = requestAnimationFrame(() => { void loadDetails(); });
+    });
+    return detailReady;
+  }
   const dispose = () => {
     if (disposed) return;
     disposed = true; signal?.removeEventListener('abort', dispose); group.removeFromParent();
+    cancelAnimationFrame(detailFrame); detailFrame = 0;
+    const cancelled = new DOMException('Coastal details cancelled', 'AbortError');
+    detailController.abort(cancelled);
+    if (detailState.status === 'waiting' || detailState.status === 'loading') {
+      detailState.status = 'error'; detailState.error = String(cancelled); rejectDetails(cancelled);
+    }
     if (previous) {
       if (scene.fog === fog) scene.fog = previous.fog;
       if (Object.values(maps).includes(scene.environment)) {
@@ -181,8 +245,6 @@ export async function createCoveEnvironment(scene, {
     const sourceList = [
       { key: 'rock', path: 'library/rock-09/model.glb' },
       { key: 'cliff', path: 'library/rock-face-01/model.glb' },
-      { key: 'bush', path: 'library/shrub-04/model.glb', nodeName: 'shrub_04' },
-      { key: 'tree', path: 'library/jacaranda-tree/model.glb' },
     ];
     // Decode at most two source models at a time to bound mobile peak memory.
     for (let offset = 0; offset < sourceList.length; offset += 2) {
@@ -194,7 +256,7 @@ export async function createCoveEnvironment(scene, {
       const failure = results.find(result => result.status === 'rejected');
       if (failure) throw failure.reason;
     }
-    group.userData.sources = sourceList.map(({ path, nodeName }) => ({ path, nodeName }));
+    group.userData.sources = [...sourceList, ...detailSources].map(({ path, nodeName }) => ({ path, nodeName }));
     createSeabed(group, quality);
     createRockyCoast(group, models.cliff.parts[0].material, quality);
     distantHeadland(group, 1, 0); distantHeadland(group, -1, 1);
@@ -210,16 +272,6 @@ export async function createCoveEnvironment(scene, {
         };
         material.customProgramCacheKey = () => 'sunny-cove-warm-limestone';
       }
-    for (const part of models.bush.parts) for (const material of Array.isArray(part.material) ? part.material : [part.material]) {
-      material.onBeforeCompile = shader => {
-        shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', `
-          #include <map_fragment>
-          float leaf = smoothstep(.80, 1.03, diffuseColor.g / max(.001, diffuseColor.r));
-          diffuseColor.rgb *= mix(vec3(1.), vec3(.84, 1.19, .78), leaf);`);
-      };
-      material.customProgramCacheKey = () => 'sunny-cove-living-coastal-foliage';
-      material.alphaToCoverage = true;
-    }
     const spanOf = model => Math.max(model.size.x, model.size.z);
     // Individual fallen blocks punctuate the solid bedrock. No repeated stone rows.
     const breaks = [
@@ -259,7 +311,6 @@ export async function createCoveEnvironment(scene, {
     }
     group.add(instanceCoveModel(models.rock, rocks, 'Individual fallen shoreline blocks and submerged stones'));
     group.add(instanceCoveModel(models.cliff, cliffs, 'Scanned fractures embedded in the continuous limestone coast'));
-    group.userData.vegetation = createCoastalFoliage(group, { tree: models.tree, bush: models.bush }, quality);
     const sky = createSky(); group.add(sky.mesh);
     sun = new THREE.DirectionalLight(); sun.castShadow = true;
     sun.shadow.mapSize.setScalar(quality === 'low' ? 1024 : 2048);
@@ -335,6 +386,7 @@ export async function createCoveEnvironment(scene, {
     setMood(initialMood, { immediate: true });
     signal?.addEventListener('abort', dispose, { once: true });
     return { group, sky, lights: { sun, hemisphere, ambient, frontFill }, warnings, update, setMood, dispose,
+      detailState, detailReady, startDetails,
       floorHeight: coveFloorHeight, shoreX: coveShoreX,
       get mood() { return mood; }, get preset() { return MOODS[mood]; } };
   } catch (error) { dispose(); throw error; }

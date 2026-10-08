@@ -45,7 +45,7 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
         .catch(error => { loading.abort(); throw error; }),
       createCoveBoat(scene, new URL('library/riva-aquarama/model.glb', assetBaseUrl).href, { signal: loading.signal, length: 2.4 })
         .catch(error => { loading.abort(); throw error; }),
-      createCoveDock(scene, { assetBaseUrl, signal: loading.signal })
+      createCoveDock(scene, { assetBaseUrl, signal: loading.signal, deferDetails: true })
         .catch(error => { loading.abort(); throw error; }),
     ]);
     if (results[0].status === 'fulfilled') environment = results[0].value;
@@ -63,9 +63,16 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
     boatVisual.update(0, 0, boat, interaction.pose); environment.update(0, 0, boat);
     water.update(0, boat); rig.snap(boat);
   } catch (error) { dispose(); throw error; }
-  finally { signal?.removeEventListener('abort', abort); }
+  // Boat, water, dock structure and coast paint before optional foliage/furniture.
+  environment.startDetails(); dock.startDetails();
+  const detailReady = Promise.allSettled([environment.detailReady, dock.detailReady]).then(results => {
+    const failure = results.find(result => result.status === 'rejected');
+    if (failure) throw failure.reason;
+  });
+  detailReady.catch(() => {});
   return {
     scene, camera, boat, state, environment, boatVisual, dock, water, interaction,
+    detailReady,
     update(dt) {
       if (disposed) return;
       dt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, .05)) : 0;
@@ -92,12 +99,26 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
       boatVisual.update(0, 0, boat, interaction.pose); environment.update(0, 0, boat);
       rig.snap(boat);
     },
-    snapshot() { return { ...state, boat: { ...boat }, camera: rig.snapshot(), interaction: interaction.snapshot(), disposed }; },
+    snapshot() { return { ...state, boat: { ...boat }, camera: rig.snapshot(), interaction: interaction.snapshot(),
+      detailState: {
+        status: [environment, dock].some(part => ['waiting', 'loading'].includes(part.detailState.status))
+          ? 'loading' : [environment, dock].some(part => part.detailState.status === 'error') ? 'error' : 'ready',
+        error: [environment, dock].map(part => part.detailState.error).filter(Boolean).join('; ') || null,
+        environment: { ...environment.detailState }, dock: { ...dock.detailState },
+      }, disposed }; },
     dispose,
   };
 }
 
 /** Both the dedicated page and library preview use this exact host. */
-export function createSunnyCoveViewer(options = {}) {
-  return createSceneViewer({ ...options, mood: options.mood ?? 'afternoon', createScene: createSunnyCoveScene });
+export async function createSunnyCoveViewer(options = {}) {
+  let asset;
+  const viewer = await createSceneViewer({ ...options, mood: options.mood ?? 'afternoon',
+    createScene: async sceneOptions => (asset = await createSunnyCoveScene(sceneOptions)) });
+  // A paused/reduced-motion viewer still needs one fresh frame when details arrive.
+  const refreshDetails = () => { if (viewer.state.ready) viewer.setPaused(viewer.state.paused); };
+  for (const part of [asset.environment, asset.dock]) {
+    void part.detailReady.then(refreshDetails, refreshDetails).catch(error => options.onError?.(error));
+  }
+  return viewer;
 }

@@ -1,5 +1,7 @@
 # 层理岩壁 / Rock Face 01
 
+> 2026-10-05 交付优化：当前文件 **1,878,608 字节**，SHA-256 `6d2f545f293a8b35df6df48c989b74296f9620ec5d672fc1384f16aa866df28b`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：Dario Barresi
 
 来源：[Rock Face 01](https://polyhaven.com/a/rock_face_01)

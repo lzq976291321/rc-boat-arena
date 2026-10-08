@@ -45,7 +45,6 @@ const water = buildWater(scene);
 water.resize(window.innerWidth, window.innerHeight);
 const shore = buildShore(scene);
 const islet = buildIslet(scene);
-const scenery = buildScenery(scene);
 
 const course = buildCourse();
 const buoys = buildBuoys(scene, course);
@@ -56,6 +55,10 @@ const gateSigns = buildGateSigns(scene, course);
 const boatVis = buildBoat();
 let boatModelReady = false;
 scene.add(boatVis.group);
+const coreAssetsReady = Promise.all([boatVis.ready, buoys.ready]);
+// Give the usable boat/course a painted frame before decorative model requests.
+const scenery = buildScenery(scene, { shore, islet, after: coreAssetsReady.then(() =>
+  new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)))) });
 const wake = new Wake(scene, { points: 110 });
 const spray = new Spray(scene, 1100);
 water.excludeFromReflection(boatVis.jet, wake.center.mesh,
@@ -280,7 +283,7 @@ function goHome() {
 // ---------- 主循环 ----------
 let acc = 0, lastT = performance.now() / 1000, simTime = 0;
 let timeScale = 1;   // 调试/自动化用：加速模拟（物理步长不变）
-let frameCount = 0;
+let frameCount = 0, firstReadyFrameAt = 0;
 let fpsAcc = 0, fpsFrames = 0, fps = 0;
 
 function simulate(dt) {
@@ -444,6 +447,7 @@ function loop(nowMs) {
   updateCamera(dtReal);
   renderVisuals(dtReal);
   renderer.render(scene, camera);
+  if (boatModelReady && !firstReadyFrameAt) firstReadyFrameAt = performance.now();
   ui.update(dtReal);
   frameCount++;
   fpsAcc += dtReal; fpsFrames++;
@@ -596,12 +600,14 @@ requestAnimationFrame((t) => { lastT = t / 1000; requestAnimationFrame(loop); })
 window.__RC__ = {
   version: '1.1.0',
   get ready() { return boatModelReady; },
+  get firstReadyFrameAt() { return firstReadyFrameAt; },
   THREE, scene, camera, renderer, boat, race, course, params, rig, recorder, replay, wake, spray, water, buoys,
   props: { arch, gateHints, buoys, gateSigns }, boatVis, shore, islet, scenery,
   shoreHeightAt,
   state() {
     return {
       model: { ...boatVis.loadState },
+      scenery: { ...scenery.userData.assetState, assets: scenery.userData.assets || [] },
       mode, race: race.snapshot(), raceState: race.state,
       boat: { x: boat.x, z: boat.z, heading: boat.heading, speed: boat.speed, forwardSpeed: boat.forwardSpeed, bob: boat.bob,
               slipDeg: boat.slipAngle * 180 / Math.PI, roll: boat.roll, pitch: boat.pitch,
@@ -660,9 +666,9 @@ window.__RC__ = {
   formatTime,
 };
 
-// 船艇和航标均载入后开放驾驶，避免不可见的船或碰撞物。
+// 船艇与航标准备好后开放驾驶，岸景在后台继续载入。
 document.getElementById('btn-model-retry').addEventListener('click', () => location.reload());
-Promise.all([boatVis.ready, buoys.ready]).then(() => {
+coreAssetsReady.then(() => {
   boatModelReady = true;
   document.getElementById('model-status').classList.add('hidden');
   document.getElementById('btn-start').disabled = false;

@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "retrievedAt": "2026-09-21",
   "coordinateSystem": "glTF +Y up; dimensions are meters before runtime scale",
-  "totalBytes": 21106356,
+  "totalBytes": 12756160,
   "assets": [
     {
       "id": "island-tree",
@@ -18,7 +18,8 @@
         "1K source textures embedded in GLB.",
         "Decimated trunk, branches and leaf geometry to 51,000 triangles.",
         "Centered horizontally with the bottom at y=0.",
-        "Leaf alpha set to opaque; source leaves have explicit geometry."
+        "Leaf alpha set to opaque; source leaves have explicit geometry.",
+        "2026-10-05：保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。"
       ],
       "recommendedScale": [
         4.2,
@@ -26,7 +27,7 @@
         4.2
       ],
       "triangles": 51000,
-      "bytes": 9069232,
+      "bytes": 6188792,
       "dimensions": {
         "x": 4.200321197509766,
         "y": 3.425029993057251,
@@ -34,7 +35,8 @@
       },
       "origin": "horizontal center, bottom at y=0",
       "upAxis": "+Y",
-      "sha256": "f3df1d49ab8b6f4c8c89c87faa5e3dcdaa3af8689ea84eff26bcaf3012de0092"
+      "sha256": "6109152cb5247879033c0584ead3c94be6f69af82e73b3017c46e06d96e5bc3d",
+      "usage": "松岚湖 / 月下湿地 · 岸景"
     },
     {
       "id": "dead-tree",
@@ -49,7 +51,8 @@
       "changes": [
         "1K source textures embedded in GLB.",
         "Decimated from 101,802 to 8,000 triangles.",
-        "Centered horizontally with the bottom at y=0."
+        "Centered horizontally with the bottom at y=0.",
+        "2026-10-05：保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。"
       ],
       "recommendedScale": [
         1.2,
@@ -58,7 +61,7 @@
       ],
       "orientation": "Fallen log; long axis +X.",
       "triangles": 8000,
-      "bytes": 2700936,
+      "bytes": 1644320,
       "dimensions": {
         "x": 3.0500452518463135,
         "y": 0.289295494556427,
@@ -66,7 +69,7 @@
       },
       "origin": "horizontal center, bottom at y=0",
       "upAxis": "+Y",
-      "sha256": "df8cadb7a3072c8325a9d8dcdd0a5d4e7a815b43572439654504686627f9056d"
+      "sha256": "9f4e2c737bc82a6cbbbd357fd1b1cb21905e373a2dee1d38d2fbf71626bb5646"
     },
     {
       "id": "fern",
@@ -81,7 +84,8 @@
       "changes": [
         "Selected source variant fern_02_b from the four-model collection.",
         "1K source textures embedded in GLB.",
-        "Centered horizontally with the bottom at y=0."
+        "Centered horizontally with the bottom at y=0.",
+        "2026-10-05：保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。"
       ],
       "recommendedScale": [
         2.0,
@@ -89,7 +93,7 @@
         2.0
       ],
       "triangles": 2384,
-      "bytes": 1648452,
+      "bytes": 641100,
       "dimensions": {
         "x": 0.9897474050521851,
         "y": 0.427694708108902,
@@ -97,7 +101,8 @@
       },
       "origin": "horizontal center, bottom at y=0",
       "upAxis": "+Y",
-      "sha256": "b20beae49306bc36586c6897abcc5d47c5990e72f2233b3f307ca104d230dc59"
+      "sha256": "76cbdf4dffb54973a078ba94f501251c6d375cbadc5e3af1e8df8354e488dc8d",
+      "usage": "松岚湖 / 月下湿地 · 岸景"
     },
     {
       "id": "futuristic-speedboat",
@@ -112,9 +117,9 @@
       "source": "https://sketchfab.com/3d-models/futuristic-speedboat-5a8f4d21472e4b2b8ec4d23f70cf8cbc",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
       "tags": "科幻, 镀铬, 2K PBR, 湿地",
-      "bytes": 7687736,
+      "bytes": 4281948,
       "triangles": 162766,
-      "sha256": "e65d0a188ddc706329ca0d2356bf4a41bd9da83c3d4cb5f91c0116cc7d713094",
+      "sha256": "2b1651f10c6fa66981e1bd3dbc82f7b48e8d9fd87147091cc1af90fa0dbe195f",
       "role": "boat",
       "description": "Futuristic Speedboat by dylanheyes · CC BY 4.0；运行时调整朝向、比例及水线，保留原模型和贴图。",
       "upAxis": "+Y",
@@ -142,8 +147,11 @@
       "changes": [
         "Original Sketchfab GLB / 2K file unchanged; all six 2048px PNG maps embedded.",
         "Runtime mount centers the model, rotates +X bow to -Z, scales length to 5.2 m and places keel at y=-0.28 m before gentle bobbing.",
-        "Original PBR chrome and window textures retained. Removed old fishing-boat lamps; wake anchored 2.55 m behind the center."
+        "Original PBR chrome and window textures retained. Removed old fishing-boat lamps; wake anchored 2.55 m behind the center.",
+        "2026-10-05：保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。"
       ]
     }
-  ]
+  ],
+  "sceneDeliveryManifest": "/assets/runtime/asset-manifest.json",
+  "pathMeaning": "Full source models; the scene loader selects declared runtime variants."
 }

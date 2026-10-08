@@ -1,5 +1,5 @@
 export function setupPreview({ container, message, open, reset, wireframe, onStats }) {
-  let asset, viewer, loading, sceneViewer, sceneRequest, revision = 0, suspended = false;
+  let asset, viewer, loading, imagePreview, sceneViewer, sceneRequest, revision = 0, suspended = false;
   const canPreview = () => !!asset?.path || asset?.kind === 'procedural' || asset?.kind === 'scene';
   function controls() {
     reset.hidden = !(viewer || sceneViewer) || !canPreview();
@@ -32,11 +32,45 @@ export function setupPreview({ container, message, open, reset, wireframe, onSta
       if (current === revision) { open.disabled = false; open.textContent = '重试预览'; }
     }
   }
+  function clearImage() {
+    if (!imagePreview) return;
+    imagePreview.image.onload = imagePreview.image.onerror = null;
+    imagePreview.image.removeAttribute('src');
+    imagePreview.element.remove(); imagePreview = undefined;
+  }
+  function showImage(current) {
+    viewer?.destroy(); viewer = undefined;
+    wireframe.setAttribute('aria-pressed', 'false'); controls();
+    container.style.visibility = 'visible'; container.dataset.state = 'image-loading';
+    open.disabled = true; message.hidden = false; message.textContent = '正在加载原作预览图…';
+    const element = document.createElement('figure'), image = document.createElement('img'), caption = document.createElement('figcaption');
+    element.className = 'm-0 flex h-full w-full flex-col items-center gap-2 px-3 pb-3';
+    element.hidden = true;
+    image.className = 'block min-h-0 w-full flex-1 object-contain';
+    image.alt = `${asset.name} 原作预览图`; image.decoding = 'async';
+    caption.className = 'shrink-0 text-center text-[11px] text-[#7b8675]';
+    caption.textContent = '原作预览 · 模型待下载';
+    element.append(image, caption); container.append(element);
+    imagePreview = { element, image };
+    image.onload = () => {
+      if (current !== revision || suspended) return;
+      element.hidden = false; message.hidden = true;
+      container.dataset.state = 'image-ready'; open.disabled = false;
+    };
+    image.onerror = () => {
+      if (current !== revision || suspended) return;
+      clearImage(); container.dataset.state = 'error'; container.style.visibility = 'hidden';
+      message.hidden = false; message.textContent = '原作预览图加载失败，请重试或查看素材来源。';
+      open.disabled = false; open.hidden = false; open.textContent = '重试预览';
+    };
+    image.src = asset.previewImage;
+  }
   async function render() {
     const current = ++revision;
-    clearScene();
+    clearImage(); clearScene();
     open.hidden = true; open.disabled = false;
     if (!suspended && asset?.kind === 'scene') { await showScene(current); return; }
+    if (!suspended && !canPreview() && asset?.previewImage) { showImage(current); return; }
     if (suspended || !canPreview()) {
       viewer?.show(null); container.style.visibility = 'hidden';
       container.dataset.state = 'empty';
@@ -59,7 +93,7 @@ export function setupPreview({ container, message, open, reset, wireframe, onSta
     } finally { if (current === revision) { open.disabled = false; open.textContent = '重试预览'; } }
   }
   function stop() {
-    revision++; suspended = true; clearScene(); viewer?.destroy(); viewer = undefined;
+    revision++; suspended = true; clearImage(); clearScene(); viewer?.destroy(); viewer = undefined;
     container.style.visibility = 'hidden'; container.dataset.state = 'closed'; message.hidden = true;
     open.hidden = true; wireframe.setAttribute('aria-pressed', 'false'); controls();
   }

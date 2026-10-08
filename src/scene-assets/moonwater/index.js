@@ -55,9 +55,11 @@ export async function createMoonwaterScene({ renderer, assetBaseUrl, quality = '
     boatVisual.update(0, 0, boat); environment.update(0, 0, boat);
     water.update(0, boat); wake.reset(); rig.snap(boat);
   } catch (error) { dispose(); throw error; }
-  finally { signal?.removeEventListener('abort', abort); }
+  // Core readiness includes boat, water, banks and rooted procedural woodland.
+  environment.startDetails();
   return {
     scene, camera, boat, state, environment, water, wake, boatVisual,
+    detailReady: environment.detailReady,
     update(dt) {
       if (disposed) return;
       dt = Number.isFinite(dt) ? Math.max(0, Math.min(dt, 0.05)) : 0;
@@ -85,12 +87,19 @@ export async function createMoonwaterScene({ renderer, assetBaseUrl, quality = '
       boatVisual.update(0, 0, boat); environment.update(0, 0, boat);
       water.update(0, boat); rig.snap(boat);
     },
-    snapshot() { return { ...state, boat: { ...boat }, camera: rig.snapshot(), disposed }; },
+    snapshot() { return { ...state, boat: { ...boat }, camera: rig.snapshot(),
+      detailState: { ...environment.detailState }, disposed }; },
     dispose,
   };
 }
 
 /** Backwards-compatible Moonwater configuration of the shared Canvas host. */
-export function createMoonwaterViewer(options = {}) {
-  return createSceneViewer({ ...options, mood: options.mood ?? 'moonlight', createScene: createMoonwaterScene });
+export async function createMoonwaterViewer(options = {}) {
+  let asset;
+  const viewer = await createSceneViewer({ ...options, mood: options.mood ?? 'moonlight',
+    createScene: async sceneOptions => (asset = await createMoonwaterScene(sceneOptions)) });
+  // Also repaint partial successes if another optional source failed.
+  const refreshDetails = () => { if (viewer.state.ready) viewer.setPaused(viewer.state.paused); };
+  void asset.detailReady.then(refreshDetails, refreshDetails).catch(error => options.onError?.(error));
+  return viewer;
 }

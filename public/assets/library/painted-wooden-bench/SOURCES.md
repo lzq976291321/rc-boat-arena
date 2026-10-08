@@ -1,5 +1,7 @@
 # 掉漆木长椅 / Painted Wooden Bench
 
+> 2026-10-05 交付优化：当前文件 **1,129,248 字节**，SHA-256 `77b5d916581a4ae93583f617fd27615814b6c9b8b882bde49792b9201b6b9266`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：Kirill Sannikov
 
 来源：[Painted Wooden Bench](https://polyhaven.com/a/painted_wooden_bench)

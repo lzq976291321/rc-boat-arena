@@ -80,6 +80,10 @@ function closePreview() {
 
 Sunny Cove 使用相同 Canvas API，换工厂即可；它的默认光照为 `afternoon`：
 
+晴湾的创建 Promise / `ready` 表示真实船艇、码头结构、水面和岩岸已可观赏；树冠、灌木、码头家具在首帧后后台加载。湿地先提供真实船艇、程序树林、水面和岸线，扫描树木及地面细节随后在相同位置替换；不改变树位和碰撞体。`viewer.snapshot().detailState.status` 为 `waiting`、`loading`、`ready` 或 `error`，晴湾聚合岸景与码头的状态。直接使用场景工厂的宿主可等待 `asset.detailReady`；暂停绘制的宿主应在成功或失败后补画一帧以显示部分成功结果。晴湾如需分阶段刷新，可分别订阅 `asset.environment.detailReady` / `asset.dock.detailReady`；Canvas 工厂已经处理。独立使用 environment 时，在宿主完成基本画面后调用 `environment.startDetails()`。码头独立工厂默认等待家具完成；传 `deferDetails: true` 后由宿主调用 `dock.startDetails()`，`furniture: false` 不请求家具。取消或释放会终止后台请求，细节失败不销毁已可用的核心场景。
+
+场景加载通过共享 `loadGLTF(url, { delivery: 'scene' })` 显式选择 `src/shared/assets/scene-models.js` 中列出的轻量交付版本；未列出的模型不改 URL，路径前缀和查询参数保留。单模型素材库默认 `delivery: 'full'`，继续显示完整模型。公开加工及许可记录见 `public/assets/runtime/`。
+
 ```js
 import { createSunnyCoveViewer } from '../scene-assets/sunny-cove/index.js';
 const viewer = await createSunnyCoveViewer({ canvas, assetBaseUrl, signal });

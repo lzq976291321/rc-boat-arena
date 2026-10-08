@@ -1,5 +1,7 @@
 # MAVERICK GT · 运动摩托艇
 
+> 2026-10-05 交付优化：当前文件 **2,216,544 字节**，SHA-256 `66c9895438b39bcfd6f12ef116ddcd2bad45c7f07621548240ec982ee2a10b2b`。下方原始下载/打包数据为历史记录。保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。
+
 作者：dannzjs
 
 来源：[MAVERICK GT · 运动摩托艇](https://sketchfab.com/3d-models/maverick-gt-1cbe1b65836d4536bade28ca351ba164)

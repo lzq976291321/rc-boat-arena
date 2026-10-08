@@ -14,6 +14,7 @@
 
 - 源文件、购买凭证与未核实许可的素材留在仓库外；不要放进 public/，该目录内容会随网站公开发布。
 - 处理后的模型优先使用自包含 GLB；纹理随模型打包。检查模型轮廓、PBR 材质、透明贴图、面数、文件大小和动画。
+- 2026-10-05 起，已优化模型使用 `EXT_meshopt_compression`；项目统一加载器已配置 MeshoptDecoder。外部项目直接使用这些 GLB 时，也需要支持该扩展的加载器。模型当前字节数与 SHA-256 以 catalog / manifest 为准。
 - 使用 glTF +Y 朝上，记录前向轴、真实尺寸、原点、水线和运行时缩放。船艇接入还需验证转向、碰撞尺寸和尾流锚点。
 - 月下湿地资产写入 public/assets/swamp/asset-manifest.json，并同步 SOURCES.md；素材库自动读取此清单。其他资产写入 public/assets/library/catalog.json。
 - 在场景代码加载、摆放并验证模型；“已接入”表示当前源码使用该资产，不表示最新修改已部署。
@@ -24,3 +25,5 @@
 catalog.json 的资产至少包含 id（builtin- 前缀）、name、category、stage、kind、usage、author、license、source、licenseUrl、notes、tags。模型另记录 path（public 相对路径）、bytes、triangles、sha256。category 为 boat / prop / nature / structure / material；已接入 stage 为 integrated；kind 为 model 或 procedural。
 
 许可和来源以各素材的 SOURCES.md 为准。已移除的资产登记在清单的 retiredAssets 中，用于隐藏浏览器里残留的同源候选，不再作为运行资源发布。
+
+场景专用交付版本位于 [runtime](../runtime/SOURCES.md)，素材库的单模型预览仍使用本目录完整模型。观赏资产预览与对应独立页面共享相同的渐进加载场景。

@@ -20,13 +20,15 @@
     "check:contact": "node --test tools/checks/boat-water-motion-check.mjs tools/checks/boat-water-interaction-check.mjs",
     "check:routes": "node tools/checks/swamp-routes-check.mjs",
     "check:assets": "node tools/checks/assets-check.mjs",
-    "check:bundle": "node tools/checks/bundle-check.mjs"
+    "check:bundle": "node tools/checks/bundle-check.mjs",
+    "check:delivery": "node tools/checks/model-delivery-check.mjs"
   },
   "dependencies": {
     "three": "0.180.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "4.3.3",
+    "meshoptimizer": "0.25.0",
     "tailwindcss": "4.3.3",
     "vite": "^6.4.3"
   },

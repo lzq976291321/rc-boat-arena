@@ -50,7 +50,7 @@ export function buildBoat() {
   jet.visible = false; visual.add(jet);
 
   const modelUrl = new URL(loadState.source, document.baseURI).href;
-  const ready = loadGLTF(modelUrl, { onProgress: (event) => {
+  const ready = loadGLTF(modelUrl, { delivery: 'scene', onProgress: (event) => {
     if (event.total > 0) loadState.progress = Math.min(0.95, event.loaded / event.total);
   } }).then((gltf) => {
     // Preserve the source root transform (+Y up, -X bow). Rotate a separate

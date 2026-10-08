@@ -1,17 +1,19 @@
 import { createBinaryCache } from './binary-cache.js';
 import { disposeObjects } from '../rendering/resources.js';
+import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+import { sceneModelUrl } from './scene-models.js';
 
 export const modelBytes = createBinaryCache();
 let loaderPromise;
 function getLoader() {
   return loaderPromise ??= import('three/addons/loaders/GLTFLoader.js')
-    .then(({ GLTFLoader }) => new GLTFLoader())
+    .then(({ GLTFLoader }) => new GLTFLoader().setMeshoptDecoder(MeshoptDecoder))
     .catch(error => { loaderPromise = undefined; throw error; });
 }
 // Every consumer owns its parsed scene. Source bytes and parser code are reused;
 // transforms/material edits and disposal in one viewer cannot corrupt another.
-export async function loadGLTF(url, { signal, onProgress } = {}) {
-  const absolute = new URL(url, document.baseURI).href;
+export async function loadGLTF(url, { signal, onProgress, delivery = 'full' } = {}) {
+  const absolute = delivery === 'scene' ? sceneModelUrl(url) : new URL(url, document.baseURI).href;
   const [loader, data] = await Promise.all([getLoader(), modelBytes.read(absolute, { signal, onProgress })]);
   signal?.throwIfAborted();
   let gltf;
