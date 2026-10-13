@@ -19,7 +19,7 @@ GitHub 仓库：`lzq976291321/rc-boat-arena`（私有）。Vercel 项目：`rc-b
 
 `package.json` 固定 pnpm 版本，`pnpm-lock.yaml` 固定依赖，`pnpm-workspace.yaml` 允许 esbuild 必需的安装脚本。Vercel 项目当前使用 Node.js 24.x。
 
-生产只包含晴湾一个应用入口，本地素材工作台不参与生产构建。Vite 使用 `publicDir: false`，由 `tools/assets/cove-public-assets.mjs` 将使用中的原始GLB、运行变体及来源文件写入构建产物；不再整目录复制 `public/`。`/cove/`、`/swamp/` 和生产 `/library/` 的兼容跳转需保留查询参数、片段和 DSH 子路径前缀。
+生产只包含晴湾一个应用入口，本地素材工作台不参与生产构建。Vite 使用 `publicDir: false`，由 `tools/assets/cove-public-assets.mjs` 将使用中的原始GLB、运行变体及来源文件写入构建产物；不再整目录复制 `public/`。`/cove/`、`/swamp/` 和生产 `/library/` 的兼容跳转需保留查询参数、片段和静态宿主子路径前缀。
 
 `.vercelignore` 保留上述构建插件，排除其余 `tools/` 内容；不能直接排除整个 `tools/`，否则云端无法加载 Vite 配置。该插件仅参与构建，不作为浏览器资源发布。
 
@@ -68,6 +68,6 @@ pnpm check:bundle
 
 发布预算以实际产物检查为准：默认核心GLB≤1.5 MB、可选船核心≤2 MB、完整单船场景≤8 MB、兼容原件后的发布目录≤85 MB。这些是验收门槛，不是尚未完成的压缩或上线结果。
 
-网页只发布 Vite 构建输出。源码与可发布素材进入 Git，但只有晴湾白名单进入网站；`.env*`、本机 DSH 状态、依赖、构建输出、`tools/local/`、模型原始工程和 `artifacts/` 按 `.gitignore` 保持本地。模型转换工具位于 `tools/assets/`，本地转换产物只有在完成运行接入和来源许可核对后才进入 `public/`。
+网页只发布 Vite 构建输出。源码与可发布素材进入 Git，但只有晴湾白名单进入网站；`.env*`、依赖、构建输出、`tools/local/`、模型原始工程和 `artifacts/` 按 `.gitignore` 保持本地。模型转换工具位于 `tools/assets/`，本地转换产物只有在完成运行接入和来源许可核对后才进入 `public/`。
 
 自动部署机制参考 [Vercel GitHub 集成文档](https://vercel.com/docs/git/vercel-for-github)。

@@ -2,7 +2,6 @@ node_modules/
 dist/
 .git/
 artifacts/
-.dsh-home/
 .env*
 *.log
 *.blend*
@@ -13,4 +12,3 @@ tools/*
 !tools/assets/
 tools/assets/*
 !tools/assets/cove-public-assets.mjs
-dsh-plugin/

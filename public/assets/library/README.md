@@ -1,6 +1,6 @@
 # 素材接入说明
 
-素材库入口：`/library/`。项目资产随代码发布；收藏、星标、备注仅保存在当前浏览器，不会上传或自动进入游戏。
+本地素材工作台入口：开发服务器的 `/library/`。这里只保留晴湾使用的 17 项模型原件与来源记录；生产 `/library/` 返回晴湾首页，发布文件由晴湾清单白名单选择。收藏、星标、备注仅保存在当前浏览器，不会上传或自动进入场景。
 
 ## 收集与筛选
 
@@ -12,18 +12,18 @@
 
 ## 将素材接入项目
 
-- 源文件、购买凭证与未核实许可的素材留在仓库外；不要放进 public/，该目录内容会随网站公开发布。
+- 候选下载包、原始工程、购买凭证与未核实许可的素材留在仓库外；`public/` 只放可公开发布且当前使用的模型和来源记录。
 - 处理后的模型优先使用自包含 GLB；纹理随模型打包。检查模型轮廓、PBR 材质、透明贴图、面数、文件大小和动画。
 - 2026-10-05 起，已优化模型使用 `EXT_meshopt_compression`；项目统一加载器已配置 MeshoptDecoder。外部项目直接使用这些 GLB 时，也需要支持该扩展的加载器。模型当前字节数与 SHA-256 以 catalog / manifest 为准。
-- 使用 glTF +Y 朝上，记录前向轴、真实尺寸、原点、水线和运行时缩放。船艇接入还需验证转向、碰撞尺寸和尾流锚点。
-- 月下湿地资产写入 public/assets/swamp/asset-manifest.json，并同步 SOURCES.md；素材库自动读取此清单。其他资产写入 public/assets/library/catalog.json。
+- 使用 glTF +Y 朝上，记录前向轴、原点、水线和运行时观赏尺寸。船艇接入还需验证巡游方向、水面接触和尾流锚点；观赏尺寸不是实艇工程数据。
+- 晴湾素材写入 `public/assets/cove/asset-manifest.json`，本地完整模型写入 `public/assets/library/catalog.json`；轻量交付版本登记在 `public/assets/runtime/asset-manifest.json`。三处清单需保持来源、作者、许可与校验值一致。
 - 在场景代码加载、摆放并验证模型；“已接入”表示当前源码使用该资产，不表示最新修改已部署。
 - 在浏览器验收模型加载、材质、光照、方向、触屏、加载失败与性能，再登记接入。素材库预览采用统一工作室光照，不能替代场景验收。
 
 ## 记录字段
 
-catalog.json 的资产至少包含 id（builtin- 前缀）、name、category、stage、kind、usage、author、license、source、licenseUrl、notes、tags。模型另记录 path（public 相对路径）、bytes、triangles、sha256。category 为 boat / prop / nature / structure / material；已接入 stage 为 integrated；kind 为 model 或 procedural。
+catalog.json 的资产包含 id（builtin- 前缀）、name、category、stage、kind、usage、author、license、source、licenseUrl、notes、tags、path（public 相对路径）、bytes、triangles、sha256。当前正式目录只列晴湾使用中的模型，stage 为 integrated，kind 为 model。候选链接可以在个人浏览器中收藏，模型文件留在项目之外，确定接入后再加入清单。
 
-许可和来源以各素材的 SOURCES.md 为准。已移除的资产登记在清单的 retiredAssets 中，用于隐藏浏览器里残留的同源候选，不再作为运行资源发布。
+许可和来源以各素材的 SOURCES.md 为准。未使用的库模型和旧场景目录已从当前项目移除，可以通过 Git 历史恢复；当前清单不保留旧场景的演示条目。
 
-场景专用交付版本位于 [runtime](../runtime/SOURCES.md)，素材库的单模型预览仍使用本目录完整模型。观赏资产预览与对应独立页面共享相同的渐进加载场景。
+场景专用交付版本位于 [runtime](../runtime/SOURCES.md)，本地单模型预览仍使用本目录完整模型。晴湾观赏资产预览与首页共享相同的渐进加载场景。

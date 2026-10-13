@@ -6,7 +6,7 @@ export default defineConfig(({ command }) => ({
   plugins: [tailwindcss(), covePublicAssets()],
   // Keep the complete stock library local; publish only the active composition.
   publicDir: command === 'serve' ? 'public' : false,
-  // Relative URLs also preserve DSH's /rc-boat-arena/ mount.
+  // Relative URLs preserve optional static-host subpaths.
   base: './',
   build: {
     outDir: 'dist', assetsDir: 'assets', target: 'es2020', sourcemap: false,

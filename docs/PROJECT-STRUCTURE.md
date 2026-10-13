@@ -33,7 +33,6 @@ rc-boat-arena/
 │   ├── assets/                 素材处理与cove-public-assets.mjs发布白名单
 │   └── local/                  本机实验，不作为正式验收
 ├── docs/                       维护约定、设计与历史记录
-├── dsh-plugin/                 可选本机DSH集成
 ├── artifacts/                  本地截图、录屏与验收记录
 ├── dist/                       可重新生成的构建输出
 ├── node_modules/               可重新安装的依赖
@@ -41,7 +40,7 @@ rc-boat-arena/
 └── AGENTS.md、项目配置文件
 ```
 
-`tools/local/`、`artifacts/`、`dist/`、`node_modules/`、`.vercel/` 按 `.gitignore` 保持本地。旧场景仅用的本地素材可以保留用于筛选，但不会自动发布。
+`tools/local/`、`artifacts/`、`dist/`、`node_modules/`、`.vercel/` 按 `.gitignore` 保持本地。素材目录只保留晴湾实际使用的17项，未用旧素材可从Git历史恢复。历史截图、录屏和实验已归档到 `/Users/linzhiqiang/Documents/RC-Boat-Archive/2026-10-13`；当前验收留在项目内。项目与blog同级独立维护，不再接入DSH。
 
 ## 新内容放哪里
 
@@ -58,7 +57,7 @@ rc-boat-arena/
 | 可发布模型与纹理 | `public/assets/<用途>/` | 来源、许可、字节、哈希与加工记录完整；场景清单决定生产发布 |
 | 原始工程、未筛选下载包和购买凭证 | 仓库外 | 不放进公开目录 |
 | 可重复检查与素材加工 | `tools/checks/`、`tools/assets/` | 无个人绝对路径；参数明确 |
-| 设计记录与验收产物 | `docs/design/`、`artifacts/<主题>/<日期>/` | 历史证据按原路径保留，当前结论写清版本 |
+| 设计记录与验收产物 | `docs/design/`、`artifacts/<主题>/<日期>/` | 当前证据按日期保留；早期证据移出项目归档，记录其位置 |
 
 ## 依赖与规模
 

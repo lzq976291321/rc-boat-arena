@@ -64,7 +64,7 @@ function closePreview() {
 }
 ```
 
-`assetBaseUrl` 是公开 `assets/` 目录的绝对URL，保留结尾 `/`。**正式首页使用 `./assets/`，本地 `/library/` 使用 `../assets/`**；两者都保留DSH等子路径前缀。不要按JS文件所在位置推导页面的资源URL。
+`assetBaseUrl` 是公开 `assets/` 目录的绝对URL，保留结尾 `/`。**正式首页使用 `./assets/`，本地 `/library/` 使用 `../assets/`**；两者都保留静态宿主子路径前缀。不要按JS文件所在位置推导页面的资源URL。
 
 | 方法 | 用途 |
 | --- | --- |

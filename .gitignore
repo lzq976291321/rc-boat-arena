@@ -1,7 +1,6 @@
 node_modules/
 dist/
 .vercel/
-.dsh-home/
 artifacts/
 .env
 .env.*

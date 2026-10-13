@@ -56,22 +56,14 @@ pnpm serve             # 本地预览构建产物
 
 素材先按用途组合成码头靠泊、维护陈设、休息区和岸边植被，使用数量服务于构图。完整作者、许可与加工记录保留在 [晴湾素材记录](public/assets/cove/SOURCES.md) 及各素材目录中。
 
-Vite 禁止自动复制整个 `public/`。`tools/assets/cove-public-assets.mjs` 根据晴湾清单发布正在使用的完整原件、运行变体及来源说明，兼容这些素材原有公开 URL。未使用的库模型留在本地开发库，不进入生产目录；减少发布体积不等于首屏加载同等下降。
+Vite 禁止自动复制整个 `public/`。`tools/assets/cove-public-assets.mjs` 根据晴湾清单发布正在使用的完整原件、运行变体及来源说明，兼容这些素材原有公开 URL。素材目录只保留晴湾实际使用的 17 项；未使用的旧素材从当前版本移除，可以通过 Git 历史恢复。减少项目体积不等于首屏加载同等下降。
 
 模型加载统一使用有限容量字节缓存，共享不可变文件字节，各场景实例独立拥有材质、几何与释放责任。素材工作台列表不静态加载 Three.js；静态模型按需绘制，观赏预览离屏或进入后台后停止无效绘制。性能事实及历史记录见 [加载与资源管理](docs/PERFORMANCE.md)。
 
 网站无需后端和环境变量。GitHub `main` 推送通过 Vercel Git 集成自动发布，配置与验收见 [部署说明](docs/DEPLOYMENT.md)。构建、浏览器验收、提交推送与部署成功分别记录。
 
-## 可选 DSH 面板
+## 本地工作区与历史资料
 
-`dsh-plugin/` 可把构建后的晴湾挂载到本机 DSH 的 `/rc-boat-arena/`。这不是网站运行依赖。
-
-```sh
-pnpm build
-# 按本机情况设置 DSH_HOME / DSH_PROFILE 后：
-pnpm dsh:status
-pnpm dsh:enable
-pnpm dsh:disable
-```
+项目独立存放在 `/Users/linzhiqiang/code/connected-repos/my-repos/rc-boat-arena`，与 blog 同级，不再接入 DSH 面板。当前验收产物保留在 `artifacts/sunny-cove/2026-10-13/`；早期截图、视频、素材实验和旧本机脚本已移到 `/Users/linzhiqiang/Documents/RC-Boat-Archive/2026-10-13`，没有删除历史证据。Git 历史和用户未跟踪文件保留。
 
 历史设计记录中仍可能提到竞速、Moonwater 与四个公开页面；那些描述对应当时版本，不是当前维护范围。

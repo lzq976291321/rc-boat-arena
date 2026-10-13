@@ -1,6 +1,6 @@
-// Local full models and Sunny Cove delivery variants must match provenance and budgets.
+// Only current Sunny Cove source models and delivery variants belong in the project.
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, readdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { sceneModelUrl } from '../../src/shared/assets/scene-models.js';
@@ -50,6 +50,23 @@ for (const catalog of [...catalogs, runtime]) {
 }
 const cove = catalogs[1];
 const coveById = new Map(cove.assets.map(asset => [asset.id, asset]));
+const library = catalogs[0];
+assert(library.assets.every(asset => asset.kind === 'model'), 'Local catalog must contain only active models');
+assert.deepEqual(library.assets.map(asset => asset.path).sort(), cove.assets.map(asset => asset.path).sort(),
+  'Local library and Cove must cover the same source models');
+for (const source of cove.assets) {
+  const entry = library.assets.find(asset => asset.path === source.path);
+  assert.equal(entry.id, `builtin-${source.id}`, `${source.id}: local annotation ID changed`);
+  assert.equal(entry.stage, 'integrated', `${source.id}: inactive catalog record`);
+  for (const key of ['author', 'license', 'source', 'licenseUrl', 'bytes', 'sha256']) {
+    assert.equal(entry[key], source[key], `${source.id}: source and local catalog disagree on ${key}`);
+  }
+  const files = await readdir(new URL(`assets/library/${source.id}/`, root));
+  assert.deepEqual(files.sort(), ['SOURCES.md', 'model.glb'], `${source.id}: unexpected library files`);
+}
+const libraryDirectories = (await readdir(new URL('assets/library/', root), { withFileTypes: true }))
+  .filter(entry => entry.isDirectory()).map(entry => entry.name).sort();
+assert.deepEqual(libraryDirectories, cove.assets.map(asset => asset.id).sort(), 'Unused model directories remain');
 assert.equal(coveById.size, cove.assets.length, 'Duplicate Cove source IDs');
 assert.equal(new Set(cove.assets.map(asset => asset.path)).size, cove.assets.length, 'Duplicate Cove source paths');
 assert.deepEqual(cove.assets.filter(asset => asset.role === 'boat').map(asset => asset.id).sort(),
@@ -59,8 +76,8 @@ for (const boat of BOATS) {
 }
 const runtimeById = new Map(runtime.assets.map(asset => [asset.id, asset]));
 assert.equal(runtimeById.size, runtime.assets.length, 'Duplicate runtime model IDs');
-// Unused models may remain in the local workbench. Only active Cove variants
-// have a production mapping contract; the build check verifies the whitelist.
+assert.deepEqual([...runtimeById.keys()].sort(), [...coveById.keys()].sort(), 'Unused or missing runtime variants');
+// Every retained model has an active production mapping contract.
 const activeVariants = runtime.assets.filter(asset => coveById.has(asset.id));
 const base = 'https://fixtures.invalid/project/assets/';
 let mappingChecks = 0;

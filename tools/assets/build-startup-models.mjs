@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /** Rebuild reviewable startup GLBs separately from the original/full library.
  * Usage: node tools/assets/build-startup-models.mjs --python /path/to/python-with-pillow
- *   [--source-root artifacts/performance/2026-10-05/originals/assets/library]
+ *   --source-root /path/to/unprocessed/assets/library
  *   [--output-root tools/local/startup-models]
  */
 import assert from 'node:assert/strict';
@@ -12,18 +12,18 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const options = { '--python': 'python3', '--source-root': 'artifacts/performance/2026-10-05/originals/assets/library', '--output-root': 'tools/local/startup-models' };
+const options = { '--python': 'python3', '--source-root': null, '--output-root': 'tools/local/startup-models' };
 const args = process.argv.slice(2);
 assert(args.length % 2 === 0, 'Every option needs a value');
 for (let i = 0; i < args.length; i += 2) {
   assert(args[i] in options, `Unknown option: ${args[i]}`); options[args[i]] = args[i + 1];
 }
+assert(options['--source-root'], 'Provide --source-root with unprocessed originals; historical originals are archived outside this repository');
 const sourceRoot = resolve(root, options['--source-root']), outputRoot = resolve(root, options['--output-root']);
 assert(!outputRoot.startsWith(sourceRoot + '/') && sourceRoot !== outputRoot, 'Keep source library immutable');
 assert(!outputRoot.startsWith(join(root, 'public') + '/'), 'Generate candidates outside public; review before publishing');
 const models = [
-  { id: 'maverick-gt', textureSize: 512 }, { id: 'ocean-buoy', textureSize: 256 },
-  { id: 'futuristic-speedboat', textureSize: 512 }, { id: 'riva-aquarama', textureSize: 512 },
+  { id: 'maverick-gt', textureSize: 512 }, { id: 'riva-aquarama', textureSize: 512 },
   { id: 'modular-wooden-pier', textureSize: 256, selectedNode: 'modular_wooden_pier_planks' },
   ...['rock-09', 'rock-face-01', 'painted-wooden-bench', 'wooden-crate-02', 'lifebuoy'].map(id => ({ id, textureSize: 256 })),
 ];
@@ -52,7 +52,7 @@ for (const model of models) {
     commands: [{ executable: options['--python'], arguments: prepareArgs }, { executable: process.execPath, arguments: boundArgs }] });
   console.log(`${model.id}: ${model.bytes} bytes, ${model.nodes} nodes, ${model.triangles} triangles`);
 }
-const groups = { arena: ['maverick-gt', 'ocean-buoy'], swamp: ['futuristic-speedboat'], cove: ['riva-aquarama', 'modular-wooden-pier', 'rock-09', 'rock-face-01'] };
+const groups = { cove: ['riva-aquarama', 'modular-wooden-pier', 'rock-09', 'rock-face-01'] };
 const budgets = Object.fromEntries(Object.entries(groups).map(([page, ids]) => {
   const bytes = models.filter(model => ids.includes(model.id)).reduce((sum, model) => sum + model.bytes, 0);
   assert(bytes <= 1_500_000, `${page}: ${bytes} bytes exceeds 1.5 MB model budget`);

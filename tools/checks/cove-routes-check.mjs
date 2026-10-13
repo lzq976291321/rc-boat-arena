@@ -1,10 +1,9 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer, get } from 'node:http';
-import { access, readFile, readdir } from 'node:fs/promises';
+import { access, readFile, readdir, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { runInNewContext } from 'node:vm';
-import { apply } from '../../dsh-plugin/lib/index.js';
 import { sceneModelUrl } from '../../src/shared/assets/scene-models.js';
 import { BOATS } from '../../src/scene-assets/sunny-cove/config/boats.js';
 
@@ -16,18 +15,33 @@ before(async () => {
     .map(page => access(new URL(page, dist)))).catch(() => {
     throw new Error('Missing built page or compatibility redirect; run pnpm build before this check.');
   });
-  let route;
-  apply({ effect: effect => effect(), webServer: { register: registration => { route = registration; } } });
-  assert.equal(route.kind, 'prefix'); assert.equal(route.path, prefix);
-  server = createServer((req, res) => {
-    const pathname = new URL(req.url, 'http://localhost').pathname;
-    if (pathname === prefix || pathname.startsWith(`${prefix}/`)) void route.handler(req, res);
-    else { res.writeHead(404); res.end(); }
-  });
+  server = createServer((req, res) => { void serveStatic(req, res); });
   await new Promise((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', resolve); });
   origin = `http://127.0.0.1:${server.address().port}`;
   coveManifest = JSON.parse(await readFile(new URL('assets/cove/asset-manifest.json', dist), 'utf8'));
 });
+// Exercise the built relative URLs under an ordinary static-host mount.
+// The project no longer depends on a DSH plugin or running DSH instance.
+async function serveStatic(req, res) {
+  const url = new URL(req.url, 'http://localhost');
+  if (url.pathname !== prefix && !url.pathname.startsWith(`${prefix}/`)) {
+    res.writeHead(404); res.end(); return;
+  }
+  try {
+    const target = new URL(`.${decodeURIComponent(url.pathname.slice(prefix.length) || '/')}`, dist);
+    if (!target.href.startsWith(dist.href)) { res.writeHead(403); res.end(); return; }
+    const info = await stat(target);
+    if (info.isDirectory() && !url.pathname.endsWith('/')) {
+      res.writeHead(308, { Location: `${url.pathname}/${url.search}` }); res.end(); return;
+    }
+    const file = info.isDirectory() ? new URL('index.html', new URL(`${target.href}/`)) : target;
+    const types = { html: 'text/html', js: 'text/javascript', css: 'text/css', svg: 'image/svg+xml',
+      json: 'application/json', md: 'text/plain', glb: 'model/gltf-binary' };
+    const body = await readFile(file);
+    res.writeHead(200, { 'Content-Type': types[file.pathname.split('.').at(-1)] || 'application/octet-stream' });
+    res.end(body);
+  } catch { res.writeHead(404); res.end(); }
+}
 after(async () => {
   if (server?.listening) await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
 });
@@ -52,7 +66,7 @@ function assertGLB(response, path) {
   assert.equal(response.body.readUInt32LE(8), response.body.length);
 }
 
-test('root is Sunny Cove and the DSH mount preserves root queries', async () => {
+test('root is Sunny Cove and a static-host subpath preserves root queries', async () => {
   const redirect = await request(`${prefix}?boat=1`);
   assert.equal(redirect.status, 308); assert.equal(redirect.headers.location, `${prefix}/?boat=1`);
   const page = await request(`${prefix}/`); assertType(page, 'text/html');
