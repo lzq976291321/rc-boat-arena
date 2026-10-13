@@ -9,5 +9,8 @@ artifacts/
 *.tar.gz
 *.zip
 .DS_Store
-tools/
+tools/*
+!tools/assets/
+tools/assets/*
+!tools/assets/cove-public-assets.mjs
 dsh-plugin/

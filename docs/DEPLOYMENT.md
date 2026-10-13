@@ -21,6 +21,8 @@ GitHub 仓库：`lzq976291321/rc-boat-arena`（私有）。Vercel 项目：`rc-b
 
 生产只包含晴湾一个应用入口，本地素材工作台不参与生产构建。Vite 使用 `publicDir: false`，由 `tools/assets/cove-public-assets.mjs` 将使用中的原始GLB、运行变体及来源文件写入构建产物；不再整目录复制 `public/`。`/cove/`、`/swamp/` 和生产 `/library/` 的兼容跳转需保留查询参数、片段和 DSH 子路径前缀。
 
+`.vercelignore` 保留上述构建插件，排除其余 `tools/` 内容；不能直接排除整个 `tools/`，否则云端无法加载 Vite 配置。该插件仅参与构建，不作为浏览器资源发布。
+
 ## 域名与论坛旧链接
 
 2026-09-22 已完成域名迁移。游戏、论坛前端与论坛 API 均已发布到生产；下列域名归属、DNS、HTTPS与旧链接在该次迁移时核验通过。记录用于说明契约，不代表本轮重新验证了远端配置；当前主站页面范围改为晴湾。
