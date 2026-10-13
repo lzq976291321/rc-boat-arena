@@ -1,7 +1,6 @@
 // The library owns this canvas; the scene asset owns its rendering resources.
 export async function createScenePreview({ container, asset, signal }) {
   const loaders = {
-    moonwater: () => import('../scene-assets/moonwater/index.js').then(module => module.createMoonwaterViewer),
     'sunny-cove': () => import('../scene-assets/sunny-cove/index.js').then(module => module.createSunnyCoveViewer),
   };
   if (!Object.hasOwn(loaders, asset.sceneAsset)) throw new Error('Unknown scene asset');

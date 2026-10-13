@@ -1,6 +1,6 @@
 // Shared viewing-page behavior. Scene rendering stays behind createViewer.
 export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
-  capturePrefix, manifestPath, loadingText = '正在准备观赏场景…',
+  capturePrefix, manifestPath, assetBaseUrl = new URL('../assets/', document.baseURI).href, loadingText = '正在准备观赏场景…',
   boats = [], defaultBoatId, preferenceKey }) {
   const lifetime = new AbortController();
   const listeners = [];
@@ -10,7 +10,6 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
   }
   const $ = id => document.getElementById(id);
   const errors = [];
-  const assetBaseUrl = new URL('../assets/', document.baseURI).href;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
   const boatById = new Map(boats.map(boat => [boat.id, boat]));
   const fallbackBoatId = boatById.has(defaultBoatId) ? defaultBoatId : boats[0]?.id;

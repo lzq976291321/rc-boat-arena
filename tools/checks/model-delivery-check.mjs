@@ -1,13 +1,14 @@
-// Published full and scene GLBs must match their catalogs and remain decodable.
+// Local full models and Sunny Cove delivery variants must match provenance and budgets.
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 import { sceneModelUrl } from '../../src/shared/assets/scene-models.js';
 import { loadGLTF, modelBytes } from '../../src/shared/assets/gltf.js';
+import { BOATS, DEFAULT_BOAT_ID } from '../../src/scene-assets/sunny-cove/config/boats.js';
 
 const root = new URL('../../public/', import.meta.url);
-const catalogs = await Promise.all(['library/catalog.json', 'swamp/asset-manifest.json', 'cove/asset-manifest.json']
+const catalogs = await Promise.all(['library/catalog.json', 'cove/asset-manifest.json']
   .map(async path => JSON.parse(await readFile(new URL(`assets/${path}`, root), 'utf8'))));
 const runtime = JSON.parse(await readFile(new URL('assets/runtime/asset-manifest.json', root), 'utf8'));
 const checked = new Map();
@@ -47,46 +48,45 @@ for (const catalog of [...catalogs, runtime]) {
     assert.equal(asset.sha256, file.sha256, `${asset.path}: stale catalog checksum`);
   }
 }
-const size = path => checked.get(`/assets/library/${path}/model.glb`).bytes;
-const sum = assets => assets.reduce((total, asset) => total + (asset.bytes ?? 0), 0);
-// These retained budgets describe full library/catalog files, not scene traffic.
-const libraryBudgets = {
-  arenaLibraryModels: [size('maverick-gt') + size('ocean-buoy'), 4_500_000],
-  coveDefaultLibraryWithoutFoliage: [sum(catalogs[2].assets.filter(asset => !['jacaranda-tree', 'maverick-gt'].includes(asset.id))), 17_000_000],
-  coveFullCatalog: [sum(catalogs[2].assets), 42_000_000],
-  swampFullCatalog: [sum(catalogs[1].assets), 14_000_000],
-};
-for (const [name, [bytes, limit]] of Object.entries(libraryBudgets)) assert(bytes <= limit, `${name}: ${bytes} exceeds ${limit} bytes`);
-assert.equal(catalogs[1].totalBytes, libraryBudgets.swampFullCatalog[0]);
-
-const expectedVariants = [
-  'maverick-gt', 'ocean-buoy', 'futuristic-speedboat', 'riva-aquarama',
-  'modular-wooden-pier', 'rock-09', 'rock-face-01',
-  'painted-wooden-bench', 'wooden-crate-02', 'lifebuoy', 'jacaranda-tree',
-];
+const cove = catalogs[1];
+const coveById = new Map(cove.assets.map(asset => [asset.id, asset]));
+assert.equal(coveById.size, cove.assets.length, 'Duplicate Cove source IDs');
+assert.equal(new Set(cove.assets.map(asset => asset.path)).size, cove.assets.length, 'Duplicate Cove source paths');
+assert.deepEqual(cove.assets.filter(asset => asset.role === 'boat').map(asset => asset.id).sort(),
+  BOATS.map(boat => boat.id).sort(), 'Source records must cover exactly the configured boats');
+for (const boat of BOATS) {
+  assert.equal(coveById.get(boat.id)?.path, `/assets/${boat.path}`, `${boat.id}: source path differs from boat configuration`);
+}
 const runtimeById = new Map(runtime.assets.map(asset => [asset.id, asset]));
 assert.equal(runtimeById.size, runtime.assets.length, 'Duplicate runtime model IDs');
-assert.deepEqual([...runtimeById.keys()].sort(), [...expectedVariants].sort(), 'Runtime catalog must cover every scene variant');
+// Unused models may remain in the local workbench. Only active Cove variants
+// have a production mapping contract; the build check verifies the whitelist.
+const activeVariants = runtime.assets.filter(asset => coveById.has(asset.id));
 const base = 'https://fixtures.invalid/project/assets/';
 let mappingChecks = 0;
-for (const asset of runtime.assets) {
+for (const asset of activeVariants) {
   assert.equal(asset.path, `/assets/runtime/${asset.id}.glb`);
-  assert.equal(asset.sourcePath, `/assets/library/${asset.id}/model.glb`);
+  assert.equal(asset.sourcePath, coveById.get(asset.id).path);
   assert(checked.has(asset.sourcePath), `${asset.id}: unknown full-library source`);
   assert(asset.bytes < checked.get(asset.sourcePath).bytes, `${asset.id}: runtime variant must be smaller than its source`);
   for (const prefix of ['', '/project', '/nested/project']) {
-    const source = `https://fixtures.invalid${prefix}${asset.sourcePath}?v=2026-10-05&key=a%2Fb#part`;
-    const expected = `https://fixtures.invalid${prefix}${asset.path}?v=2026-10-05&key=a%2Fb#part`;
+    const source = `https://fixtures.invalid${prefix}${asset.sourcePath}?v=1&key=a%2Fb#part`;
+    const expected = `https://fixtures.invalid${prefix}${asset.path}?v=1&key=a%2Fb#part`;
     assert.equal(sceneModelUrl(source, base), expected, `${asset.id}: preserve prefix/query/fragment`);
     mappingChecks++;
   }
-  assert.equal(sceneModelUrl(`library/${asset.id}/model.glb?v=1`, base),
+  assert.equal(sceneModelUrl(asset.sourcePath.slice('/assets/'.length) + '?v=1', base),
     `https://fixtures.invalid/project${asset.path}?v=1`, `${asset.id}: relative scene path`);
   mappingChecks++;
 }
+for (const asset of cove.assets) {
+  const expected = runtimeById.get(asset.id)?.path ?? asset.path;
+  assert.equal(sceneModelUrl(asset.path, base), `https://fixtures.invalid${expected}`,
+    `${asset.id}: active source must select its declared runtime variant`);
+  mappingChecks++;
+}
 for (const unchanged of [
-  '/assets/library/shrub-04/model.glb?v=1',
-  '/assets/swamp/island-tree.glb',
+  '/assets/library/unlisted-fixture/model.glb?v=1',
   '/assets/runtime/riva-aquarama.glb?v=1',
   '/library/riva-aquarama/model.glb',
   '/assets/library/riva-aquarama/model.glb.bak',
@@ -96,20 +96,24 @@ for (const unchanged of [
 }
 
 // Exercise the public loader's delivery selector without downloading or parsing.
-// In particular, the default/full asset-library path must never be substituted.
+// The default/full asset-workbench path must never be substituted.
 const originalRead = modelBytes.read;
 const originalDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
 const stopped = new Error('URL selection captured');
 const selectedUrls = [];
+const defaultBoat = BOATS.find(boat => boat.id === DEFAULT_BOAT_ID);
+assert(defaultBoat, 'Default boat must be configured');
+const defaultRuntime = runtimeById.get(DEFAULT_BOAT_ID);
+assert(defaultRuntime, 'Default boat needs a runtime delivery variant');
 try {
   Object.defineProperty(globalThis, 'document', { configurable: true, value: { baseURI: base } });
   modelBytes.read = async url => { selectedUrls.push(url); throw stopped; };
   for (const [options, expectedPath] of [
-    [undefined, 'library/riva-aquarama/model.glb'],
-    [{ delivery: 'full' }, 'library/riva-aquarama/model.glb'],
-    [{ delivery: 'scene' }, 'runtime/riva-aquarama.glb'],
+    [undefined, defaultBoat.path],
+    [{ delivery: 'full' }, defaultBoat.path],
+    [{ delivery: 'scene' }, defaultRuntime.path.slice('/assets/'.length)],
   ]) {
-    await assert.rejects(loadGLTF('library/riva-aquarama/model.glb?v=1#part', options), error => error === stopped);
+    await assert.rejects(loadGLTF(`${defaultBoat.path}?v=1#part`, options), error => error === stopped);
     assert.equal(selectedUrls.at(-1), `${base}${expectedPath}?v=1#part`);
     mappingChecks++;
   }
@@ -119,26 +123,28 @@ try {
   else delete globalThis.document;
 }
 
-assert.deepEqual(runtime.core, {
-  arena: ['maverick-gt', 'ocean-buoy'],
-  swamp: ['futuristic-speedboat'],
-  cove: ['riva-aquarama', 'modular-wooden-pier', 'rock-09', 'rock-face-01'],
-}, 'Core model lists must describe the actual initial scene composition');
-const runtimeCoreBudgets = Object.fromEntries(Object.entries(runtime.core).map(([page, ids]) => {
-  const bytes = ids.reduce((total, id) => {
-    assert(runtimeById.has(id), `${page}: missing runtime core model ${id}`);
-    return total + checked.get(runtimeById.get(id).path).bytes;
-  }, 0);
-  const limit = 1_500_000;
-  assert(bytes <= limit, `${page} runtime core: ${bytes} exceeds ${limit} bytes`);
-  return [page, [bytes, limit]];
-}));
-const coveMaverickCore = runtime.core.cove.map(id => id === 'riva-aquarama' ? 'maverick-gt' : id)
-  .reduce((total, id) => total + runtimeById.get(id).bytes, 0);
-assert(coveMaverickCore <= 2_000_000, 'Maverick startup exceeds its 2 MB GLB budget');
-const coveScenery = catalogs[2].assets.filter(asset => asset.role !== 'boat');
-const coveSceneBytes = coveScenery.reduce((total, asset) => total + (runtimeById.get(asset.id)?.bytes ?? asset.bytes), 0);
-assert(coveSceneBytes + runtimeById.get('maverick-gt').bytes <= 15_000_000, 'Cove scene GLBs exceed 15 MB');
-console.log(JSON.stringify({ coveMaverickCore, coveSceneWithMaverick: coveSceneBytes + runtimeById.get('maverick-gt').bytes,
-  models: checked.size, runtimeModels: runtimeById.size, compressedViews,
-  mappingChecks, libraryBudgets, runtimeCoreBudgets }, null, 2));
+const core = runtime.core?.cove;
+assert(Array.isArray(core) && core.includes(DEFAULT_BOAT_ID), 'Cove core must name its default boat');
+assert.equal(new Set(core).size, core.length, 'Duplicate startup model IDs');
+for (const id of core) {
+  assert(coveById.has(id), `${id}: startup model is absent from the Cove source manifest`);
+  assert(id === DEFAULT_BOAT_ID || coveById.get(id).role !== 'boat', 'Only the selected boat may load on startup');
+}
+const deliveredSize = id => {
+  const asset = runtimeById.get(id) ?? coveById.get(id);
+  assert(asset && checked.has(asset.path), `${id}: unverified scene model`);
+  return checked.get(asset.path).bytes;
+};
+const sceneryBytes = cove.assets.filter(asset => asset.role !== 'boat')
+  .reduce((total, asset) => total + deliveredSize(asset.id), 0);
+const boatBudgets = {};
+for (const boat of BOATS) {
+  const coreBytes = core.reduce((total, id) => total + deliveredSize(id === DEFAULT_BOAT_ID ? boat.id : id), 0);
+  const coreLimit = boat.id === DEFAULT_BOAT_ID ? 1_500_000 : 2_000_000;
+  const fullSceneBytes = sceneryBytes + deliveredSize(boat.id);
+  assert(coreBytes <= coreLimit, `${boat.id} startup ${coreBytes} exceeds ${coreLimit} bytes`);
+  assert(fullSceneBytes <= 8_000_000, `${boat.id} selected scene ${fullSceneBytes} exceeds 8 MB`);
+  boatBudgets[boat.id] = { coreBytes, coreLimit, fullSceneBytes, sceneLimit: 8_000_000 };
+}
+console.log(JSON.stringify({ models: checked.size, activeRuntimeModels: activeVariants.length,
+  compressedViews, mappingChecks, sceneryBytes, boatBudgets }, null, 2));

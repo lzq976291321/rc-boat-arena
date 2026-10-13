@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { instanceCoveModel } from './dock.js';
 import { coveShoreX, shoreHeight } from './coast.js';
+import { SHORE_DRESSING } from './config/dressing.js';
 
 function randomFrom(seed) {
   let value = seed >>> 0;
@@ -74,17 +75,16 @@ function crownFragments(tree) {
 }
 
 /** Dense original leaf geometry supplies both the silhouette and light/shadow. */
-export function createCoastalFoliage(group, { tree, bush }, quality) {
+export function createCoastalFoliage(group, { tree, bush, shrubAccent, sorrel }, quality, dressing = SHORE_DRESSING) {
   const random = randomFrom(79194);
-  for (const model of [tree, bush]) for (const part of model.parts)
+  for (const model of [tree, bush, shrubAccent, sorrel].filter(Boolean)) for (const part of model.parts)
     for (const material of Array.isArray(part.material) ? part.material : [part.material]) {
       material.alphaToCoverage = true; material.envMapIntensity = .72;
       if (material.alphaTest > 0) material.alphaTest = Math.min(material.alphaTest, .42);
       if (material.name === 'jacaranda_tree_leaves') material.color.set('#ddebab');
     }
-  // This GLB's three meshes are leaves, fine branches and trunk, not LODs.
-  // The trunk already contains the supporting boughs. Omitting fine branches
-  // saves 123,128 triangles per instance without thinning the leaf silhouette.
+  // The delivery variant keeps a complete leaf crown and supporting trunk.
+  // Filtering also makes the standalone factory compatible with the full source.
   const coastalTree = { ...tree, parts: tree.parts.filter(part => part.material.name !== 'jacaranda_tree_branches') };
   const solids = [];
   group.traverse(object => {
@@ -142,11 +142,26 @@ export function createCoastalFoliage(group, { tree, bush }, quality) {
       width: i % 2 ? 2.2 : 2.45, depth: i % 2 ? 1.7 : 1.9, yaw: random() * 6.28 });
   });
   fragments.forEach((variant, index) => group.add(instanceCoveModel(variant, crowns[index], 'Dense natural leaf thickets along visible rock shoulders')));
+  const accentPlacements = [];
+  for (const [model, sites, name] of [
+    [shrubAccent, dressing.shrubAccents, 'Single fine-leaved shrubs between the broad-leaf pockets'],
+    [sorrel, dressing.sorrelPockets, 'Low sorrel tucked into dry shoreline crevices'],
+  ]) {
+    if (!model) continue;
+    const plants = sites.filter((_, i) => quality !== 'low' || i % 2 === 0).map(([side, z, radial, height]) => {
+      const x = coveShoreX(side, z) + side * radial;
+      return { x, z, y: plantHeight(x, z, shoreHeight(radial, z, side)) + .025,
+        scale: height / model.size.y, yaw: random() * 6.28 };
+    });
+    group.add(instanceCoveModel(model, plants, name)); accentPlacements.push({ model, count: plants.length });
+  }
   const triangleCount = model => model.parts.reduce((count, part) =>
     count + (part.geometry.index?.count ?? part.geometry.attributes.position.count) / 3, 0);
   return { trees: trees.length, shrubPlants: placements.reduce((count, items) => count + items.length, 0),
     shrubVariants: variants.length, thickets: crowns.reduce((count, items) => count + items.length, 0),
+    accentPlants: accentPlacements.reduce((count, item) => count + item.count, 0),
     triangles: triangleCount(coastalTree) * trees.length
       + variants.reduce((count, variant, i) => count + triangleCount(variant) * placements[i].length, 0)
-      + fragments.reduce((count, fragment, i) => count + triangleCount(fragment) * crowns[i].length, 0) };
+      + fragments.reduce((count, fragment, i) => count + triangleCount(fragment) * crowns[i].length, 0)
+      + accentPlacements.reduce((count, item) => count + triangleCount(item.model) * item.count, 0) };
 }

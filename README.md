@@ -1,84 +1,72 @@
-# RC Boat Arena
+# 晴湾船坞 · Sunny Cove
 
-基于 Three.js / WebGL2 的船模项目。当前开发集中在晴湾船坞的一种体验：选船、配氛围，看它出航巡游再归港。船艇、船水交互、巡游和镜头通过配置组合，优先打磨同一个海湾。
+基于 Three.js / WebGL2 的船模观赏项目。打开一个海湾，选船、配氛围，看它出航巡游再归港。开发集中在船体材质、水面、靠泊与镜头；船型和场景陈设通过配置组合。
 
-晴湾双船版是第一阶段：继续使用 `/cove/`，没有迁移首页或删除旧入口。`/` 仍是 MAVERICK GT 三圈计时赛，`/swamp/` 保留湿地观赏，`/library/` 保留素材工具；后续入口收拢单独决定。
+网站首页 `/` 是晴湾。`/cove/`、`/swamp/` 和生产环境的 `/library/` 兼容旧链接并返回首页；竞速与湿地运行代码已移除。素材工作台保留为本地开发工具，不再公开发布。
 
-## 项目管理
+## 运行与检查
 
-按文件夹用途维护，详细职责、新文件归属与迁移检查见 [项目目录与职责](docs/PROJECT-STRUCTURE.md)。协作入口为 [AGENTS.md](AGENTS.md)。
+需要 Node.js 22 或更新版本，以及 `package.json` 指定的 pnpm 版本。
 
-| 目录 | 负责什么 |
-| --- | --- |
-| `src/arena/` | 竞速代码，按 `gameplay/`（玩法）、`rendering/`（画面）、`ui/`（交互）划分 |
-| `src/swamp/`、`src/cove/` | 湿地与晴湾观赏页面组装及样式 |
-| `src/scene-assets/` | 观赏资产元数据，以及可组合的 Moonwater / Sunny Cove 场景和独立工厂 |
-| `src/library/` | 素材收藏、GLB 预览与观赏资产预览 |
-| `public/` | 可公开发布的模型、纹理和素材来源记录 |
-| `tools/checks/`、`tools/assets/` | 正式检查与素材加工；历史实验留在被忽略的 `tools/local/` |
-| `docs/` | 目录约定、设计方向与维护文档 |
-| `artifacts/` | 本地截图、录屏和验收证据，不提交 |
-| `dsh-plugin/` | 可选的本机 DSH 集成 |
-| `dist/`、`node_modules/` | 构建输出与依赖，不手动维护、不提交 |
-
-`index.html`、`swamp/index.html`、`cove/index.html`、`library/index.html` 分别提供 `/`、`/swamp/`、`/cove/`、`/library/` 四个页面入口。根目录只保留页面主入口、配置和维护入口文档。
-
-GitHub `main` 推送通过 Vercel Git 集成自动发布；构建配置和验收方式见 [部署说明](docs/DEPLOYMENT.md)。
-
-## 运行
-
-需要 Node.js 22 或更新版本，以及 package.json 指定的 pnpm 版本。
-
-```bash
+```sh
 corepack pnpm install --frozen-lockfile
 pnpm dev
 ```
 
-本地入口：<http://127.0.0.1:5177/>。
+本地观赏入口：<http://127.0.0.1:5177/>。本地素材工作台：<http://127.0.0.1:5177/library/>，仅开发服务提供。
 
-```bash
-pnpm build              # 静态产物 dist/
-pnpm serve              # 本地预览构建产物
-pnpm check:gameplay     # 16 项输入、操控、赛道和回放回归
-pnpm check:physics      # 参数与运动模型检查
-pnpm check:sim          # 无渲染三圈模拟
+```sh
+pnpm check:cove         # 闭环巡游、靠泊、边界、时间步长
+pnpm check:viewing      # 各船型运镜、横竖屏构图与水声
+pnpm check:contact      # 船水浮态、尾迹、暂停与独立释放
+pnpm check:assets       # 请求去重、取消、缓存、资源释放与像素预算
+pnpm check:delivery     # GLB完整性、来源清单、映射与模型预算
+pnpm build             # 晴湾页面及白名单资源输出到 dist/
+pnpm check:routes      # 首页、旧入口兼容、路径前缀和模型MIME
+pnpm check:bundle      # 单入口依赖边界、共享引擎与发布体积预算
+pnpm serve             # 本地预览构建产物
 ```
 
-## 驾驶
+真实浏览器的场景回归入口是开发服务下的 `/tools/checks/cove/browser.html`。它覆盖实际模型切换、失败保留旧船、取消、连续换船、巡游与资源释放；不替代实体手机画面验收。
 
-| 操作 | 按键 |
+## 观赏与配置
+
+船型来自 `src/scene-assets/sunny-cove/config/boats.js`，包含 Riva Aquarama、MAVERICK GT、机动交通艇与硬派充气艇。各自配置朝向、展示长度、吃水、材质处理和船水接触参数；展示尺寸不是实艇工程数据。
+
+首次打开从前景巡游开始，一轮航行 90 秒、靠泊 18 秒。换船时当前船继续展示，新船准备成功后进入泊位，停留 4 秒再出航；失败时保留原船并提供重试。只有当前选择的船需要加载。巡游和镜头时长由 `config/tour.js` 配置，仍围绕既定海湾设计，不提供任意模型导入或自由航线编辑器。
+
+页面提供午后、日落、暮色，以及自动观赏、船侧近观、贴水侧跟、码头定机和湾心斜览。支持暂停、拍照、沉浸模式和手动开启水声；空格暂停或继续，`H` 切换沉浸，`Esc` 恢复界面。船型、氛围和镜头保存在当前浏览器，首次查看不写偏好，不跨设备同步。
+
+## 项目组织
+
+| 目录 | 用途 |
 | --- | --- |
-| 油门 / 倒车 | W / S 或 ↑ / ↓ |
-| 左转 / 右转 | A / D 或 ← / → |
-| 冲刺 / 收油 | Shift / 空格 |
-| 跟随与俯视镜头 | C |
-| 俯视缩放 | + / − |
-| 脱困，罚时 2 秒 | R |
-| 暂停 | Esc |
-| 调校 / 回放 / 驾驶数据 | T / P / Y |
+| `src/cove/` | 首页组装、船型选择和样式 |
+| `src/scene-assets/sunny-cove/` | 海湾、船坞、船艇、水面、镜头与巡游 |
+| `src/scene-assets/boat-water-interaction/` | 船体浮态、波谱和船水尾流 |
+| `src/library/` | 本地素材收藏、筛选和异步预览 |
+| `src/shared/` | 模型加载、资源释放、像素预算和观赏宿主 |
+| `public/assets/` | 可发布素材与来源记录；只有当前使用的白名单进入生产 |
+| `tools/checks/`、`tools/assets/` | 正式检查、发布白名单和素材加工 |
+| `docs/`、`artifacts/` | 维护文档与本地验收证据 |
 
-支持触屏摇杆。AI 演示可随时由驾驶按键接管；AI 成绩不覆盖个人最佳。成绩保存在当前浏览器本地。
+目录与协作要求见 [项目职责](docs/PROJECT-STRUCTURE.md) 和 [AGENTS.md](AGENTS.md)。场景 API 见 [观赏资产接入](docs/design/VIEWING-ASSETS.md)，画面记录见 [晴湾设计](docs/design/SUNNY-COVE.md)。
 
-## 画面与模型
+## 模型与发布
 
-- 真实水面倒影、分层细浪、浅深水过渡和船水接触阴影。
-- 暖阳光与冷天光、跟随船艇的阴影、程序化山体及树林。
-- 尾浪与水花随速度变化并自然消散；手机首页为船体留出独立展示空间。
-- 3D 画布限制约 260 万像素，倒影最长边不超过 1024，控制高分辨率屏幕开销。
+素材先按用途组合成码头靠泊、维护陈设、休息区和岸边植被，使用数量服务于构图。完整作者、许可与加工记录保留在 [晴湾素材记录](public/assets/cove/SOURCES.md) 及各素材目录中。
 
-`public/assets/library/maverick-gt/model.glb` 是松岚湖驾驶船，作者 dannzjs，CC BY 4.0，约 4.06 MiB；几何与材质保留原样，运行时调整方向、显示比例和入水位置。赛道航道与检查点使用 Poly Haven 的 Ocean Buoy（CC0）替换旧程序浮标与旗门。来源与加工记录见各资产目录的 `SOURCES.md`。
+Vite 禁止自动复制整个 `public/`。`tools/assets/cove-public-assets.mjs` 根据晴湾清单发布正在使用的完整原件、运行变体及来源说明，兼容这些素材原有公开 URL。未使用的库模型留在本地开发库，不进入生产目录；减少发布体积不等于首屏加载同等下降。
 
-操控采用固定步长的游戏模型，水线和碰撞为游戏展示设定。
+模型加载统一使用有限容量字节缓存，共享不可变文件字节，各场景实例独立拥有材质、几何与释放责任。素材工作台列表不静态加载 Three.js；静态模型按需绘制，观赏预览离屏或进入后台后停止无效绘制。性能事实及历史记录见 [加载与资源管理](docs/PERFORMANCE.md)。
 
-## Vercel
-
-这是无需后端和环境变量的静态网站。`vercel.json` 配置 Vite 构建并发布 `dist/`，GitHub 仓库可与 Vercel 项目关联。
+网站无需后端和环境变量。GitHub `main` 推送通过 Vercel Git 集成自动发布，配置与验收见 [部署说明](docs/DEPLOYMENT.md)。构建、浏览器验收、提交推送与部署成功分别记录。
 
 ## 可选 DSH 面板
 
-`dsh-plugin/` 可将已构建的游戏挂载到本机 DSH 的 `/rc-boat-arena/`。这部分只用于本地 DSH，不是网站运行依赖。
+`dsh-plugin/` 可把构建后的晴湾挂载到本机 DSH 的 `/rc-boat-arena/`。这不是网站运行依赖。
 
-```bash
+```sh
 pnpm build
 # 按本机情况设置 DSH_HOME / DSH_PROFILE 后：
 pnpm dsh:status
@@ -86,52 +74,4 @@ pnpm dsh:enable
 pnpm dsh:disable
 ```
 
-## 月下湿地 · Moonwater
-
-独立入口：`/swamp/`，竞速首页也提供入口。打开后自动巡游；页面提供月夜、晨雾、夕照三种光照，以及自动观赏、贴水跟随、侧览船模、水道全景镜头。
-
-可暂停画面、拍照保存 PNG、隐藏界面沉浸观赏。水声默认关闭，点击“开启水声”后播放。`空格` 暂停或继续，`H` 切换沉浸模式，`Esc` 恢复界面。页面不再提供驾驶操作；自动巡游在水道尽头平缓掉头。
-
-湿地使用 Poly Haven 的三件 CC0 植被，以及 dylanheyes 的 Futuristic Speedboat（CC BY 4.0）。来源、作者、许可和加工记录见页面“素材来源”及 [素材清单](public/assets/swamp/SOURCES.md)。GLB 和纹理本地托管，约 20.13 MiB；水面、天空、低雾、尾流和水声为程序生成。参考作品的具体算法未公开，本版本独立实现。
-
-Moonwater 的同一份运行资产由湿地页和素材库消费。Canvas 接入、已有 renderer 组合、镜头独立复用与资源释放见 [观赏资产接入](docs/design/VIEWING-ASSETS.md)；画面分工见 [视觉方向](docs/design/VISUAL-DIRECTION.md)。
-
-```bash
-pnpm check:swamp        # 左右、倒车、惯性、边界与巡航掉头
-pnpm check:viewing      # 运镜连续性、水道边界、不同帧率与竖屏构图
-pnpm check:cove         # 晴湾闭环靠泊、镜头、边界和恢复
-pnpm check:contact      # 船水浮态、尾迹衰减、暂停与独立释放
-pnpm check:routes       # 构建后检查子路径、目录重定向与模型 MIME
-```
-
-## 晴湾船坞 · Sunny Cove
-
-入口：`/cove/`。可选择 Riva Aquarama 或 MAVERICK GT，搭配午后、日落、暮色。首次打开从前景巡游开始；一轮航行 90 秒、靠泊 18 秒。换船时当前船继续展示，新船准备成功后进入泊位，停留 4 秒再出航；切换失败保留原船，可直接重试，也可在加载中改选另一艘。
-
-自动镜头随船体展示尺寸适配，归港与靠泊时偏向码头。页面保留暂停、水声、拍照、沉浸和来源；水声仍需点击开启。船型、氛围与镜头选择保存在当前浏览器，刷新后校验恢复，不跨设备同步；初次浏览不写偏好，成功换船及用户改变氛围、镜头后才保存。
-
-场景位于 `src/scene-assets/sunny-cove/`。`config/boats.js` 定义两艘船的路径、朝向、展示尺寸、吃水、材质处理与船水接触参数；`config/tour.js` 定义当前海湾的码头布局、航行/停泊与镜头时长。模块配置服务于适配好的船型和既定海湾，不提供任意模型导入或自由航线编辑器。完整场景和独立模块的用法见 [观赏资产接入](docs/design/VIEWING-ASSETS.md)，设计与验收记录见 [晴湾设计](docs/design/SUNNY-COVE.md)。
-
-晴湾与湿地共用 Canvas 宿主、页面行为与水声；晴湾船水交互独立提供浮态与水面尾流。两艘船保留各自 CC BY 4.0 作者署名，码头与岸景复用已有 CC0 素材，公开模型 URL 不变。完整来源见 [晴湾素材记录](public/assets/cove/SOURCES.md)。
-
-## 素材库
-
-入口：`/library/`，首页和湿地素材来源中均提供链接。顶部分类 Tab、底部素材切换；普通模型支持旋转、缩放和线框，“观赏资产”分类可直接运行 Moonwater / Sunny Cove 自动巡游预览，支持重置视角。来源、许可和备注收进信息面板，搜索、筛选和 JSON 备份收进管理面板。
-
-已有 GLB 和程序道具可预览；模型的网格/材质统计放在信息面板。项目资产来自 `public/assets/library/catalog.json`、湿地 manifest 和纯元数据文件 `src/scene-assets/catalog.js`。候选状态为待筛选、已优选、待接入；已接入记录来自项目代码与清单，不由收藏状态自动驱动。
-
-收藏和备注仅保存在当前浏览器的 localStorage；备份只含元数据，不含模型，不跨设备同步。查看、切换镜头和预览不保存服务器数据；照片下载到本地。导入按 ID 合并，已有记录优先。模型接入方式见 [素材接入说明](public/assets/library/README.md)。
-
-## 复用与按需加载
-
-模型加载、有限容量字节缓存、GPU 资源释放与画布像素预算统一在 `src/shared/`。同一页相同模型请求去重，缓存最多 16 MiB / 8 项；解析后的模型归各个场景独立拥有，避免材质修改和销毁互相影响。湿地的重复树木继续使用实例化网格，船艇材质保留模型内共享。
-
-素材库列表与预览模块分离，元数据不静态依赖 Three.js；选中素材后才动态加载对应预览。静态 GLB 按需绘制，观赏场景在可见时持续动画；离屏、后台停止无效绘制，切换取消旧请求，关闭释放资源。自动预览仍需下载引擎与选中的模型，不能把入口包大小当作总流量。Vite 输出构建 manifest，将 Three.js 核心、WebGL、GLTF 解析器和后处理拆成共享/功能包。
-
-```bash
-pnpm check:assets       # 并发去重、缓存淘汰、取消、失败重试、资源释放与像素预算
-pnpm build
-pnpm check:bundle       # 静态依赖边界、共享引擎与包大小预算
-```
-
-性能边界和验收记录见 [加载与资源管理](docs/PERFORMANCE.md)。
+历史设计记录中仍可能提到竞速、Moonwater 与四个公开页面；那些描述对应当时版本，不是当前维护范围。

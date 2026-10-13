@@ -4,6 +4,7 @@ import { loadCoveModel, instanceCoveModel } from './dock.js';
 import { MOODS, MOOD_TRANSITION_SECONDS } from './presets.js';
 import { coveShoreX, createRockyCoast } from './coast.js';
 import { createCoastalFoliage } from './foliage.js';
+import { SHORE_DRESSING } from './config/dressing.js';
 export { coveShoreX } from './coast.js';
 export { MOODS } from './presets.js';
 
@@ -149,7 +150,7 @@ function fallbackEnvironmentMap(preset) {
 
 /** Open coastal landscape. No navigation or DOM state is owned by this asset. */
 export async function createCoveEnvironment(scene, {
-  renderer, assetBaseUrl, quality = 'balanced', mood: initialMood = 'afternoon', signal,
+  renderer, assetBaseUrl, quality = 'balanced', mood: initialMood = 'afternoon', signal, dressing = SHORE_DRESSING,
 } = {}) {
   if (!assetBaseUrl) throw new Error('Cove environment requires assetBaseUrl');
   if (!Object.hasOwn(MOODS, initialMood)) throw new Error(`Unknown cove mood: ${initialMood}`);
@@ -159,6 +160,7 @@ export async function createCoveEnvironment(scene, {
   const detailSources = [
     { key: 'tree', path: 'library/jacaranda-tree/model.glb' },
     { key: 'bush', path: 'library/shrub-04/model.glb', nodeName: 'shrub_04' },
+    ...dressing.models,
   ];
   const detailController = new AbortController();
   const detailState = { status: 'waiting', error: null };
@@ -173,8 +175,13 @@ export async function createCoveEnvironment(scene, {
     if (disposed) return;
     detailState.status = 'loading';
     try {
-      const results = await Promise.allSettled(detailSources.map(record => loadCoveModel(
-        new URL(record.path, assetBaseUrl).href, { signal: detailController.signal, nodeName: record.nodeName })));
+      const results = [];
+      // Keep decoding bounded even when more small plants share the composition.
+      for (let offset = 0; offset < detailSources.length; offset += 2) {
+        results.push(...await Promise.allSettled(detailSources.slice(offset, offset + 2).map(record => loadCoveModel(
+          new URL(record.path, assetBaseUrl).href, { signal: detailController.signal, nodeName: record.nodeName }))));
+        if (disposed || detailController.signal.aborted || results.some(result => result.status === 'rejected')) break;
+      }
       const loaded = results.filter(result => result.status === 'fulfilled').map(result => result.value);
       const failure = results.find(result => result.status === 'rejected');
       if (disposed || detailController.signal.aborted || failure) {
@@ -186,7 +193,7 @@ export async function createCoveEnvironment(scene, {
         resources.push(...result.value.roots);
       });
       prepareBushMaterials(models.bush);
-      group.userData.vegetation = createCoastalFoliage(group, { tree: models.tree, bush: models.bush }, quality);
+      group.userData.vegetation = createCoastalFoliage(group, models, quality, dressing);
       detailState.status = 'ready'; resolveDetails();
     } catch (error) {
       detailState.status = 'error'; detailState.error = String(error);

@@ -166,9 +166,9 @@ async function init() {
   catch { persistenceBlocked = true; toast('原有收藏无法读取，已保留原始数据并暂停写入。'); }
   try {
     const fetchJson = async path => { const response = await fetch(new URL(path, document.baseURI)); if (!response.ok) throw new Error('清单读取失败'); return response.json(); };
-    const [catalog, swamp] = await Promise.all([fetchJson('../assets/library/catalog.json'), fetchJson('../assets/swamp/asset-manifest.json')]);
+    const catalog = await fetchJson('../assets/library/catalog.json');
     retiredAssets = catalog.retiredAssets || [];
-    builtins = [catalog.assets[0], ...swamp.assets.map(item => ({ ...item, id: 'builtin-' + item.id, category: item.role === 'boat' ? 'boat' : 'nature', stage: 'integrated', kind: 'model', usage: item.usage || (item.role === 'boat' ? '月下湿地 · 探索艇' : '月下湿地 · 岸景'), tags: item.tags || (item.role === 'boat' ? '探索艇, 湿地' : '自然, 湿地, 岸景'), notes: item.changes.join('\n'), favorite: false })), ...catalog.assets.slice(1), ...SCENE_ASSETS];
+    builtins = [...catalog.assets.filter(item => item.kind !== 'procedural'), ...SCENE_ASSETS];
     select(builtins[0]?.id || library.candidates[0]?.id || null);
   } catch { $('#preview-message').textContent = '项目素材清单加载失败，请刷新重试。'; toast('项目清单读取失败；个人收藏仍可使用。'); select(library.candidates[0]?.id || null); }
 }

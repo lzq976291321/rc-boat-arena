@@ -2,13 +2,6 @@
   "version": 1,
   "purpose": "Scene delivery; full models stay at sourcePath",
   "core": {
-    "arena": [
-      "maverick-gt",
-      "ocean-buoy"
-    ],
-    "swamp": [
-      "futuristic-speedboat"
-    ],
     "cove": [
       "riva-aquarama",
       "modular-wooden-pier",
@@ -17,140 +10,6 @@
     ]
   },
   "assets": [
-    {
-      "id": "futuristic-speedboat",
-      "path": "/assets/runtime/futuristic-speedboat.glb",
-      "bytes": 1466616,
-      "sha256": "b24f1bbe54a7d020eb44d11f97d2b60ad0504101bd68f93b2597e2ab991d4fbd",
-      "sourcePath": "/assets/library/futuristic-speedboat/model.glb",
-      "sourceRecord": "/assets/library/futuristic-speedboat/SOURCES.md",
-      "originalSha256": "e65d0a188ddc706329ca0d2356bf4a41bd9da83c3d4cb5f91c0116cc7d713094",
-      "selectedNodes": [],
-      "textureDimensions": [
-        [
-          512,
-          512
-        ],
-        [
-          512,
-          512
-        ],
-        [
-          512,
-          512
-        ],
-        [
-          512,
-          512
-        ],
-        [
-          512,
-          512
-        ],
-        [
-          512,
-          512
-        ]
-      ],
-      "geometryBounds": {
-        "POSITION": 0.0002,
-        "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
-      },
-      "triangles": 162766,
-      "verification": {
-        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
-        "verifiedBytes": 5310222,
-        "indicesExact": false,
-        "trianglesVerticesOrderAndWindingExact": true,
-        "topologyExact": true,
-        "attributesRetainFloat": true,
-        "minMaxRecomputed": true,
-        "accessorIdsAndCountsExact": true,
-        "accessorValuesRepackedExactlyBeforeFiltering": true,
-        "imageBytesExact": true,
-        "sceneAndMaterialsExact": true
-      },
-      "author": "dylanheyes",
-      "license": "CC-BY-4.0",
-      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
-      "source": "https://sketchfab.com/3d-models/futuristic-speedboat-5a8f4d21472e4b2b8ec4d23f70cf8cbc",
-      "name": "Futuristic Speedboat · 科幻快艇",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
-    },
-    {
-      "id": "jacaranda-tree",
-      "path": "/assets/runtime/jacaranda-tree.glb",
-      "bytes": 11069092,
-      "sha256": "9962d88ac4b2dd414278fdf4a9999e92d875e29b3c11df3fa5af36dfee94fb47",
-      "sourcePath": "/assets/library/jacaranda-tree/model.glb",
-      "sourceRecord": "/assets/library/jacaranda-tree/SOURCES.md",
-      "originalSha256": "2b5572edfcb4a8a35a50bb0ecee295a93e322a2c028cf749c3a14b974843c264",
-      "selectedNodes": [
-        "jacaranda_tree_LOD0",
-        "jacaranda_tree_LOD0.002"
-      ],
-      "textureDimensions": [
-        [
-          1024,
-          1024
-        ],
-        [
-          1024,
-          1024
-        ],
-        [
-          1024,
-          1024
-        ],
-        [
-          1024,
-          1024
-        ],
-        [
-          1024,
-          1024
-        ],
-        [
-          1024,
-          1024
-        ]
-      ],
-      "geometryBounds": {
-        "POSITION": 0.0002,
-        "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
-      },
-      "triangles": 334314,
-      "verification": {
-        "sourceUntouched": true,
-        "selectedAccessorsExactBeforeFiltering": true,
-        "retainedImageBytesExact": true,
-        "noSimplification": true,
-        "fineBranchesPreviouslyUnused": true,
-        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
-        "verifiedBytes": 24267988,
-        "indicesExact": false,
-        "trianglesVerticesOrderAndWindingExact": true,
-        "topologyExact": true,
-        "attributesRetainFloat": true,
-        "minMaxRecomputed": true,
-        "accessorIdsAndCountsExact": true,
-        "accessorValuesRepackedExactlyBeforeFiltering": true,
-        "imageBytesExact": true,
-        "sceneAndMaterialsExact": true
-      },
-      "author": "Rico Cilliers（制作）, Rob Tuytel（指导）",
-      "license": "CC0-1.0",
-      "licenseUrl": "https://polyhaven.com/license",
-      "source": "https://polyhaven.com/a/jacaranda_tree",
-      "name": "蓝花楹 · 宽展绿冠 · Jacaranda Tree",
-      "changes": "Cove delivery variant: remove fine branches already omitted by the scene; preserve all 334314 leaf/trunk triangles and six embedded 1K JPEG images byte-for-byte; bound FLOAT attributes and meshopt-compress without simplification."
-    },
     {
       "id": "lifebuoy",
       "path": "/assets/runtime/lifebuoy.glb",
@@ -308,61 +167,6 @@
       "licenseUrl": "https://polyhaven.com/license",
       "source": "https://polyhaven.com/a/modular_wooden_pier",
       "name": "Modular Wooden Pier · 做旧木码头",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
-    },
-    {
-      "id": "ocean-buoy",
-      "path": "/assets/runtime/ocean-buoy.glb",
-      "bytes": 293788,
-      "sha256": "071204767ce704df182ffef1f8deaa22656f496608ae098bde43ceed02504f9d",
-      "sourcePath": "/assets/library/ocean-buoy/model.glb",
-      "sourceRecord": "/assets/library/ocean-buoy/SOURCES.md",
-      "originalSha256": "ab3bb19bac7ed63d9f134e4fbe628836378f9b544474e61849c9ce35b8db2fd2",
-      "selectedNodes": [],
-      "textureDimensions": [
-        [
-          256,
-          256
-        ],
-        [
-          256,
-          256
-        ],
-        [
-          256,
-          256
-        ],
-        [
-          256,
-          256
-        ]
-      ],
-      "geometryBounds": {
-        "POSITION": 0.0002,
-        "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
-      },
-      "triangles": 12240,
-      "verification": {
-        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
-        "verifiedBytes": 561294,
-        "indicesExact": true,
-        "trianglesVerticesOrderAndWindingExact": true,
-        "topologyExact": true,
-        "attributesRetainFloat": true,
-        "minMaxRecomputed": true,
-        "accessorIdsAndCountsExact": true,
-        "accessorValuesRepackedExactlyBeforeFiltering": true,
-        "imageBytesExact": true,
-        "sceneAndMaterialsExact": true
-      },
-      "author": "Mateusz Sadek",
-      "license": "CC0-1.0",
-      "licenseUrl": "https://polyhaven.com/license",
-      "source": "https://polyhaven.com/a/ocean_buoy",
-      "name": "Ocean Buoy · 做旧航标浮标",
       "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
     },
     {
@@ -619,6 +423,503 @@
       "source": "https://polyhaven.com/a/wooden_crate_02",
       "name": "Wooden Crate · 绳柄货箱",
       "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+    },
+    {
+      "id": "motor-whaleboat",
+      "path": "/assets/runtime/motor-whaleboat.glb",
+      "bytes": 1040096,
+      "sha256": "f1c57c55c16b0d912bda0eb6ac12d4080c8d7132934c199c5d2d3fab81218cba",
+      "sourcePath": "/assets/library/motor-whaleboat/model.glb",
+      "sourceRecord": "/assets/library/motor-whaleboat/SOURCES.md",
+      "originalSha256": "69db765dcdc04e0bb01e9f50a9246c0be1b2d64838afdb4b5c2897f9485b0984",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 47198,
+      "verification": {
+        "preparation": {
+          "all_selected_accessor_values_exact": true,
+          "selected_nodes_transforms_materials_exact": true,
+          "output_glb_readback_checked": true
+        },
+        "geometry": {
+          "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+          "verifiedBytes": 2158224,
+          "indicesExact": false,
+          "trianglesVerticesOrderAndWindingExact": true,
+          "topologyExact": true,
+          "attributesRetainFloat": true,
+          "minMaxRecomputed": true,
+          "accessorIdsAndCountsExact": true,
+          "accessorValuesRepackedExactlyBeforeFiltering": true,
+          "imageBytesExact": true,
+          "sceneAndMaterialsExact": true
+        }
+      }
+    },
+    {
+      "id": "assault-boat",
+      "path": "/assets/runtime/assault-boat.glb",
+      "bytes": 1012880,
+      "sha256": "33ee8204403246174d84e5cc6eb8f4d73a55b6b393127e9d0d795a290bba15c8",
+      "sourcePath": "/assets/library/assault-boat/model.glb",
+      "sourceRecord": "/assets/library/assault-boat/SOURCES.md",
+      "originalSha256": "86a1a117e699fc7581c29a74283dff7de51a459acbda9f3fd5ab9915665318f9",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 40036,
+      "verification": {
+        "preparation": {
+          "all_selected_accessor_values_exact": true,
+          "selected_nodes_transforms_materials_exact": true,
+          "output_glb_readback_checked": true
+        },
+        "geometry": {
+          "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+          "verifiedBytes": 2011382,
+          "indicesExact": true,
+          "trianglesVerticesOrderAndWindingExact": true,
+          "topologyExact": true,
+          "attributesRetainFloat": true,
+          "minMaxRecomputed": true,
+          "accessorIdsAndCountsExact": true,
+          "accessorValuesRepackedExactlyBeforeFiltering": true,
+          "imageBytesExact": true,
+          "sceneAndMaterialsExact": true
+        }
+      }
+    },
+    {
+      "id": "old-tyre",
+      "path": "/assets/runtime/old-tyre.glb",
+      "bytes": 108448,
+      "sha256": "70791c1835f8c452856613d45ee82e6f6b907c964350871d0c59a599afcd0910",
+      "sourcePath": "/assets/library/old-tyre/model.glb",
+      "sourceRecord": "/assets/library/old-tyre/SOURCES.md",
+      "originalSha256": "0643e2e67d6c9379a515cdf2d8eef7f74a8290186bf55a69801052d76791c319",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 2880,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 158233,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      }
+    },
+    {
+      "id": "wooden-bucket-01",
+      "path": "/assets/runtime/wooden-bucket-01.glb",
+      "bytes": 163584,
+      "sha256": "acfd0815ae7ab19aa6b3761b2cc952c93c654282bb1ebdd4aab5434033cd4e5f",
+      "sourcePath": "/assets/library/wooden-bucket-01/model.glb",
+      "sourceRecord": "/assets/library/wooden-bucket-01/SOURCES.md",
+      "originalSha256": "fa3373d6b5b24a7a0d249394678f2f3b04a4b1375948ecd958106c40e4c1de86",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 5116,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 253511,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      }
+    },
+    {
+      "id": "lantern-01",
+      "path": "/assets/runtime/lantern-01.glb",
+      "bytes": 418572,
+      "sha256": "14b073552cb2d9f108cd811e2accc9e539af0c64be046b6aac7ef00d63d8bc6e",
+      "sourcePath": "/assets/library/lantern-01/model.glb",
+      "sourceRecord": "/assets/library/lantern-01/SOURCES.md",
+      "originalSha256": "f28125f90216376db04506f2787c1aef0f4bd6bc4360db0c8c954eed536a195e",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 33902,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 986613,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      }
+    },
+    {
+      "id": "shrub-03",
+      "path": "/assets/runtime/shrub-03.glb",
+      "bytes": 101964,
+      "sha256": "08aa073a833d4882e73de5cd8740bf07eaaff979c3efeb47d9458a739ba808cd",
+      "sourcePath": "/assets/library/shrub-03/model.glb",
+      "sourceRecord": "/assets/library/shrub-03/SOURCES.md",
+      "originalSha256": "9b26ec8da7d609f32309026fd620207e9ac34a5c1540bf68767c1dc8687fd489",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 2385,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 143758,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      }
+    },
+    {
+      "id": "shrub-sorrel-01",
+      "path": "/assets/runtime/shrub-sorrel-01.glb",
+      "bytes": 67260,
+      "sha256": "96d0b301d4545949b11c79443386a87bacd5b1cecaee438fefd78d5dd8e6d911",
+      "sourcePath": "/assets/library/shrub-sorrel-01/model.glb",
+      "sourceRecord": "/assets/library/shrub-sorrel-01/SOURCES.md",
+      "originalSha256": "eb3b7510c96810185585ca0fb7174f0f63c89b2b2cd88eddf83687302dc9d8e2",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ],
+        [
+          256,
+          256
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 990,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 84947,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      }
+    },
+    {
+      "id": "shrub-04",
+      "path": "/assets/runtime/shrub-04.glb",
+      "bytes": 471560,
+      "sha256": "a4c5751003a9cdc1c08d5b3394f6fe674f390774d6acfec841faa2bb7f912fcc",
+      "sourcePath": "/assets/library/shrub-04/model.glb",
+      "sourceRecord": "/assets/library/shrub-04/SOURCES.md",
+      "originalSha256": "e04b5658f89983dbf11822ad5361faee909c863a9ccd2fdffb0e4563f9ce279a",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 27327,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 941446,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      }
+    },
+    {
+      "id": "jacaranda-tree",
+      "path": "/assets/runtime/jacaranda-tree.glb",
+      "bytes": 3262184,
+      "sha256": "1ca3a0c239d11df2286ed2fd9057e8008476069cc68f106583636c3f77c938b9",
+      "sourcePath": "/assets/library/jacaranda-tree/model.glb",
+      "sourceRecord": "/assets/library/jacaranda-tree/SOURCES.md",
+      "originalSha256": "2b5572edfcb4a8a35a50bb0ecee295a93e322a2c028cf749c3a14b974843c264",
+      "selectedNodes": [],
+      "textureDimensions": [
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 103674,
+      "verification": {
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 7584523,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "simplification": [
+        {
+          "material": "jacaranda_tree_leaves",
+          "originalTriangles": 288292,
+          "triangles": 57658,
+          "vertices": 147522,
+          "requestedRatio": 0.2,
+          "measuredRelativeError": 0.0031644022092223167,
+          "sourcePositionScale": 24.395551681518555,
+          "retainedVertexAttributesExactBeforeCompression": true,
+          "wholeComponentsPruned": false,
+          "selectedOriginalIndicesSha256": "a046a7957c916a6323aa783c6c10f736248571a2017860b820ef747075439720"
+        },
+        {
+          "material": "jacaranda_tree_trunk",
+          "originalTriangles": 46022,
+          "triangles": 46016,
+          "vertices": 26386,
+          "requestedRatio": 0.32,
+          "measuredRelativeError": 0.0017237220890820026,
+          "sourcePositionScale": 10.350882530212402,
+          "retainedVertexAttributesExactBeforeCompression": true,
+          "wholeComponentsPruned": false,
+          "selectedOriginalIndicesSha256": "7925f076fae9d91c85051d6c90dd74030dc78bfba4ded12ae7d9ce318792ebdd"
+        }
+      ]
     }
   ]
 }

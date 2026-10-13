@@ -1,5 +1,0 @@
-@import "../shared/styles/tailwind.css";
-@import "../shared/viewing/page.css";
-@source "../../swamp/index.html";
-@source "./*.js";
-@source "../shared/viewing/page.js";

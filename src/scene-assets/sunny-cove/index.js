@@ -48,7 +48,7 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
         .catch(error => { loading.abort(); throw error; }),
       createCoveBoat(scene, new URL(definition.path, assetBaseUrl).href, { signal: loading.signal, definition })
         .catch(error => { loading.abort(); throw error; }),
-      createCoveDock(scene, { ...tour.dock, assetBaseUrl, signal: loading.signal, deferDetails: true })
+      createCoveDock(scene, { ...tour.dock, mood, assetBaseUrl, signal: loading.signal, deferDetails: true })
         .catch(error => { loading.abort(); throw error; }),
     ]);
     if (results[0].status === 'fulfilled') environment = results[0].value;
@@ -139,6 +139,7 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
       if (!Object.hasOwn(MOODS, name)) throw new Error(`Unknown Sunny Cove mood: ${name}`);
       state.mood = name;
       const preset = environment.setMood(name, { immediate });
+      dock.setMood(name);
       water.setMood(preset, { immediate }); return preset;
     },
     setCamera(name, { immediate = false } = {}) {

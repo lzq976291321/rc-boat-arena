@@ -186,6 +186,132 @@
         "保留源模型几何与节点；按展示植株之间的真实几何空隙，在运行时分离两株完整灌木，分别居中后实例化。",
         "2026-10-05：保留模型顶点值、三角面、节点、UV 和贴图尺寸；JPEG 重新编码、透明图保持像素不变，索引按值无损收窄后使用 EXT_meshopt_compression 压缩。公开 URL 不变，加载器需 MeshoptDecoder。"
       ]
+    },
+    {
+      "id": "motor-whaleboat",
+      "name": "Motor Whaleboat · 机动交通艇",
+      "path": "/assets/library/motor-whaleboat/model.glb",
+      "author": "ThomasBeerens",
+      "license": "CC-BY-4.0",
+      "source": "https://sketchfab.com/3d-models/us-navy-26ft-motor-whaleboat-fbcf4df5bab7439b9e1e385c9f41c272",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "bytes": 9790552,
+      "sha256": "69db765dcdc04e0bb01e9f50a9246c0be1b2d64838afdb4b5c2897f9485b0984",
+      "triangles": 47198,
+      "role": "boat",
+      "usage": "晴湾 · 可选巡游船艇",
+      "changes": [
+        "保留原始公开模型，晴湾按需使用独立轻量运行变体；尺寸、材质与用途按场景配置适配。",
+        "变体来源、加工与几何/纹理数据见 /assets/runtime/asset-manifest.json。"
+      ]
+    },
+    {
+      "id": "assault-boat",
+      "name": "Assault Boat · 硬派充气艇",
+      "path": "/assets/library/assault-boat/model.glb",
+      "author": "tnnv",
+      "license": "CC-BY-4.0",
+      "source": "https://sketchfab.com/3d-models/assault-boat-0d4fca4f2e014cd7b6aefd4653b1508c",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "bytes": 4253112,
+      "sha256": "86a1a117e699fc7581c29a74283dff7de51a459acbda9f3fd5ab9915665318f9",
+      "triangles": 40036,
+      "role": "boat",
+      "usage": "晴湾 · 可选巡游船艇",
+      "changes": [
+        "保留原始公开模型，晴湾按需使用独立轻量运行变体；尺寸、材质与用途按场景配置适配。",
+        "变体来源、加工与几何/纹理数据见 /assets/runtime/asset-manifest.json。"
+      ]
+    },
+    {
+      "id": "old-tyre",
+      "name": "旧轮胎护舷",
+      "path": "/assets/library/old-tyre/model.glb",
+      "author": "MP",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/old_tyre",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 1282488,
+      "sha256": "0643e2e67d6c9379a515cdf2d8eef7f74a8290186bf55a69801052d76791c319",
+      "triangles": 2880,
+      "role": "environment",
+      "usage": "晴湾 · 码头维护、休憩与岩缝绿植",
+      "changes": [
+        "保留原始公开模型，晴湾按需使用独立轻量运行变体；尺寸、材质与用途按场景配置适配。",
+        "变体来源、加工与几何/纹理数据见 /assets/runtime/asset-manifest.json。"
+      ]
+    },
+    {
+      "id": "wooden-bucket-01",
+      "name": "木提桶",
+      "path": "/assets/library/wooden-bucket-01/model.glb",
+      "author": "James Ray Cock",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/wooden_bucket_01",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 1331524,
+      "sha256": "fa3373d6b5b24a7a0d249394678f2f3b04a4b1375948ecd958106c40e4c1de86",
+      "triangles": 5116,
+      "role": "environment",
+      "usage": "晴湾 · 码头维护、休憩与岩缝绿植",
+      "changes": [
+        "保留原始公开模型，晴湾按需使用独立轻量运行变体；尺寸、材质与用途按场景配置适配。",
+        "变体来源、加工与几何/纹理数据见 /assets/runtime/asset-manifest.json。"
+      ]
+    },
+    {
+      "id": "lantern-01",
+      "name": "Lantern 01 · 黄铜提灯",
+      "path": "/assets/library/lantern-01/model.glb",
+      "author": "Rajil Jose Macatangay",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/Lantern_01",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 3561332,
+      "sha256": "f28125f90216376db04506f2787c1aef0f4bd6bc4360db0c8c954eed536a195e",
+      "triangles": 33902,
+      "role": "environment",
+      "usage": "晴湾 · 码头维护、休憩与岩缝绿植",
+      "changes": [
+        "保留原始公开模型，晴湾按需使用独立轻量运行变体；尺寸、材质与用途按场景配置适配。",
+        "变体来源、加工与几何/纹理数据见 /assets/runtime/asset-manifest.json。"
+      ]
+    },
+    {
+      "id": "shrub-03",
+      "name": "岸边灌丛 03",
+      "path": "/assets/library/shrub-03/model.glb",
+      "author": "Rico Cilliers",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/shrub_03",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 1026968,
+      "sha256": "9b26ec8da7d609f32309026fd620207e9ac34a5c1540bf68767c1dc8687fd489",
+      "triangles": 8287,
+      "role": "environment",
+      "usage": "晴湾 · 码头维护、休憩与岩缝绿植",
+      "changes": [
+        "保留原始公开模型，晴湾按需使用独立轻量运行变体；尺寸、材质与用途按场景配置适配。",
+        "变体来源、加工与几何/纹理数据见 /assets/runtime/asset-manifest.json。"
+      ]
+    },
+    {
+      "id": "shrub-sorrel-01",
+      "name": "酢浆草地被",
+      "path": "/assets/library/shrub-sorrel-01/model.glb",
+      "author": "Rico Cilliers",
+      "license": "CC0-1.0",
+      "source": "https://polyhaven.com/a/shrub_sorrel_01",
+      "licenseUrl": "https://polyhaven.com/license",
+      "bytes": 717096,
+      "sha256": "eb3b7510c96810185585ca0fb7174f0f63c89b2b2cd88eddf83687302dc9d8e2",
+      "triangles": 3319,
+      "role": "environment",
+      "usage": "晴湾 · 码头维护、休憩与岩缝绿植",
+      "changes": [
+        "保留原始公开模型，晴湾按需使用独立轻量运行变体；尺寸、材质与用途按场景配置适配。",
+        "变体来源、加工与几何/纹理数据见 /assets/runtime/asset-manifest.json。"
+      ]
     }
   ],
   "sceneDeliveryManifest": "/assets/runtime/asset-manifest.json",

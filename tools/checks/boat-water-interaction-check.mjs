@@ -171,8 +171,9 @@ test('default contact shape and stern location retain the original standalone be
   original.dispose(); explicit.dispose(); history.dispose();
 });
 
-test('selected hull dimensions, contact shape and stern trail remain isolated between both boat profiles', () => {
-  const beams = { 'riva-aquarama': .738211833252415, 'maverick-gt': .905438596491228 };
+test('selected hull dimensions, contact shape and stern trail remain isolated between all boat profiles', () => {
+  const beams = { 'riva-aquarama': .738211833252415, 'maverick-gt': .905438596491228,
+    'motor-whaleboat': .7366608893962433, 'assault-boat': 1.0754789340060562 };
   const interactions = BOATS.map(definition => createBoatWaterInteraction({ length: definition.length,
     beam: beams[definition.id], draft: definition.draft, ...definition.contact, sampleSurface: flat }));
   for (let index = 0; index < interactions.length; index++) {
@@ -203,7 +204,8 @@ test('selected hull dimensions, contact shape and stern trail remain isolated be
   assert.ok(Math.abs(wake[1] - (-2 + BOATS[1].length * BOATS[1].contact.sternOffset)) < 1e-6);
   assert.equal(wake[4], surviving.uniforms.uWakePoints[0], 'old stern samples remain in world coordinates');
   assert.equal(wake[5], surviving.uniforms.uWakePoints[1]);
-  assert.ok(finiteUniforms(second)); second.dispose();
+  assert.ok(finiteUniforms(second));
+  for (const interaction of interactions) interaction.dispose();
 });
 
 test('contact profiles reject unsupported or non-finite shapes before they reach water uniforms', () => {

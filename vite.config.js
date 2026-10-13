@@ -1,15 +1,18 @@
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import { covePublicAssets } from './tools/assets/cove-public-assets.mjs';
 
-export default defineConfig({
-  plugins: [tailwindcss()],
-  // Relative URLs preserve DSH's /rc-boat-arena/ mount and all four page routes.
+export default defineConfig(({ command }) => ({
+  plugins: [tailwindcss(), covePublicAssets()],
+  // Keep the complete stock library local; publish only the active composition.
+  publicDir: command === 'serve' ? 'public' : false,
+  // Relative URLs also preserve DSH's /rc-boat-arena/ mount.
   base: './',
   build: {
     outDir: 'dist', assetsDir: 'assets', target: 'es2020', sourcemap: false,
     manifest: true,
     rollupOptions: {
-      input: { arena: 'index.html', swamp: 'swamp/index.html', cove: 'cove/index.html', library: 'library/index.html' },
+      input: { cove: 'index.html' },
       output: {
         // Do not pull lazy dependencies into an eager vendor chunk.
         onlyExplicitManualChunks: true,
@@ -25,4 +28,4 @@ export default defineConfig({
   },
   server: { host: '127.0.0.1', port: 5177, strictPort: true },
   preview: { host: '127.0.0.1', port: 5177, strictPort: true },
-});
+}));

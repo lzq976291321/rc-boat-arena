@@ -72,7 +72,7 @@ export function createViewer(container, message, onStats) {
     const current = ++generation;
     request?.abort(); request = new AbortController();
     releaseModel();
-    const canPreview = !!asset?.path || asset?.kind === 'procedural';
+    const canPreview = !!asset?.path;
     grid.visible = canPreview;
     container.style.visibility = canPreview ? 'visible' : 'hidden';
     message.hidden = false;
@@ -80,9 +80,7 @@ export function createViewer(container, message, onStats) {
     container.dataset.state = 'loading'; message.textContent = '正在准备 3D 模型…';
     reset();
     try {
-      const gltf = asset.path
-        ? await loadGLTF(new URL('../' + asset.path.replace(/^\//, ''), document.baseURI), { signal: request.signal })
-        : await createProceduralPreview(asset);
+      const gltf = await loadGLTF(new URL('../' + asset.path.replace(/^\//, ''), document.baseURI), { signal: request.signal });
       if (destroyed || current !== generation) { disposeObjects(gltf.scenes); return false; }
       const model = gltf.scene;
       const bounds = new THREE.Box3().setFromObject(model, true), size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
@@ -128,15 +126,4 @@ export function createViewer(container, message, onStats) {
       container.dataset.state = 'closed';
     },
   };
-}
-
-// Reuse the actual race builders; the library owns only framing and lifecycle.
-async function createProceduralPreview(asset) {
-  const [{ buildFinishArch }, { buildCourse }] = await Promise.all([
-    import('../arena/rendering/props.js'), import('../arena/gameplay/course.js'),
-  ]);
-  const group = new THREE.Group(), course = buildCourse();
-  if (asset.id === 'builtin-finish-arch') buildFinishArch(group, course);
-  else throw new Error('Unknown procedural asset');
-  return { scene: group, scenes: [group], animations: [] };
 }

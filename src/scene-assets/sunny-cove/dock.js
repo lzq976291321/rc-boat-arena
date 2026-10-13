@@ -3,6 +3,7 @@ import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
 import { loadGLTF } from '../../shared/assets/gltf.js';
 import { disposeObjects } from '../../shared/rendering/resources.js';
+import { DOCK_DRESSING } from './config/dressing.js';
 
 /** Internal cove loader: parsed scenes own all originals; instances borrow them. */
 export async function loadCoveModel(url, { signal, nodeName } = {}) {
@@ -53,16 +54,10 @@ export function instanceCoveModel(model, placements, name, { shadows = true } = 
   return group;
 }
 
-const MODELS = [
-  { key: 'pier', id: 'modular-wooden-pier', nodeName: 'modular_wooden_pier_planks' },
-  { key: 'bench', id: 'painted-wooden-bench' },
-  { key: 'crate', id: 'wooden-crate-02' },
-  { key: 'lifebuoy', id: 'lifebuoy' },
-];
-
 /** A standalone, eight-metre timber dock. Coordinates and anchors are in metres. */
 export async function createCoveDock(scene, {
   assetBaseUrl, signal, position = [-7, 0, 0.25], rotation = 0, furniture = true, deferDetails = false,
+  dressing = DOCK_DRESSING, mood: initialMood = 'afternoon',
 } = {}) {
   if (!assetBaseUrl) throw new Error('Cove dock requires assetBaseUrl');
   signal?.throwIfAborted();
@@ -73,7 +68,16 @@ export async function createCoveDock(scene, {
   const models = {}, resources = [], warnings = [], anchors = {};
   const detailController = new AbortController();
   const detailState = { status: furniture ? 'waiting' : 'ready', error: null };
-  let disposed = false, detailsStarted = false, detailFrame = 0, mountDetails;
+  const MODELS = dressing.models;
+  let disposed = false, detailsStarted = false, detailFrame = 0, mountDetails, lampGlow, lampLight;
+  let mood = initialMood;
+  const setMood = name => {
+    if (!Object.hasOwn(dressing.lanternIntensity, name)) throw new Error(`Unknown dock mood: ${name}`);
+    mood = name;
+    if (lampGlow) lampGlow.material.emissiveIntensity = dressing.lanternIntensity[name];
+    if (lampLight) lampLight.intensity = dressing.lanternIntensity[name] * .28;
+  };
+  setMood(mood);
   let resolveDetails, rejectDetails;
   const detailReady = new Promise((resolve, reject) => { resolveDetails = resolve; rejectDetails = reject; });
   // Optional detail failures are inspectable without becoming unhandled rejections.
@@ -295,13 +299,51 @@ export async function createCoveDock(scene, {
     mergeDetails(hardware, new THREE.MeshStandardMaterial({ color: '#8f8d7d', metalness: 0.78, roughness: 0.44 }), 'Galvanised brackets, bolts, cleats and canvas eyelets');
     mergeDetails(hems, clothMaterial, 'Rolled canvas hems and raised stitched seams');
     mountDetails = () => {
-      group.add(instanceCoveModel(models.bench, [{ x: -0.55, y: deckTop, z: -0.46, scale: 1.24, yaw: Math.PI }], 'Wooden bench beside the canvas shade'));
-      group.add(instanceCoveModel(models.crate, [
-        { x: 0.85, y: deckTop, z: -0.15, scale: 0.74, yaw: Math.PI / 2 },
-        { x: 1.08, y: deckTop, z: 0.45, scale: 0.51, yaw: 0.18 },
-      ], 'Two small rope-handled timber crates'));
-      group.add(instanceCoveModel(models.lifebuoy, [{ x: 1.35, y: 0.3, z: 1.08, scale: 0.8 }], 'Life ring on the inner front timber pile'));
-      createCrateDetails(group, 0.85, deckTop + models.crate.size.y * 0.74, -0.15, clothTexture);
+      group.add(instanceCoveModel(models.bench, [{ ...dressing.bench, y: deckTop }], 'Wooden bench beneath the canvas shade'));
+      group.add(instanceCoveModel(models.crate, [{ ...dressing.crate, y: deckTop }], 'Rope-handled timber crate in the tool corner'));
+      group.add(instanceCoveModel(models.bucket, [{ ...dressing.bucket, y: deckTop }], 'Wooden wash bucket with its original raised handle'));
+      group.add(instanceCoveModel(models.lifebuoy, [dressing.lifebuoy], 'Life ring on the inner front timber pile'));
+      const fenders = instanceCoveModel(models.tyre, dressing.fenders, 'Three tied rubber fenders facing the berth');
+      for (const part of models.tyre.parts) for (const material of Array.isArray(part.material) ? part.material : [part.material]) {
+        material.roughness = .96; material.metalness = 0; material.envMapIntensity = .35;
+      }
+      group.add(fenders);
+      const ties = [], tieEyes = [];
+      for (const fender of dressing.fenders) {
+        const top = fender.y + models.tyre.size.y * fender.scale;
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(fender.x, deckTop + .035, .93), new THREE.Vector3(fender.x + .035, deckTop + .02, 1.09),
+          new THREE.Vector3(fender.x, top - .07, 1.25), new THREE.Vector3(fender.x - .04, top - .10, 1.08),
+        ]);
+        ties.push(new THREE.TubeGeometry(curve, 14, .012, 5, false));
+        const eye = new THREE.TorusGeometry(.025, .006, 5, 12);
+        eye.translate(fender.x, deckTop + .019, .93); tieEyes.push(eye);
+      }
+      const tieMesh = new THREE.Mesh(mergeParts(ties), ropeMesh.material);
+      tieMesh.name = 'Short securing ropes through each fender'; group.add(tieMesh);
+      const eyes = new THREE.Mesh(mergeParts(tieEyes), new THREE.MeshStandardMaterial({ color: '#8f8d7d', metalness: .78, roughness: .44 }));
+      eyes.name = 'Small deck eyelets securing the fender ties'; group.add(eyes);
+      const crateTop = deckTop + models.crate.size.y * dressing.crate.scale;
+      for (const part of models.lantern.parts) for (const material of Array.isArray(part.material) ? part.material : [part.material]) {
+        if (/brass/i.test(material.name)) {
+          // The source assigns transmission to its brass; restore opaque metal
+          // while keeping the photographed brass maps and separate glass shell.
+          material.transmission = 0; material.metalness = .85; material.roughness = .38;
+          material.transparent = false; material.opacity = 1;
+        } else if (/glass/i.test(material.name)) {
+          material.transparent = true; material.opacity = .23; material.depthWrite = false;
+          material.metalness = 0; material.roughness = .16;
+        }
+      }
+      group.add(instanceCoveModel(models.lantern, [{ ...dressing.lantern, y: crateTop }], 'Brass lantern resting on the tool crate'));
+      lampGlow = new THREE.Mesh(new THREE.SphereGeometry(.022, 10, 8), new THREE.MeshStandardMaterial({
+        color: '#ffce8c', emissive: '#ffa85c', emissiveIntensity: .08, roughness: .75,
+      }));
+      lampGlow.scale.set(.6, 1.5, .6); lampGlow.position.set(dressing.lantern.x, crateTop + .105 * dressing.lantern.scale, dressing.lantern.z);
+      lampGlow.name = 'Small warm wick inside the glass'; group.add(lampGlow);
+      lampLight = new THREE.PointLight('#ffc487', 0, 1.4, 2);
+      lampLight.position.copy(lampGlow.position); group.add(lampLight); setMood(mood);
+      group.userData.dressing = { fenders: dressing.fenders.length, buckets: 1, lanterns: 1, clearWalkingStrip: true };
     };
     if (furniture && !deferDetails) {
       mountDetails(); detailState.status = 'ready'; resolveDetails();
@@ -312,7 +354,7 @@ export async function createCoveDock(scene, {
     }
     signal?.throwIfAborted(); scene.add(group); signal?.addEventListener('abort', dispose, { once: true });
     return {
-      group, anchors, warnings, detailState, detailReady, startDetails, update() {}, dispose,
+      group, anchors, warnings, detailState, detailReady, startDetails, setMood, update() {}, dispose,
       getAnchor(name) {
         if (!anchors[name]) throw new Error(`Unknown cove dock anchor: ${name}`);
         group.updateMatrixWorld(true);
@@ -413,20 +455,4 @@ function createRopeTexture() {
   const texture = new THREE.CanvasTexture(canvas); texture.colorSpace = THREE.SRGBColorSpace;
   texture.wrapS = texture.wrapT = THREE.RepeatWrapping; texture.repeat.set(10, 1); texture.anisotropy = 4;
   return texture;
-}
-
-function createCrateDetails(group, x, y, z, linenTexture) {
-  const enamel = new THREE.MeshStandardMaterial({ color: '#eee4cb', metalness: 0.12, roughness: 0.31 });
-  const cup = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.042, 0.095, 20, 1, true), enamel);
-  cup.position.set(x - 0.10, y + 0.048, z); cup.name = 'Small enamel cup on the timber crate';
-  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.033, 0.007, 6, 16), enamel);
-  handle.position.set(-0.057, 0.004, 0); cup.add(handle);
-  const tea = new THREE.Mesh(new THREE.CircleGeometry(0.044, 20), new THREE.MeshStandardMaterial({ color: '#574731', roughness: 0.2 }));
-  tea.rotation.x = -Math.PI / 2; tea.position.y = 0.031; cup.add(tea);
-  const towel = new THREE.Mesh(new RoundedBoxGeometry(0.23, 0.034, 0.19, 3, 0.01),
-    new THREE.MeshStandardMaterial({ color: '#779b99', map: linenTexture, roughness: 0.95 }));
-  towel.position.set(x + 0.11, y + 0.018, z + 0.03); towel.rotation.y = -0.16;
-  towel.name = 'Folded sea-coloured linen beside the cup';
-  cup.castShadow = towel.castShadow = true; cup.receiveShadow = towel.receiveShadow = true;
-  group.add(cup, towel);
 }

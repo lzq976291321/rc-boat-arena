@@ -2,6 +2,7 @@
 // WebGL resources and scene API; leaves normal page preferences untouched.
 import * as THREE from 'three';
 import { createSunnyCoveScene } from '../../../src/scene-assets/sunny-cove/index.js';
+import { BOATS } from '../../../src/scene-assets/sunny-cove/config/boats.js';
 import { modelBytes } from '../../../src/shared/assets/gltf.js';
 
 const report = window.coveCheck = { status: 'running', passed: [], failures: [] };
@@ -39,14 +40,36 @@ try {
   }
   check(phases.size === 4 && maxJump < .025, 'real Maverick scene completes departure/cruise/arrival/mooring continuously');
   check(asset.snapshot().camera.berthWeight > .95, 'automatic camera favors the berth on arrival');
+  const measured = {
+    'riva-aquarama': { beam: .738211833252415, height: .5632309079558888, forward: [1, 0, 0] },
+    'maverick-gt': { beam: .905438596491228, height: .9247208931419457, forward: [-1, 0, 0] },
+    'motor-whaleboat': { beam: .7366608893962433, height: .6319955426560812, forward: [1, 0, 0] },
+    'assault-boat': { beam: 1.0754789340060562, height: .5124745255048524, forward: [0, 0, 1] },
+  };
+  report.hulls = [];
+  for (const definition of BOATS) {
+    check(await asset.setBoat(definition.id), `${definition.id}: real model switches successfully`); render();
+    const visual = asset.boatVisual, dimensions = visual.dimensions, expected = measured[definition.id];
+    check(visibleHulls() === 1 && Math.abs(dimensions.beam - expected.beam) < .0002
+      && Math.abs(dimensions.height - expected.height) < .0002,
+    `${definition.id}: complete hull dimensions match independent GLB measurements`);
+    const bow = new THREE.Vector3(...expected.forward).applyQuaternion(visual.mount.quaternion);
+    check(bow.distanceTo(new THREE.Vector3(0, 0, -1)) < 1e-8
+      && Math.abs(visual.mount.position.y + definition.draft) < 1e-8,
+    `${definition.id}: measured bow points forward and authored waterline is submerged correctly`);
+    check(asset.interaction.uniforms.uContactShape.value[2] === Math.fround(definition.contact.wakeStrength)
+      && asset.interaction.snapshot().trail.count === 0 && asset.boat.phase === 'docked',
+    `${definition.id}: new hull uses its own clean, calibrated water interaction`);
+    report.hulls.push({ id: definition.id, dimensions, contact: definition.contact });
+  }
   const memories = [];
   for (let cycle = 0; cycle < 4; cycle++) {
-    await asset.setBoat('riva-aquarama'); render();
+    for (const definition of BOATS) { await asset.setBoat(definition.id); render(); }
     await asset.setBoat('maverick-gt'); render();
     memories.push({ ...renderer.info.memory });
   }
   check(memories.every(memory => memory.geometries === memories[0].geometries && memory.textures === memories[0].textures),
-    'four complete switch pairs keep GPU geometry and texture counts stable');
+    'four complete roster switch cycles keep GPU geometry and texture counts stable');
   report.switchMemory = memories;
   const originalHull = asset.boatVisual, originalContact = asset.interaction;
   modelBytes.read = async (url, options) => {

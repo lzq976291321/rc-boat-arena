@@ -1,20 +1,5 @@
-// Metadata only: browsing the library must not load the rendering engine.
+// Metadata for the local asset workbench; the public site has one scene.
 export const SCENE_ASSETS = [{
-  id: 'builtin-moonwater',
-  sceneAsset: 'moonwater',
-  name: '月下湿地 · Moonwater',
-  category: 'scene',
-  kind: 'scene',
-  stage: 'integrated',
-  author: 'RC Boat Arena · 船艇 dylanheyes · 植被 Poly Haven',
-  source: '项目原创场景；外部模型来源见月下湿地素材记录',
-  license: '组合资产：原创效果 + CC0 植被 + CC BY 4.0 船艇',
-  licenseUrl: 'https://creativecommons.org/licenses/by/4.0/',
-  tags: '观赏, 水面, 月夜, 晨雾, 夕照, 自动巡游',
-  usage: '月下湿地观赏页 · 素材库实时预览',
-  notes: '包含水面、岸景、船艇、尾流、三种光照与观赏镜头。复用时保留每件模型的来源和许可。',
-  favorite: false,
-}, {
   id: 'builtin-sunny-cove',
   sceneAsset: 'sunny-cove',
   name: '晴湾船坞 · Sunny Cove',
