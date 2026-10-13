@@ -81,6 +81,77 @@
       "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
     },
     {
+      "id": "jacaranda-tree",
+      "path": "/assets/runtime/jacaranda-tree.glb",
+      "bytes": 11069092,
+      "sha256": "9962d88ac4b2dd414278fdf4a9999e92d875e29b3c11df3fa5af36dfee94fb47",
+      "sourcePath": "/assets/library/jacaranda-tree/model.glb",
+      "sourceRecord": "/assets/library/jacaranda-tree/SOURCES.md",
+      "originalSha256": "2b5572edfcb4a8a35a50bb0ecee295a93e322a2c028cf749c3a14b974843c264",
+      "selectedNodes": [
+        "jacaranda_tree_LOD0",
+        "jacaranda_tree_LOD0.002"
+      ],
+      "textureDimensions": [
+        [
+          1024,
+          1024
+        ],
+        [
+          1024,
+          1024
+        ],
+        [
+          1024,
+          1024
+        ],
+        [
+          1024,
+          1024
+        ],
+        [
+          1024,
+          1024
+        ],
+        [
+          1024,
+          1024
+        ]
+      ],
+      "geometryBounds": {
+        "POSITION": 0.0002,
+        "NORMAL": 0.001,
+        "TANGENT": 0.001,
+        "TEXCOORD_0": 0.000244140625,
+        "TEXCOORD_1": 0.000244140625
+      },
+      "triangles": 334314,
+      "verification": {
+        "sourceUntouched": true,
+        "selectedAccessorsExactBeforeFiltering": true,
+        "retainedImageBytesExact": true,
+        "noSimplification": true,
+        "fineBranchesPreviouslyUnused": true,
+        "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
+        "verifiedBytes": 24267988,
+        "indicesExact": false,
+        "trianglesVerticesOrderAndWindingExact": true,
+        "topologyExact": true,
+        "attributesRetainFloat": true,
+        "minMaxRecomputed": true,
+        "accessorIdsAndCountsExact": true,
+        "accessorValuesRepackedExactlyBeforeFiltering": true,
+        "imageBytesExact": true,
+        "sceneAndMaterialsExact": true
+      },
+      "author": "Rico Cilliers（制作）, Rob Tuytel（指导）",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://polyhaven.com/license",
+      "source": "https://polyhaven.com/a/jacaranda_tree",
+      "name": "蓝花楹 · 宽展绿冠 · Jacaranda Tree",
+      "changes": "Cove delivery variant: remove fine branches already omitted by the scene; preserve all 334314 leaf/trunk triangles and six embedded 1K JPEG images byte-for-byte; bound FLOAT attributes and meshopt-compress without simplification."
+    },
+    {
       "id": "lifebuoy",
       "path": "/assets/runtime/lifebuoy.glb",
       "bytes": 206280,

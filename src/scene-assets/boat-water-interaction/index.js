@@ -9,15 +9,21 @@ export { hullUniformsGLSL, hullSurfaceGLSL, boatContactGLSL } from './surface-sh
 /** No renderer, RAF, model or global cache. The consumer owns its frame loop and
  * binds uniforms to its water shader; all mutable history belongs to this instance. */
 export function createBoatWaterInteraction({ length = 2.4, beam = .738, draft = .11,
+  sternWidth = .79, bowTaper = .58, wakeStrength = 1, sternOffset = .4,
   sampleSurface = sampleWaterSurface } = {}) {
   if (![length, beam, draft].every(value => Number.isFinite(value) && Number.isFinite(Math.fround(value)))
     || Math.fround(length) <= 0 || Math.fround(beam) <= 0)
     throw new TypeError('Contact dimensions must fit positive GPU floats (draft may be zero)');
+  if (!Number.isFinite(sternWidth) || sternWidth <= 0 || sternWidth > 1
+    || !Number.isFinite(bowTaper) || bowTaper < .2 || bowTaper > .9
+    || !Number.isFinite(wakeStrength) || wakeStrength < 0 || wakeStrength > 2)
+    throw new TypeError('Contact shape must stay within the supported hull envelope');
   const motion = createHullMotion({ length, beam, draft, sampleSurface });
-  const history = createWakeHistory({ length });
+  const history = createWakeHistory({ length, sternOffset, wakeStrength });
   const uniforms = {
     uContactHull: { value: new Float32Array(4) },
     uContactSize: { value: new Float32Array([length, beam, draft]) },
+    uContactShape: { value: new Float32Array([sternWidth, bowTaper, wakeStrength]) },
     uContactEnabled: { value: 1 },
     uWakePoints: { value: history.points },
     uWakeBounds: { value: history.bounds },

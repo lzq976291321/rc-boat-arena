@@ -20,8 +20,11 @@ export function normalizeBoatState(boat, reset = false) {
 }
 
 // A finite world-space history. Nothing is reattached to the boat on a turn.
-export function createWakeHistory({ length = 2.4 } = {}) {
+export function createWakeHistory({ length = 2.4, sternOffset = .4, wakeStrength = 1 } = {}) {
   if (!finiteFloat(length) || Math.fround(length) <= 0) throw new TypeError('Wake length must be positive and fit a GPU float');
+  if (!Number.isFinite(sternOffset) || sternOffset < .2 || sternOffset > .6
+    || !Number.isFinite(wakeStrength) || wakeStrength < 0 || wakeStrength > 2)
+    throw new TypeError('Wake shape must stay within the supported hull envelope');
   const points = new Float32Array(WAKE_CAPACITY * 4);
   const bounds = new Float32Array([1, 1, -1, -1]);
   const samples = [];
@@ -32,12 +35,12 @@ export function createWakeHistory({ length = 2.4 } = {}) {
     const state = normalizeBoatState(boat);
     if (!state) return;
     const { speed } = state;
-    const x = state.x + Math.sin(state.heading) * length * .40;
-    const z = state.z + Math.cos(state.heading) * length * .40;
+    const x = state.x + Math.sin(state.heading) * length * sternOffset;
+    const z = state.z + Math.cos(state.heading) * length * sternOffset;
     if (!finiteFloat(x) || !finiteFloat(z)) return;
     if (previous && (time < previous.time || Math.hypot(x - previous.x, z - previous.z) > length)) clear();
     if (previous) distance += Math.hypot(x - previous.x, z - previous.z);
-    const strength = Math.min(1, speed / .85);
+    const strength = Math.min(1, speed / .85) * wakeStrength;
     // Keep enough temporal coverage for the oldest waves to fade before the
     // finite buffer drops them, even when a turn moves the stern faster.
     const gap = samples.length ? time - samples[0].time : Infinity;

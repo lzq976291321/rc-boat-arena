@@ -296,10 +296,12 @@ export async function createCoveEnvironment(scene, {
     ];
     for (const [side, z, height] of cliffSites) {
       const scale = height / models.cliff.size.y;
-      cliffs.push({ x: coveShoreX(side, z) + side * (models.cliff.size.z * scale * .30 + .05),
-        y: -.35 - random() * .12, z, scale, width: .83 + random() * .4, depth: .83 + random() * .32,
-        yaw: (side < 0 ? Math.PI / 2 : -Math.PI / 2) + (random() - .5) * .6,
-        leanX: (random() - .5) * .11, leanZ: side * (.03 + random() * .075) });
+      const staggeredZ = z + (random() - .5) * 1.6;
+      cliffs.push({ x: coveShoreX(side, staggeredZ) + side * (models.cliff.size.z * scale * .27 + .2 + random() * .55),
+        y: -.48 - random() * .38, z: staggeredZ, scale,
+        width: .98 + random() * .5, depth: .88 + random() * .42,
+        yaw: (side < 0 ? Math.PI / 2 : -Math.PI / 2) + (random() - .5) * 1.25,
+        leanX: (random() - .5) * .24, leanZ: side * (.06 + random() * .19) });
     }
     // The shallow foreground anchor is outside the actual cruise path. A low
     // partial exposure, plus submerged neighbours, makes water depth legible.
@@ -320,7 +322,7 @@ export async function createCoveEnvironment(scene, {
     sun.shadow.bias = -0.00012; sun.shadow.normalBias = 0.025; sun.shadow.radius = 1.6;
     const hemisphere = new THREE.HemisphereLight(), ambient = new THREE.AmbientLight();
     const frontFill = new THREE.DirectionalLight('#ffe8c5', 0.9);
-    frontFill.position.set(55, 34, 45); frontFill.target.position.set(-3, 0, -5);
+    frontFill.position.set(25, 20, 60); frontFill.target.position.set(-3, 0, -5);
     group.add(sun, sun.target, hemisphere, ambient, frontFill, frontFill.target);
     if (renderer?.isWebGLRenderer) {
       const generator = new THREE.PMREMGenerator(renderer), lightingScene = new THREE.Scene();
@@ -341,7 +343,7 @@ export async function createCoveEnvironment(scene, {
       exposure: renderer?.toneMappingExposure, shadows: renderer?.shadowMap.enabled, shadowType: renderer?.shadowMap.type };
     scene.add(group); scene.fog = fog;
     if (renderer) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
-    const colors = ['fogColor', 'zenith', 'horizon', 'lightColor', 'hemisphere', 'ground'];
+    const colors = ['fogColor', 'zenith', 'horizon', 'lightColor', 'hemisphere', 'ground', 'frontFillColor'];
     const scalars = ['fogDensity', 'exposure', 'lightIntensity', 'fillIntensity', 'ambientIntensity', 'environmentIntensity', 'cloud', 'moon', 'sunSize', 'sunGlow', 'frontFillIntensity'];
     const current = { ...MOODS[initialMood], direction: new THREE.Vector3().fromArray(MOODS[initialMood].moonDirection).normalize() };
     for (const field of colors) current[field] = new THREE.Color(current[field]);
@@ -358,7 +360,9 @@ export async function createCoveEnvironment(scene, {
       sun.color.copy(current.lightColor); sun.intensity = current.lightIntensity;
       hemisphere.color.copy(current.hemisphere); hemisphere.groundColor.copy(current.ground); hemisphere.intensity = current.fillIntensity;
       ambient.color.copy(current.hemisphere); ambient.intensity = current.ambientIntensity;
-      frontFill.color.copy(current.lightColor); frontFill.intensity = current.frontFillIntensity;
+      // Soft sky-side fill reveals the hull and varnish without tinting both
+      // sides the sun's orange, and keeps either boat legible at blue hour.
+      frontFill.color.copy(current.frontFillColor); frontFill.intensity = current.frontFillIntensity;
       if (progress >= 0.5) scene.environment = maps[mood];
       scene.environmentIntensity = lastIntensity = current.environmentIntensity;
       if (renderer) renderer.toneMappingExposure = lastExposure = current.exposure;

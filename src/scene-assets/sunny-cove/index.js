@@ -5,47 +5,50 @@ import { createCoveEnvironment } from './environment.js';
 import { createCoveDock } from './dock.js';
 import { createCoveWater } from './water.js';
 import { createCoveBoat } from './boat.js';
-import { createCoveNavigation, stepCoveNavigation, resetCoveNavigation } from './navigation.js';
+import { COVE_ROUTE, createCoveNavigation, stepCoveNavigation, resetCoveNavigation } from './navigation.js';
 import { createCoveCamera, CAMERA_MODES } from './camera.js';
 import { MOODS } from './presets.js';
+import { BOATS, DEFAULT_BOAT_ID, getBoatDefinition } from './config/boats.js';
+import { COVE_TOUR, routeAtBerth } from './config/tour.js';
 
-export { MOODS, CAMERA_MODES };
+export { MOODS, CAMERA_MODES, BOATS, DEFAULT_BOAT_ID, COVE_TOUR };
 export { createCoveDock };
 export { createCoveWater, createCoveBoat, createCoveCamera, createCoveNavigation };
 export { createBoatWaterInteraction };
 
 /** An independently owned composition. Renderer/RAF remain with the consumer. */
 export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = 'balanced',
-  signal, mood = 'afternoon', cameraMode = 'auto', reducedMotion = false } = {}) {
+  signal, mood = 'afternoon', cameraMode = 'auto', reducedMotion = false,
+  boatId = DEFAULT_BOAT_ID, tour = COVE_TOUR } = {}) {
   if (!renderer || !assetBaseUrl) throw new Error('Sunny Cove requires renderer and assetBaseUrl');
   if (!Object.hasOwn(MOODS, mood)) throw new Error(`Unknown Sunny Cove mood: ${mood}`);
+  const definition = getBoatDefinition(boatId);
   signal?.throwIfAborted();
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(46, 1, 0.1, 1600);
-  const boat = createCoveNavigation();
+  let boat;
   const water = createCoveWater(scene, { quality });
-  const interaction = createBoatWaterInteraction({ sampleSurface: water.sampleSurface });
-  water.setInteraction(interaction);
-  const rig = createCoveCamera(camera, { reducedMotion });
-  const state = { elapsed: 0, mood, camera: reducedMotion && cameraMode === 'auto' ? 'scenic' : cameraMode };
+  let interaction;
+  const rig = createCoveCamera(camera, { ...tour.camera, reducedMotion });
+  const state = { elapsed: 0, mood, boatId, boatChange: { status: 'idle', requestedId: boatId, error: null }, camera: reducedMotion && cameraMode === 'auto' ? 'scenic' : cameraMode };
   rig.setMode(state.camera);
-  let environment, boatVisual, dock, disposed = false;
+  let environment, boatVisual, dock, disposed = false, selectionRequest, selectionVersion = 0;
   const loading = new AbortController();
   const abort = () => loading.abort(signal?.reason);
   signal?.addEventListener('abort', abort, { once: true });
   function dispose() {
-    if (disposed) return; disposed = true; loading.abort();
+    if (disposed) return; disposed = true; selectionVersion++; selectionRequest?.abort(); loading.abort();
     signal?.removeEventListener('abort', abort);
-    rig.dispose(); water.dispose(); interaction.dispose();
+    rig.dispose(); water.setInteraction(null); water.dispose(); interaction?.dispose();
     boatVisual?.dispose(); dock?.dispose(); environment?.dispose();
   }
   try {
     const results = await Promise.allSettled([
       createCoveEnvironment(scene, { renderer, assetBaseUrl, quality, mood, signal: loading.signal })
         .catch(error => { loading.abort(); throw error; }),
-      createCoveBoat(scene, new URL('library/riva-aquarama/model.glb', assetBaseUrl).href, { signal: loading.signal, length: 2.4 })
+      createCoveBoat(scene, new URL(definition.path, assetBaseUrl).href, { signal: loading.signal, definition })
         .catch(error => { loading.abort(); throw error; }),
-      createCoveDock(scene, { assetBaseUrl, signal: loading.signal, deferDetails: true })
+      createCoveDock(scene, { ...tour.dock, assetBaseUrl, signal: loading.signal, deferDetails: true })
         .catch(error => { loading.abort(); throw error; }),
     ]);
     if (results[0].status === 'fulfilled') environment = results[0].value;
@@ -58,6 +61,9 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
       ?? results.find(result => result.status === 'rejected');
     if (failed) throw failed.reason;
     if (environment.warnings?.length) throw new Error(environment.warnings.join('; '));
+    boat = createCoveNavigation({ ...tour.navigation, route: routeAtBerth(COVE_ROUTE, dock.getAnchor('berth')) });
+    interaction = createBoatWaterInteraction({ ...boatVisual.dimensions, ...definition.contact, sampleSurface: water.sampleSurface });
+    water.setInteraction(interaction); rig.setBoatDimensions(boatVisual.dimensions);
     water.setMood(MOODS[mood], { immediate: true });
     interaction.reset(0, boat);
     boatVisual.update(0, 0, boat, interaction.pose); environment.update(0, 0, boat);
@@ -70,8 +76,55 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
     if (failure) throw failure.reason;
   });
   detailReady.catch(() => {});
+  async function setBoat(id) {
+    const nextDefinition = getBoatDefinition(id);
+    if (disposed) return false;
+    const version = ++selectionVersion;
+    selectionRequest?.abort();
+    if (id === state.boatId) {
+      selectionRequest = undefined;
+      state.boatChange = { status: 'idle', requestedId: id, error: null };
+      return true;
+    }
+    const request = new AbortController(); selectionRequest = request;
+    const cancel = () => request.abort(loading.signal.reason);
+    loading.signal.addEventListener('abort', cancel, { once: true });
+    state.boatChange = { status: 'loading', requestedId: id, error: null };
+    let candidate, nextInteraction;
+    try {
+      // Parse outside the rendered scene. Only the newest successful selection
+      // can replace the live hull; failed/cancelled loads leave it untouched.
+      candidate = await createCoveBoat(new THREE.Group(), new URL(nextDefinition.path, assetBaseUrl).href,
+        { signal: request.signal, definition: nextDefinition });
+      if (disposed || request.signal.aborted || version !== selectionVersion) return false;
+      nextInteraction = createBoatWaterInteraction({ ...candidate.dimensions, ...nextDefinition.contact,
+        sampleSurface: water.sampleSurface });
+      const previousVisual = boatVisual, previousInteraction = interaction;
+      resetCoveNavigation(boat, { atBerth: true, dwellDuration: tour.changeoverDwell });
+      nextInteraction.reset(state.elapsed, boat);
+      candidate.update(0, state.elapsed, boat, nextInteraction.pose);
+      rig.setBoatDimensions(candidate.dimensions); rig.snap(boat);
+      scene.add(candidate.group); boatVisual = candidate; interaction = nextInteraction;
+      water.setInteraction(interaction); water.update(state.elapsed, boat);
+      state.boatId = id; state.boatChange = { status: 'idle', requestedId: id, error: null };
+      candidate = undefined; nextInteraction = undefined;
+      previousVisual.dispose(); previousInteraction.dispose();
+      return true;
+    } catch (error) {
+      if (disposed || request.signal.aborted || version !== selectionVersion) return false;
+      state.boatChange = { status: 'error', requestedId: id, error: '换船未完成，当前船仍可观赏。请再试一次。' };
+      throw error;
+    } finally {
+      candidate?.dispose(); nextInteraction?.dispose();
+      loading.signal.removeEventListener('abort', cancel);
+      if (selectionRequest === request) selectionRequest = undefined;
+    }
+  }
   return {
-    scene, camera, boat, state, environment, boatVisual, dock, water, interaction,
+    scene, camera, boat, state, environment, dock, water,
+    get boatVisual() { return boatVisual; },
+    get interaction() { return interaction; },
+    setBoat,
     detailReady,
     update(dt) {
       if (disposed) return;
@@ -99,7 +152,8 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
       boatVisual.update(0, 0, boat, interaction.pose); environment.update(0, 0, boat);
       rig.snap(boat);
     },
-    snapshot() { return { ...state, boat: { ...boat }, camera: rig.snapshot(), interaction: interaction.snapshot(),
+    snapshot() { return { ...state, boatChange: { ...state.boatChange }, boat: { ...boat },
+      dimensions: { ...boatVisual.dimensions }, camera: rig.snapshot(), interaction: interaction.snapshot(),
       detailState: {
         status: [environment, dock].some(part => ['waiting', 'loading'].includes(part.detailState.status))
           ? 'loading' : [environment, dock].some(part => part.detailState.status === 'error') ? 'error' : 'ready',
@@ -114,7 +168,7 @@ export async function createSunnyCoveScene({ renderer, assetBaseUrl, quality = '
 export async function createSunnyCoveViewer(options = {}) {
   let asset;
   const viewer = await createSceneViewer({ ...options, mood: options.mood ?? 'afternoon',
-    createScene: async sceneOptions => (asset = await createSunnyCoveScene(sceneOptions)) });
+    createScene: async sceneOptions => (asset = await createSunnyCoveScene({ ...sceneOptions, boatId: options.boatId, tour: options.tour })) });
   // A paused/reduced-motion viewer still needs one fresh frame when details arrive.
   const refreshDetails = () => { if (viewer.state.ready) viewer.setPaused(viewer.state.paused); };
   for (const part of [asset.environment, asset.dock]) {

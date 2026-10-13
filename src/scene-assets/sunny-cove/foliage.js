@@ -7,6 +7,24 @@ function randomFrom(seed) {
   return () => ((value = (Math.imul(value, 1664525) + 1013904223) >>> 0) / 4294967296);
 }
 
+/** Retain complete source triangles and their shared vertices. De-indexing these
+ * dense crowns duplicates normals/UVs and needlessly expands the GPU buffers. */
+function selectedGeometry(original, selected) {
+  const geometry = new THREE.BufferGeometry(), vertices = [], remap = new Map();
+  const indices = selected.map(vertex => {
+    if (!remap.has(vertex)) { remap.set(vertex, vertices.length); vertices.push(vertex); }
+    return remap.get(vertex);
+  });
+  for (const [name, attribute] of Object.entries(original.attributes)) {
+    const array = new attribute.array.constructor(vertices.length * attribute.itemSize);
+    for (let i = 0; i < vertices.length; i++) for (let item = 0; item < attribute.itemSize; item++)
+      array[i * attribute.itemSize + item] = attribute.array[vertices[i] * attribute.itemSize + item];
+    geometry.setAttribute(name, new THREE.BufferAttribute(array, attribute.itemSize, attribute.normalized));
+  }
+  geometry.setIndex(indices);
+  return geometry;
+}
+
 /** shrub_04 is four plants laid out for display. Two real gaps isolate intact
  * plants; equal-width cuts would slice leaves and keep the display-row shape. */
 function individualShrubs(source) {
@@ -19,13 +37,7 @@ function individualShrubs(source) {
       const triangle = [0, 1, 2].map(corner => index ? index.getX(offset + corner) : offset + corner);
       if (triangle.every(vertex => position.getX(vertex) > lower && position.getX(vertex) < upper)) selected.push(...triangle);
     }
-    const geometry = new THREE.BufferGeometry();
-    for (const [name, attribute] of Object.entries(original.attributes)) {
-      const array = new attribute.array.constructor(selected.length * attribute.itemSize);
-      for (let i = 0; i < selected.length; i++) for (let item = 0; item < attribute.itemSize; item++)
-        array[i * attribute.itemSize + item] = attribute.array[selected[i] * attribute.itemSize + item];
-      geometry.setAttribute(name, new THREE.BufferAttribute(array, attribute.itemSize, attribute.normalized));
-    }
+    const geometry = selectedGeometry(original, selected);
     geometry.applyMatrix4(part.matrix); geometry.computeBoundingBox();
     const bounds = geometry.boundingBox, center = bounds.getCenter(new THREE.Vector3());
     const size = bounds.getSize(new THREE.Vector3());
@@ -53,13 +65,7 @@ function crownFragments(tree) {
       const z = vertices.reduce((sum, i) => sum + position.getZ(i), 0) / 3;
       if (x > region.x[0] && x < region.x[1] && y > region.y[0] && y < region.y[1] && z > region.z[0] && z < region.z[1]) selected.push(...vertices);
     }
-    const fragment = new THREE.BufferGeometry();
-    for (const [name, attribute] of Object.entries(geometry.attributes)) {
-      const array = new attribute.array.constructor(selected.length * attribute.itemSize);
-      for (let i = 0; i < selected.length; i++) for (let item = 0; item < attribute.itemSize; item++)
-        array[i * attribute.itemSize + item] = attribute.array[selected[i] * attribute.itemSize + item];
-      fragment.setAttribute(name, new THREE.BufferAttribute(array, attribute.itemSize, attribute.normalized));
-    }
+    const fragment = selectedGeometry(geometry, selected);
     fragment.computeBoundingBox();
     const bounds = fragment.boundingBox, size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
     fragment.translate(-center.x, -bounds.min.y, -center.z); fragment.computeBoundingSphere();
@@ -100,18 +106,18 @@ export function createCoastalFoliage(group, { tree, bush }, quality) {
   });
   group.add(instanceCoveModel(coastalTree, trees, 'Dense Jacaranda crowns with natural branching'));
   const variants = individualShrubs(bush), placements = variants.map(() => []);
-  // Unequal clusters occupy rock pockets and overlap at their bases; the
-  // irregular leaf tips stay separate against the sky instead of a flat hedge.
+  // Alternate plants on the lip and just behind it, so orbit views see rooted
+  // pockets across the rock shoulder rather than one thin hedge beside bare land.
   const pockets = [
-    [-1, 6.7, 1.1, 1.25], [-1, .7, 1.4, 1.8], [-1, -7.7, 1.3, 1.7],
-    [-1, -14.2, 1.1, 1.5], [-1, -22.5, 1.1, 1.65], [-1, -31, 1.3, 1.4],
-    [-1, -41, 1.2, 1.45], [-1, -55, .8, 1.1],
-    [1, 6, .8, 1.1], [1, -1.8, 1.2, 1.4], [1, -9.7, 1.1, 1.6],
-    [1, -18.1, 1.3, 1.7], [1, -29, 1.3, 1.4], [1, -40, 1.1, 1.3], [1, -53, .8, 1.1],
+    [-1, 7.2, 2.0, 1.0], [-1, .1, 4.1, 1.25], [-1, -6.9, 1.7, 1.4],
+    [-1, -13.5, 3.4, 1.5], [-1, -23.8, 1.7, 1.65], [-1, -32, 4.2, 1.4],
+    [-1, -40.4, 1.8, 1.45], [-1, -54, 2.7, 1.1],
+    [1, 7.4, 2.4, 1.0], [1, .4, 4.6, 1.2], [1, -7.8, 2.1, 1.4],
+    [1, -17.2, 5.0, 1.7], [1, -26.8, 2.4, 1.4], [1, -37.4, 4.4, 1.3], [1, -51, 1.8, 1.1],
   ];
   for (let pocket = 0; pocket < pockets.length; pocket++) {
     const [side, z, radial, height] = pockets[pocket];
-    const count = quality === 'low' ? 2 : 3;
+    const count = quality === 'low' ? 1 : 2;
     for (let i = 0; i < count; i++) {
       const variant = (i + pocket) % variants.length;
       const r = radial + (random() - .5) * 1.8, rz = z + (random() - .5) * 2.4;
@@ -125,17 +131,22 @@ export function createCoastalFoliage(group, { tree, bush }, quality) {
   variants.forEach((variant, index) => group.add(instanceCoveModel(variant, placements[index], 'Broad-leaf shrubs in irregular rock pockets')));
   const fragments = crownFragments(tree), crowns = fragments.map(() => []);
   const thickets = [
-    [-1, -5.5, 1.4, 2.35], [-1, -10.2, 1.1, 2.5], [-1, -15.2, 1.25, 2.3],
-    [-1, -22.5, 1.25, 2.55], [-1, -32, 1.15, 2.3], [-1, -43, .9, 2.0],
-    [1, -9.5, 1.0, 1.95], [1, -17.5, 1.25, 2.3], [1, -26.1, 1.1, 2.1], [1, -36.5, 1.0, 2.2],
+    [-1, -4.7, 3.6, 1.7], [-1, -22.5, 3.2, 2.2], [-1, -42, 2.5, 1.85],
+    [1, 1.2, 3.5, 1.6], [1, -12.8, 4.3, 1.95], [1, -33.5, 3.2, 2.1],
   ];
   thickets.forEach(([side, z, radial, height], i) => {
-    if (quality === 'low' && (i === 4 || i === 5)) return;
+    if (quality === 'low' && (i === 2 || i === 5)) return;
     const variant = i % fragments.length, x = coveShoreX(side, z) + side * radial;
     crowns[variant].push({ x, y: plantHeight(x, z, shoreHeight(radial, z, side)) - .12,
-      z, scale: height / fragments[variant].size.y, width: 1.7, depth: 1.35, yaw: random() * 6.28 });
+      z, scale: height / fragments[variant].size.y,
+      width: i % 2 ? 2.2 : 2.45, depth: i % 2 ? 1.7 : 1.9, yaw: random() * 6.28 });
   });
   fragments.forEach((variant, index) => group.add(instanceCoveModel(variant, crowns[index], 'Dense natural leaf thickets along visible rock shoulders')));
+  const triangleCount = model => model.parts.reduce((count, part) =>
+    count + (part.geometry.index?.count ?? part.geometry.attributes.position.count) / 3, 0);
   return { trees: trees.length, shrubPlants: placements.reduce((count, items) => count + items.length, 0),
-    shrubVariants: variants.length, thickets: crowns.reduce((count, items) => count + items.length, 0) };
+    shrubVariants: variants.length, thickets: crowns.reduce((count, items) => count + items.length, 0),
+    triangles: triangleCount(coastalTree) * trees.length
+      + variants.reduce((count, variant, i) => count + triangleCount(variant) * placements[i].length, 0)
+      + fragments.reduce((count, fragment, i) => count + triangleCount(fragment) * crowns[i].length, 0) };
 }

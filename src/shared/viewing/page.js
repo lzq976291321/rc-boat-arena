@@ -1,6 +1,7 @@
 // Shared viewing-page behavior. Scene rendering stays behind createViewer.
 export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
-  capturePrefix, manifestPath, loadingText = '正在准备观赏场景…' }) {
+  capturePrefix, manifestPath, loadingText = '正在准备观赏场景…',
+  boats = [], defaultBoatId, preferenceKey }) {
   const lifetime = new AbortController();
   const listeners = [];
   function listen(target, type, handler) {
@@ -11,8 +12,28 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
   const errors = [];
   const assetBaseUrl = new URL('../assets/', document.baseURI).href;
   const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const boatById = new Map(boats.map(boat => [boat.id, boat]));
+  const fallbackBoatId = boatById.has(defaultBoatId) ? defaultBoatId : boats[0]?.id;
+  const phases = { departing: '正在出港', cruising: '湾中巡游', approaching: '缓缓归港', docked: '泊岸小憩' };
+  let preferences = {};
+  if (preferenceKey) {
+    try {
+      const stored = JSON.parse(localStorage.getItem(preferenceKey));
+      if (stored && typeof stored === 'object') {
+        if (boatById.has(stored.boatId)) preferences.boatId = stored.boatId;
+        if (Object.hasOwn(moods, stored.mood)) preferences.mood = stored.mood;
+        if (cameraModes.some(mode => mode.id === stored.cameraMode)) preferences.cameraMode = stored.cameraMode;
+      }
+    } catch { /* Browser storage may be unavailable; the scene still works. */ }
+  }
+  function savePreferences(next) {
+    if (!preferenceKey) return;
+    preferences = { ...preferences, ...next };
+    try { localStorage.setItem(preferenceKey, JSON.stringify(preferences)); }
+    catch { /* Keep this session's choices even when storage is full or blocked. */ }
+  }
   let viewer, request, generation = 0, toastTimer, previousFocus, dialogWasPaused = false;
-  let immersive = false, lastSnapshot;
+  let immersive = false, lastSnapshot, boatRequest = 0, failedBoatId;
   const debug = window[debugKey] = {
     errors, assets: [],
     get ready() { return !!viewer?.state.ready; },
@@ -47,6 +68,46 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
     $('camera').value = snapshot.camera.mode;
     $('shot-name').textContent = cameraModes.find(item => item.id === snapshot.camera.activeMode)?.label || '贴水跟随';
     document.querySelectorAll('[data-mood]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.mood === snapshot.mood)));
+    syncBoat(snapshot);
+  }
+  function syncBoat(snapshot) {
+    if (!boats.length) return;
+    const selected = boatById.get(snapshot.boatId);
+    if (selected && $('boat-name')) $('boat-name').textContent = selected.label;
+    if ($('boat-phase')) $('boat-phase').textContent = snapshot.paused ? '已暂停' : phases[snapshot.boat?.phase] || '准备出航';
+    const change = snapshot.boatChange || { status: 'idle' };
+    for (const button of document.querySelectorAll('[data-boat]')) {
+      const pending = change.status === 'loading' && change.requestedId === button.dataset.boat;
+      const active = button.dataset.boat === snapshot.boatId;
+      button.setAttribute('aria-pressed', String(active));
+      button.dataset.pending = String(pending);
+      button.querySelector('.boat-choice-mark').textContent = pending ? '' : active ? '✓' : '';
+      button.setAttribute('aria-label', `${boatById.get(button.dataset.boat).label}${pending ? '，正在载入' : active ? '，当前船艇' : '，切换到此船'}`);
+    }
+    if (!$('boat-feedback')) return;
+    const failed = change.status === 'error';
+    failedBoatId = failed ? change.requestedId : undefined;
+    $('boat-feedback').hidden = change.status === 'idle';
+    $('boat-retry').hidden = !failed;
+    const message = failed
+      ? '换船未成功，已保留当前船。'
+      : `正在准备${boatById.get(change.requestedId)?.label || '船艇'}…`;
+    if ($('boat-feedback-text').textContent !== message) $('boat-feedback-text').textContent = message;
+  }
+  async function selectBoat(id) {
+    if (!viewer || !boatById.has(id)) return;
+    const currentViewer = viewer, currentGeneration = generation, currentRequest = ++boatRequest;
+    try {
+      const pending = currentViewer.setBoat(id);
+      sync(currentViewer.snapshot());
+      const changed = await pending;
+      if (currentGeneration !== generation || currentRequest !== boatRequest) return;
+      if (changed) savePreferences({ boatId: currentViewer.snapshot().boatId });
+      sync(currentViewer.snapshot());
+    } catch {
+      if (currentGeneration !== generation || currentRequest !== boatRequest) return;
+      sync(currentViewer.snapshot());
+    }
   }
   function showError(error) {
     errors.push(String(error));
@@ -57,6 +118,7 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
   }
   async function init() {
     const current = ++generation;
+    boatRequest++;
     request?.abort(); viewer?.dispose(); viewer = undefined;
     // A disposed WebGL host gives up its context; a retry owns a fresh canvas.
     const oldCanvas = $('world');
@@ -64,10 +126,13 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
     request = new AbortController();
     $('loading').hidden = false; $('loader').hidden = false; $('retry').hidden = true;
     $('load-text').textContent = loadingText;
+    if ($('boat-feedback')) $('boat-feedback').hidden = true;
     document.querySelectorAll('[data-ready]').forEach(button => { button.disabled = true; });
     try {
       const instance = await createViewer({
         canvas: $('world'), assetBaseUrl,
+        boatId: preferences.boatId ?? fallbackBoatId, mood: preferences.mood,
+        cameraMode: preferences.cameraMode ?? 'auto',
         quality: innerWidth < 700 ? 'low' : 'balanced',
         signal: request.signal, reducedMotion,
         onFrame: snapshot => { if (current === generation) sync(snapshot); },
@@ -89,9 +154,35 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
   listen($('retry'), 'click', () => { void init(); });
   listen($('pause'), 'click', () => viewer?.setPaused(!viewer.state.paused));
   $('camera').replaceChildren(...cameraModes.map(({ id, label }) => new Option(label, id)));
-  listen($('camera'), 'change', event => viewer?.setCamera(event.target.value));
+  listen($('camera'), 'change', event => {
+    if (!viewer) return;
+    viewer.setCamera(event.target.value);
+    savePreferences({ cameraMode: viewer.snapshot().camera.mode });
+  });
   for (const button of document.querySelectorAll('[data-mood]')) {
-    listen(button, 'click', () => viewer?.setMood(button.dataset.mood));
+    listen(button, 'click', () => {
+      if (!viewer) return;
+      viewer.setMood(button.dataset.mood);
+      savePreferences({ mood: viewer.snapshot().mood });
+    });
+  }
+  if ($('boat-picker')) {
+    $('boat-picker').replaceChildren(...boats.map(boat => {
+      const button = document.createElement('button');
+      button.className = 'boat-choice'; button.dataset.boat = boat.id; button.dataset.ready = '';
+      button.disabled = true; button.setAttribute('aria-pressed', 'false');
+      const text = document.createElement('span'), name = document.createElement('span');
+      name.className = 'boat-choice-name'; name.textContent = boat.label; text.append(name);
+      if (boat.subtitle) {
+        const subtitle = document.createElement('span'); subtitle.className = 'boat-choice-subtitle';
+        subtitle.textContent = boat.subtitle; text.append(subtitle);
+      }
+      const mark = document.createElement('span'); mark.className = 'boat-choice-mark';
+      mark.setAttribute('aria-hidden', 'true'); button.append(text, mark);
+      listen(button, 'click', () => { void selectBoat(boat.id); });
+      return button;
+    }));
+    if ($('boat-retry')) listen($('boat-retry'), 'click', () => { void selectBoat(failedBoatId); });
   }
   listen($('sound'), 'click', async () => {
     if (!viewer) return;

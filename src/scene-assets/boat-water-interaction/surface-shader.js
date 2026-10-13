@@ -3,6 +3,7 @@ import { WAKE_CAPACITY, WAKE_LIFETIME } from './trail.js';
 export const hullUniformsGLSL = `
   uniform vec4 uContactHull;
   uniform vec3 uContactSize;
+  uniform vec3 uContactShape;
   uniform float uContactEnabled;
 `;
 
@@ -22,7 +23,7 @@ export const hullSurfaceGLSL = `
     float wingWidth=.085+max(behindBow,0.)*.018;
     float wingEnvelope=smoothstep(-.08,.16,behindBow)*(1.-smoothstep(uContactSize.x*.9,uContactSize.x*1.7,behindBow));
     float wing=exp(-pow(wingDistance/wingWidth,2.))*wingEnvelope;
-    return (bow*side*.018+wing*.020)*speed*uContactEnabled;
+    return (bow*side*.018+wing*.020)*speed*uContactEnabled*uContactShape.z;
   }
 `;
 
@@ -46,10 +47,10 @@ export const boatContactGLSL = `
     float speed = min(abs(uContactHull.w)/.85, 1.);
     float halfLength = uContactSize.x*.5;
     float halfBeam = uContactSize.y*.5;
-    // Narrow bow and broad transom follow the measured Riva waterline.
+    // The registered hull profile supplies its transom width and bow taper.
     float alongHull = clamp((local.y+halfLength)/(2.*halfLength),0.,1.);
-    float waterline = halfBeam*mix(.79,1.,smoothstep(0.,.35,alongHull))
-      * sqrt(max(.006,1.-pow(smoothstep(.58,1.02,alongHull),2.)));
+    float waterline = halfBeam*mix(uContactShape.x,1.,smoothstep(0.,.35,alongHull))
+      * sqrt(max(.006,1.-pow(smoothstep(uContactShape.y,1.02,alongHull),2.)));
     float sideDistance = abs(local.x)-waterline;
     float longitudinal = smoothstep(-halfLength-.10,-halfLength+.08,local.y)
       * (1.-smoothstep(halfLength*.88,halfLength+.12,local.y));
@@ -61,7 +62,7 @@ export const boatContactGLSL = `
     float foamDetail = 1.-smoothstep(.008,.03,footprint);
     float cells = contactNoise(p*92.+vec2(time*.08,-time*.06))*.7+contactNoise(p*177.)*.3;
     float flecks=mix(.10,smoothstep(.48,.76,cells),foamDetail);
-    float foam = crest*flecks*speed*.075;
+    float foam = crest*flecks*speed*.075*uContactShape.z;
     if (uWakeCount < 2. || p.x < uWakeBounds.x || p.y < uWakeBounds.y || p.x > uWakeBounds.z || p.y > uWakeBounds.w)
       return vec4(gradient,foam,0.);
     // Locate the closest segment in a bounded history of actual stern positions.

@@ -197,13 +197,14 @@ test("both dynamic viewing assets resolve under the mounted library route", asyn
   }
 });
 
-test("Sunny Cove source records serve all nine runtime GLBs with provenance", async () => {
+test("Sunny Cove source records cover both boats and all scenery with provenance", async () => {
   const response = await request(`${prefix}/assets/cove/asset-manifest.json`);
   assertType(response, "application/json");
   const assets = JSON.parse(response.body.toString()).assets;
-  assert.equal(assets.length, 9);
-  assert.equal(new Set(assets.map(asset => asset.path)).size, 9);
+  assert.equal(assets.length, 10);
+  assert.equal(new Set(assets.map(asset => asset.path)).size, 10);
   assert.ok(assets.some(asset => asset.path === "/assets/library/riva-aquarama/model.glb"));
+  assert.ok(assets.some(asset => asset.path === "/assets/library/maverick-gt/model.glb"));
   assert.ok(assets.some(asset => asset.path === "/assets/library/jacaranda-tree/model.glb"));
   assert.ok(assets.some(asset => asset.path === "/assets/library/shrub-04/model.glb"));
   for (const asset of assets) {

@@ -31,6 +31,7 @@ export function createCoveWater(scene, { quality = 'balanced', size = 1400 } = {
     uWaves: { value: 0.48 }, uClarity: { value: 0.8 },
     uContactHull: { value: new Float32Array(4) },
     uContactSize: { value: new Float32Array([2.4, .738, .11]) },
+    uContactShape: { value: new Float32Array([.79, .58, 1]) },
     uContactEnabled: { value: 0 },
     uWakePoints: { value: new Float32Array(WAKE_CAPACITY * 4) },
     uWakeBounds: { value: new Float32Array([1, 1, -1, -1]) },
@@ -250,7 +251,7 @@ export function createCoveWater(scene, { quality = 'balanced', size = 1400 } = {
     mesh, refraction,
     sampleSurface(x, z, time) { return sampleWaterSurface(x, z, time, u.uWaves.value); },
     setInteraction(interaction) {
-      const keys = ['uContactHull', 'uContactSize', 'uContactEnabled', 'uWakePoints', 'uWakeBounds', 'uWakeCount'];
+      const keys = ['uContactHull', 'uContactSize', 'uContactShape', 'uContactEnabled', 'uWakePoints', 'uWakeBounds', 'uWakeCount'];
       if (interaction && keys.some(key => !interaction.uniforms?.[key])) throw new TypeError('A boat-water interaction instance is required');
       for (const key of keys) u[key] = interaction ? interaction.uniforms[key] : uniforms[key];
     },

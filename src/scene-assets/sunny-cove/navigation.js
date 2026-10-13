@@ -124,10 +124,15 @@ export function stepCoveNavigation(state, dt = 0) {
   return apply(state, configuration, step);
 }
 
-export function resetCoveNavigation(state) {
+export function resetCoveNavigation(state, { atBerth = false, dwellDuration } = {}) {
   const configuration = configurations.get(state);
   if (!configuration) throw new TypeError("Use createCoveNavigation to create boat state");
-  configuration.clock = configuration.travelDuration * configuration.start;
+  // A new selected hull rests in the berth before its first departure. Keep
+  // the authored route and the same state object for existing consumers.
+  configuration.clock = atBerth
+    ? configuration.travelDuration + configuration.dwellDuration
+      - clamp(finite(dwellDuration, configuration.dwellDuration), 0, configuration.dwellDuration)
+    : configuration.travelDuration * configuration.start;
   state.elapsed = 0;
   return apply(state, configuration);
 }

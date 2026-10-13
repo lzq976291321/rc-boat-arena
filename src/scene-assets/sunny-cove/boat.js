@@ -1,15 +1,32 @@
 import * as THREE from "three";
 import { loadGLTF } from "../../shared/assets/gltf.js";
 import { disposeObjects } from "../../shared/rendering/resources.js";
+import { DEFAULT_BOAT_ID, getBoatDefinition } from './config/boats.js';
 
 // Measured from this Riva GLB, including every authored node transform:
 // world bounds [-683.781,47.759,-164.069] -> [-331.800,130.361,-55.808].
 // The narrow pointed end is +X; the broad transom is -X. Preserve the GLB root
 // transforms and turn the measured +X bow toward the navigation convention -Z.
-export const RIVA_MOUNT = Object.freeze({ forward: "+X", yaw: Math.PI / 2, length: 2.4, draft: 0.11 });
+const defaultBoat = getBoatDefinition(DEFAULT_BOAT_ID);
+// Retained for independent consumers of the original Riva factory.
+export const RIVA_MOUNT = Object.freeze({ forward: defaultBoat.forward, yaw: defaultBoat.yaw,
+  length: defaultBoat.length, draft: defaultBoat.draft });
 
-export async function createCoveBoat(scene, url, { signal, length = RIVA_MOUNT.length,
-  draft = RIVA_MOUNT.draft * length / RIVA_MOUNT.length } = {}) {
+/**
+ * Owns one parsed model and its GPU resources. `scene` may be a detached Group
+ * so a replacement can be prepared without removing the currently visible boat.
+ * Pass a catalog definition (or its ID) to adapt orientation, scale and finish.
+ * The original (scene, url, { signal, length, draft }) call still selects Riva.
+ */
+export async function createCoveBoat(scene, url, { signal, definition = defaultBoat, length, draft } = {}) {
+  definition = typeof definition === 'string' ? getBoatDefinition(definition) : definition;
+  validateDefinition(definition);
+  length ??= definition.length;
+  draft ??= definition.draft * length / definition.length;
+  if (!scene?.isObject3D) throw new TypeError('Boat parent must be a Three.js Object3D');
+  if (!Number.isFinite(length) || length <= 0) throw new TypeError('Boat length must be positive');
+  if (!Number.isFinite(draft) || draft < 0 || draft > length * 0.3) throw new TypeError('Boat draft must fit the hull');
+  signal?.throwIfAborted();
   const gltf = await loadGLTF(url, { signal, delivery: 'scene' });
   const group = new THREE.Group(), visual = new THREE.Group(), mount = new THREE.Group();
   const sourceMaterials = new Map();
@@ -26,37 +43,41 @@ export async function createCoveBoat(scene, url, { signal, length = RIVA_MOUNT.l
   }
   try {
     signal?.throwIfAborted();
-    if (!Number.isFinite(length) || length <= 0) throw new TypeError("Boat length must be positive");
-    if (!Number.isFinite(draft) || draft < 0 || draft > length * 0.3) throw new TypeError("Boat draft must fit the hull");
     const model = gltf.scene;
     const bounds = new THREE.Box3().setFromObject(model, true);
     const size = bounds.getSize(new THREE.Vector3()), center = bounds.getCenter(new THREE.Vector3());
-    if (!Number.isFinite(size.x) || size.x <= 0) throw new Error("Riva model has invalid bounds");
-    const scale = length / size.x;
+    if (size.toArray().some(value => !Number.isFinite(value) || value <= 0))
+      throw new Error(`${definition.label} model has invalid bounds`);
+    const lengthAxis = definition.forward.endsWith('X') ? 'x' : 'z';
+    const beamAxis = lengthAxis === 'x' ? 'z' : 'x';
+    const scale = length / size[lengthAxis];
     const centered = new THREE.Group();
     centered.position.set(-center.x, -bounds.min.y, -center.z);
     centered.add(model);
     mount.add(centered);
     mount.scale.setScalar(scale);
-    mount.rotation.y = RIVA_MOUNT.yaw;
-    // The pale lower hull lies close to the keel; 11 cm draft leaves its boot
-    // stripe readable while the keel remains submerged throughout the bob.
+    mount.rotation.y = definition.yaw;
+    // Place each measured keel below the shared water plane. The motion sampler
+    // drives `visual`, so the configured waterline survives a model replacement.
     mount.position.y = -draft;
     model.traverse(object => {
       if (!object.isMesh) return;
       object.castShadow = object.receiveShadow = true;
       const finish = original => {
-        if (!sourceMaterials.has(original)) sourceMaterials.set(original, rivaFinish(original));
+        if (!sourceMaterials.has(original)) sourceMaterials.set(original,
+          definition.finish === 'riva-varnish' ? rivaFinish(original) : authoredFinish(original));
         return sourceMaterials.get(original);
       };
       object.material = Array.isArray(object.material) ? object.material.map(finish) : finish(object.material);
     });
-    group.name = "Riva Aquarama by Anton Kovalev";
+    group.name = `${definition.label} / Sunny Cove`;
     visual.add(mount); group.add(visual); scene.add(group);
     signal?.addEventListener("abort", dispose, { once: true });
-    const dimensions = { length, beam: size.z * scale, height: size.y * scale, draft: -mount.position.y };
+    const dimensions = Object.freeze({ length, beam: size[beamAxis] * scale, height: size.y * scale, draft });
+    group.userData.boatId = definition.id;
+    group.userData.modelDimensions = dimensions;
     return {
-      group, visual, mount, model, dimensions, dispose,
+      boatId: definition.id, definition, group, visual, mount, model, dimensions, dispose,
       update(dt, time, boat, pose) {
         if (disposed || !boat) return;
         const t = Number.isFinite(time) ? time : 0;
@@ -75,6 +96,31 @@ export async function createCoveBoat(scene, url, { signal, length = RIVA_MOUNT.l
       },
     };
   } catch (error) { dispose(); throw error; }
+}
+
+function validateDefinition(definition) {
+  if (!definition || typeof definition !== 'object') throw new TypeError('Boat definition is required');
+  for (const field of ['id', 'label', 'path'])
+    if (typeof definition[field] !== 'string' || !definition[field]) throw new TypeError(`Boat ${field} must be a non-empty string`);
+  const heading = new Map([['+X', Math.PI / 2], ['-X', -Math.PI / 2], ['+Z', Math.PI], ['-Z', 0]]).get(definition.forward);
+  if (heading === undefined || !Number.isFinite(definition.yaw)
+    || Math.abs(Math.sin((definition.yaw - heading) / 2)) > 1e-8)
+    throw new TypeError('Boat forward and yaw must align its bow with -Z');
+  if (!Number.isFinite(definition.length) || definition.length <= 0)
+    throw new TypeError('Boat definition length must be positive');
+  if (!Number.isFinite(definition.draft) || definition.draft < 0 || definition.draft > definition.length * 0.3)
+    throw new TypeError('Boat definition draft must fit the hull');
+  if (!['riva-varnish', 'authored'].includes(definition.finish)) throw new TypeError('Unknown boat material finish');
+}
+
+// The sport boat already separates paint, chrome, rubber and leather and has
+// authored clearcoat. Preserve those choices instead of applying wood varnish.
+function authoredFinish(source) {
+  const material = source.clone();
+  for (const texture of Object.values(material)) if (texture?.isTexture) texture.anisotropy = 8;
+  material.envMapIntensity = 1.1;
+  if (material.transparent) material.depthWrite = false;
+  return material;
 }
 
 /** Keep the author's UVs, normal map and ORM region boundaries intact. */

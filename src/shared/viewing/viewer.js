@@ -131,6 +131,13 @@ export async function createSceneViewer({ createScene, canvas, assetBaseUrl, qua
   } catch (error) { dispose(); throw error; }
   return {
     state, scene: asset.scene, camera: asset.camera, boat: asset.boat, renderer,
+    async setBoat(id) {
+      if (!state.ready || !asset.setBoat) throw new Error('当前场景不支持换船');
+      const change = asset.setBoat(id);
+      notify();
+      try { return await change; }
+      finally { if (!disposed) { draw(); notify(); } }
+    },
     setPaused(value) { state.paused = !!value; sync(); draw(); notify(); return state.paused; },
     setMood(name) {
       const preset = asset.setMood(name, { immediate: state.paused });

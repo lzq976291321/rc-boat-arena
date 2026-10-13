@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createBoatWaterInteraction } from '../../src/scene-assets/boat-water-interaction/index.js';
 import { createWakeHistory, WAKE_CAPACITY, WAKE_LIFETIME } from '../../src/scene-assets/boat-water-interaction/trail.js';
+import { BOATS } from '../../src/scene-assets/sunny-cove/config/boats.js';
 
 const boat = (overrides = {}) => ({ x: 0, z: 0, heading: 0, speed: 1, turnRate: 0, ...overrides });
 const flat = () => ({ height: 0, slopeX: 0, slopeZ: 0 });
@@ -151,4 +152,66 @@ test('two instances have separate uniforms and repeated disposal cannot disable 
   assert.equal(second.uniforms.uContactEnabled.value, 1); assert.equal(second.snapshot().disposed, false);
   assert.notDeepEqual(snapshot(second), secondBefore);
   assert.ok(finiteUniforms(second)); second.dispose();
+});
+
+test('default contact shape and stern location retain the original standalone behavior', () => {
+  const original = create(), explicit = createBoatWaterInteraction({ length: 2.4, beam: .738, draft: .11,
+    sternWidth: .79, bowTaper: .58, wakeStrength: 1, sternOffset: .4, sampleSurface: flat });
+  assert.deepEqual([...original.uniforms.uContactShape.value], [.79, .58, 1].map(Math.fround));
+  for (let frame = 1; frame <= 40; frame++) {
+    const state = boat({ x: Math.sin(frame / 20), z: -frame / 10, heading: frame / 30,
+      speed: frame < 30 ? .8 : 0 });
+    original.update(.1, frame / 10, state); explicit.update(.1, frame / 10, state);
+    assert.deepEqual(snapshot(original), snapshot(explicit));
+  }
+  const history = createWakeHistory(); history.update(.1, .1, boat({ x: 2, z: 3 }));
+  assert.ok(Math.abs(history.points[0] - 2) < 1e-6);
+  assert.ok(Math.abs(history.points[1] - 3.96) < 1e-6);
+  assert.equal(history.points[3], 1);
+  original.dispose(); explicit.dispose(); history.dispose();
+});
+
+test('selected hull dimensions, contact shape and stern trail remain isolated between both boat profiles', () => {
+  const beams = { 'riva-aquarama': .738211833252415, 'maverick-gt': .905438596491228 };
+  const interactions = BOATS.map(definition => createBoatWaterInteraction({ length: definition.length,
+    beam: beams[definition.id], draft: definition.draft, ...definition.contact, sampleSurface: flat }));
+  for (let index = 0; index < interactions.length; index++) {
+    const interaction = interactions[index], definition = BOATS[index], shape = definition.contact;
+    assert.deepEqual([...interaction.uniforms.uContactSize.value],
+      [definition.length, beams[definition.id], definition.draft].map(Math.fround));
+    assert.deepEqual([...interaction.uniforms.uContactShape.value],
+      [shape.sternWidth, shape.bowTaper, shape.wakeStrength].map(Math.fround));
+    const state = boat({ x: 3, z: -2, heading: Math.PI / 2, speed: .85 });
+    interaction.reset(0, state); interaction.update(.1, .1, state);
+    const wake = interaction.uniforms.uWakePoints.value;
+    assert.equal(interaction.uniforms.uWakeCount.value, 1);
+    assert.ok(Math.abs(wake[0] - (3 + definition.length * shape.sternOffset)) < 1e-6);
+    assert.ok(Math.abs(wake[1] + 2) < 1e-6);
+    assert.equal(wake[3], Math.fround(shape.wakeStrength));
+  }
+  const [first, second] = interactions, surviving = snapshot(second);
+  for (const name of ['uContactHull', 'uContactSize', 'uContactShape', 'uWakePoints', 'uWakeBounds'])
+    assert.notEqual(first.uniforms[name].value, second.uniforms[name].value);
+  first.uniforms.uContactShape.value[0] = .25;
+  assert.equal(BOATS[0].contact.sternWidth, .79, 'GPU buffer edits must not alter catalog metadata');
+  first.reset(); first.dispose(); first.dispose();
+  assert.deepEqual(snapshot(second), surviving, 'replacing one hull must not change the other water instance');
+  second.update(.4, .5, boat({ x: 3.4, z: -2, heading: 0, speed: .85 }));
+  assert.ok(second.snapshot().trail.count > 1);
+  const wake = second.uniforms.uWakePoints.value;
+  assert.ok(Math.abs(wake[0] - 3.4) < 1e-6);
+  assert.ok(Math.abs(wake[1] - (-2 + BOATS[1].length * BOATS[1].contact.sternOffset)) < 1e-6);
+  assert.equal(wake[4], surviving.uniforms.uWakePoints[0], 'old stern samples remain in world coordinates');
+  assert.equal(wake[5], surviving.uniforms.uWakePoints[1]);
+  assert.ok(finiteUniforms(second)); second.dispose();
+});
+
+test('contact profiles reject unsupported or non-finite shapes before they reach water uniforms', () => {
+  for (const config of [{ sternWidth: 0 }, { sternWidth: 1.1 }, { sternWidth: NaN },
+    { bowTaper: .1 }, { bowTaper: 1 }, { bowTaper: Infinity },
+    { wakeStrength: -1 }, { wakeStrength: 3 }, { wakeStrength: NaN },
+    { sternOffset: .1 }, { sternOffset: .7 }, { sternOffset: Infinity }])
+    assert.throws(() => createBoatWaterInteraction(config), TypeError);
+  for (const config of [{ sternOffset: .1 }, { sternOffset: NaN }, { wakeStrength: Infinity }, { wakeStrength: -1 }])
+    assert.throws(() => createWakeHistory(config), TypeError);
 });

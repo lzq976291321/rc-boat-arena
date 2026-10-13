@@ -52,7 +52,7 @@ const sum = assets => assets.reduce((total, asset) => total + (asset.bytes ?? 0)
 // These retained budgets describe full library/catalog files, not scene traffic.
 const libraryBudgets = {
   arenaLibraryModels: [size('maverick-gt') + size('ocean-buoy'), 4_500_000],
-  coveLibraryWithoutFoliage: [sum(catalogs[2].assets.filter(asset => asset.id !== 'jacaranda-tree')), 17_000_000],
+  coveDefaultLibraryWithoutFoliage: [sum(catalogs[2].assets.filter(asset => !['jacaranda-tree', 'maverick-gt'].includes(asset.id))), 17_000_000],
   coveFullCatalog: [sum(catalogs[2].assets), 42_000_000],
   swampFullCatalog: [sum(catalogs[1].assets), 14_000_000],
 };
@@ -62,7 +62,7 @@ assert.equal(catalogs[1].totalBytes, libraryBudgets.swampFullCatalog[0]);
 const expectedVariants = [
   'maverick-gt', 'ocean-buoy', 'futuristic-speedboat', 'riva-aquarama',
   'modular-wooden-pier', 'rock-09', 'rock-face-01',
-  'painted-wooden-bench', 'wooden-crate-02', 'lifebuoy',
+  'painted-wooden-bench', 'wooden-crate-02', 'lifebuoy', 'jacaranda-tree',
 ];
 const runtimeById = new Map(runtime.assets.map(asset => [asset.id, asset]));
 assert.equal(runtimeById.size, runtime.assets.length, 'Duplicate runtime model IDs');
@@ -85,7 +85,7 @@ for (const asset of runtime.assets) {
   mappingChecks++;
 }
 for (const unchanged of [
-  '/assets/library/jacaranda-tree/model.glb?v=1',
+  '/assets/library/shrub-04/model.glb?v=1',
   '/assets/swamp/island-tree.glb',
   '/assets/runtime/riva-aquarama.glb?v=1',
   '/library/riva-aquarama/model.glb',
@@ -133,5 +133,12 @@ const runtimeCoreBudgets = Object.fromEntries(Object.entries(runtime.core).map((
   assert(bytes <= limit, `${page} runtime core: ${bytes} exceeds ${limit} bytes`);
   return [page, [bytes, limit]];
 }));
-console.log(JSON.stringify({ models: checked.size, runtimeModels: runtimeById.size, compressedViews,
+const coveMaverickCore = runtime.core.cove.map(id => id === 'riva-aquarama' ? 'maverick-gt' : id)
+  .reduce((total, id) => total + runtimeById.get(id).bytes, 0);
+assert(coveMaverickCore <= 2_000_000, 'Maverick startup exceeds its 2 MB GLB budget');
+const coveScenery = catalogs[2].assets.filter(asset => asset.role !== 'boat');
+const coveSceneBytes = coveScenery.reduce((total, asset) => total + (runtimeById.get(asset.id)?.bytes ?? asset.bytes), 0);
+assert(coveSceneBytes + runtimeById.get('maverick-gt').bytes <= 15_000_000, 'Cove scene GLBs exceed 15 MB');
+console.log(JSON.stringify({ coveMaverickCore, coveSceneWithMaverick: coveSceneBytes + runtimeById.get('maverick-gt').bytes,
+  models: checked.size, runtimeModels: runtimeById.size, compressedViews,
   mappingChecks, libraryBudgets, runtimeCoreBudgets }, null, 2));

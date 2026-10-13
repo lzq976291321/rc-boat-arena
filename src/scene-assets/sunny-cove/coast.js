@@ -29,7 +29,12 @@ export function shoreHeight(radial, z, side) {
   const shelves = Math.sin(radial * 2.8 + noise(z * 0.22, 7) * 1.8) * .12;
   const erosion = (noise(z * .55 + radial * .45, 5) - .5) * .42;
   const inland = mix(1, .6, smooth(radial, 9, 35));
-  return -.28 + face * (ridge * inland + shelves + erosion);
+  // Broken, low stone shoulders continue behind the scans. Orbit cameras see
+  // this surface too, so avoid a smooth green ramp beyond the shoreline lip.
+  const rubble = (noise(z * .21 + radial * .47, side + 23) * 1.15
+    + noise(z * .51 - radial * .28, 17) * .45 - .3)
+    * smooth(radial, 1.2, 3.6) * (1 - smooth(radial, 18, 42));
+  return -.28 + face * (ridge * inland + shelves + erosion + rubble);
 }
 
 export function createRockyCoast(group, sourceMaterial, quality) {
@@ -83,8 +88,10 @@ export function createRockyCoast(group, sourceMaterial, quality) {
         const x = coveShoreX(side, z) + side * (radial + fracture);
         const y = shoreHeight(radial, z, side);
         positions.push(x, y, z); uv.push(z * .3, y * .3);
-        const cover = smooth(radial, 2.6, 7.5) * smooth(noise(z * .25 + radial * .18, 4), .2, .8);
-        const tint = new THREE.Color('#d3d0b8').lerp(new THREE.Color('#647945'), cover * .85);
+        const cover = smooth(radial, 2.6, 7.5) * smooth(noise(z * .25 + radial * .18, 4), .42, .86);
+        // Sparse olive ground cover belongs in pockets; exposed gaps retain the
+        // warm limestone palette instead of reading as an untextured lawn.
+        const tint = new THREE.Color('#d3d0b8').lerp(new THREE.Color('#7e8260'), cover * .52);
         tint.multiplyScalar(.9 + noise(z * .65 + radial * .32, 15) * .12);
         colors.push(tint.r, tint.g, tint.b);
         if (row < longitudinal && column < radii.length - 1) {

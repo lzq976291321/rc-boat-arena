@@ -5,16 +5,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
     <meta name="theme-color" content="#87beb9" />
-    <meta name="description" content="清澈浅湾、木栈桥与木质船模。看它离泊、巡游、归港，保存一张晴湾的照片。" />
+    <meta name="description" content="选一艘船，配一段晴湾时光。看它从木栈桥出航、掠过浅水、慢慢归港。" />
     <title>Sunny Cove · 晴湾船坞</title>
-    <link rel="preload" as="fetch" href="../assets/runtime/riva-aquarama.glb" crossorigin="anonymous" />
     <link rel="preload" as="fetch" href="../assets/runtime/modular-wooden-pier.glb" crossorigin="anonymous" />
     <link rel="preload" as="fetch" href="../assets/runtime/rock-09.glb" crossorigin="anonymous" />
     <link rel="preload" as="fetch" href="../assets/runtime/rock-face-01.glb" crossorigin="anonymous" />
     <link rel="stylesheet" href="../src/cove/style.css" />
   </head>
   <body>
-    <canvas id="world" class="fixed inset-0 block h-full w-full" aria-label="晴湾船坞，木质船模、浅海湾与船坞"></canvas>
+    <canvas id="world" class="fixed inset-0 block h-full w-full" aria-label="晴湾船坞，船艇自动出航、巡游与归港"></canvas>
     <div class="vignette" aria-hidden="true"></div>
     <header class="masthead flex items-center justify-between" data-interface>
       <a class="wordmark flex items-center gap-3" href="../" title="返回 RC Boat Arena">
@@ -22,7 +21,6 @@
         <span>SUNNY COVE<small>晴湾船坞</small></span>
       </a>
       <nav class="flex items-center gap-3 sm:gap-7" aria-label="观赏操作">
-        <a class="scene-link" href="../swamp/" title="切换到月下湿地">湿地 ↗</a>
         <button id="sound" data-ready disabled aria-label="切换环境水声" aria-pressed="false"><span aria-hidden="true">◌</span><span id="sound-label">开启水声</span></button>
         <button id="capture" data-ready disabled aria-label="保存当前画面"><span aria-hidden="true">⌑</span><span>拍照</span></button>
         <button id="immerse" data-ready disabled aria-label="隐藏界面，沉浸观赏"><span aria-hidden="true">⛶</span><span>沉浸</span></button>
@@ -32,24 +30,28 @@
     <main>
       <div class="scene-caption" data-interface>
         <p class="eyebrow"><span id="mood-label">午后</span><i></i><span id="clock">15:20</span></p>
-        <h1>晴湾船坞</h1>
+        <h1 id="boat-name">晴湾船坞</h1>
         <p id="weather">晴朗 · 轻浪</p>
       </div>
-      <div class="shot-caption" data-interface><span class="status-dot"></span><span id="shot-name">贴水跟随</span></div>
+      <div class="shot-caption" data-interface><span class="status-dot"></span><span id="boat-phase">准备出航</span><span class="shot-separator" aria-hidden="true">·</span><span id="shot-name">贴水跟随</span></div>
       <div id="loading" class="loading flex items-center gap-3" role="status" aria-live="polite">
         <span id="loader" class="loader" aria-hidden="true"></span><span id="load-text">正在准备浅湾与船坞…</span><button id="retry" hidden>重新载入</button>
       </div>
       <div id="toast" class="toast" role="status" hidden></div>
+      <div id="boat-feedback" class="boat-feedback flex items-center justify-center gap-2" data-interface role="status" aria-live="polite" hidden><span id="boat-feedback-text"></span><button id="boat-retry" hidden>重试</button></div>
     </main>
-    <footer class="viewing-bar flex flex-wrap items-center justify-center gap-3 sm:gap-5" data-interface>
-      <div class="mood-switch flex items-center" role="group" aria-label="光照时段">
-        <button data-mood="afternoon" data-ready disabled aria-pressed="true"><span aria-hidden="true">☼</span> 午后</button>
-        <button data-mood="sunset" data-ready disabled aria-pressed="false"><span aria-hidden="true">◒</span> 日落</button>
-        <button data-mood="bluehour" data-ready disabled aria-pressed="false"><span aria-hidden="true">☾</span> 暮色</button>
+    <footer class="viewing-bar cove-controls flex flex-col items-stretch gap-2" data-interface>
+      <div id="boat-picker" class="boat-picker grid grid-cols-2 gap-2" role="group" aria-label="选择巡游船艇"></div>
+      <div class="cove-controls-row flex items-center justify-between gap-2 sm:gap-4">
+        <div class="mood-switch flex items-center" role="group" aria-label="光照时段">
+          <button data-mood="afternoon" data-ready disabled aria-pressed="true"><span aria-hidden="true">☼</span> 午后</button>
+          <button data-mood="sunset" data-ready disabled aria-pressed="false"><span aria-hidden="true">◒</span> 日落</button>
+          <button data-mood="bluehour" data-ready disabled aria-pressed="false"><span aria-hidden="true">☾</span> 暮色</button>
+        </div>
+        <span class="bar-divider" aria-hidden="true"></span>
+        <label class="camera-control flex items-center gap-2" for="camera"><span class="hidden sm:inline">镜头</span><select id="camera" data-ready disabled aria-label="观赏镜头"><option>自动运镜</option></select></label>
+        <button id="pause" class="pause-control flex items-center justify-center gap-2" data-ready disabled aria-label="暂停观赏" aria-pressed="false"><span id="pause-icon" aria-hidden="true">Ⅱ</span><span id="pause-label" class="hidden sm:inline">暂停</span></button>
       </div>
-      <span class="bar-divider" aria-hidden="true"></span>
-      <label class="camera-control flex items-center gap-2" for="camera"><span>镜头</span><select id="camera" data-ready disabled aria-label="观赏镜头"><option>自动运镜</option></select></label>
-      <button id="pause" class="pause-control flex items-center justify-center gap-2" data-ready disabled aria-label="暂停观赏" aria-pressed="false"><span id="pause-icon" aria-hidden="true">Ⅱ</span><span id="pause-label">暂停</span></button>
     </footer>
     <button id="restore" class="restore" aria-label="显示观赏操作界面" hidden>显示界面 <span aria-hidden="true">⛶</span></button>
     <dialog id="credits-dialog" class="panel">

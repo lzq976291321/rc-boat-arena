@@ -14,7 +14,7 @@ const smoothstep = value => value * value * (3 - 2 * value);
 
 /** Camera-only asset: no DOM, events, RAF or GPU resources. */
 export function createCoveCamera(camera, { reducedMotion = false, holdDuration = 20,
-  transitionDuration = 12, presets = {} } = {}) {
+  transitionDuration = 12, presets = {}, dimensions } = {}) {
   if (!camera?.isPerspectiveCamera) throw new TypeError("A PerspectiveCamera is required");
   const shots = {
     waterline: { position: [0.55, 0.9, 4.15], target: [0, 0.18, 0], fov: 48, ...presets.waterline },
@@ -28,6 +28,16 @@ export function createCoveCamera(camera, { reducedMotion = false, holdDuration =
   const secondPosition = new Vector3(), secondTarget = new Vector3();
   let mode = reducedMotion ? "scenic" : "auto", activeMode = "scenic", nextMode = "scenic";
   let elapsed = 0, blend = 0, waterlineWeight = 0, fov = 50, initialized = false, disposed = false;
+  let framingScale = 1, hullHeight = .563, hullDraft = .11, berthWeight = 0;
+  const berthPosition = new Vector3(), berthTarget = new Vector3();
+  function setBoatDimensions(value) {
+    if (disposed || !value) return;
+    if (![value.length, value.beam, value.height].every(number => Number.isFinite(number) && number > 0)
+      || !Number.isFinite(value.draft) || value.draft < 0) throw new TypeError('Camera requires valid hull dimensions');
+    framingScale = Math.max(1, value.length / 2.4, value.beam / .73821);
+    hullHeight = value.height; hullDraft = value.draft;
+  }
+  setBoatDimensions(dimensions);
 
   function constrain(vector, closeWeight = 0) {
     // The close shot uses the open water behind the boat. Its wider left limit
@@ -51,13 +61,14 @@ export function createCoveCamera(camera, { reducedMotion = false, holdDuration =
       const widthFraction = .45 + portrait * .17;
       const distanceScale = clamp(1.6 / aspect * Math.tan(preset.fov * Math.PI / 360)
         / Math.tan(nextFov * Math.PI / 360) * .45 / widthFraction, .82, 3);
-      destination.x = x + destination.x * distanceScale;
-      destination.y += portrait * .4;
-      destination.z = z + destination.z * distanceScale;
+      destination.x = x + destination.x * distanceScale * framingScale;
+      destination.y += portrait * .4 + Math.max(0, hullHeight - hullDraft - .453) * .35;
+      destination.z = z + destination.z * distanceScale * framingScale;
       const heading = finite(boat?.heading, -Math.PI / 2);
       const sternBias = .32 - portrait * .16;
       aim.x += x + Math.sin(heading) * sternBias;
       aim.z += z + Math.cos(heading) * sternBias;
+      aim.y += Math.max(0, hullHeight - hullDraft - .453) * .35;
       constrain(destination, 1);
       return nextFov;
     }
@@ -85,6 +96,7 @@ export function createCoveCamera(camera, { reducedMotion = false, holdDuration =
       aim.x += (x - aim.x) * portrait;
       aim.z += (z - 0.6 - aim.z) * portrait;
     }
+    destination.sub(aim).multiplyScalar(framingScale).add(aim);
     constrain(destination);
     return preset.fov + portrait * 7;
   }
@@ -99,7 +111,21 @@ export function createCoveCamera(camera, { reducedMotion = false, holdDuration =
     const b = shot(nextMode, boat, secondPosition, secondTarget);
     waterlineWeight = (activeMode === "waterline" ? 1 - blend : 0) + (nextMode === "waterline" ? blend : 0);
     firstPosition.lerp(secondPosition, blend); firstTarget.lerp(secondTarget, blend);
-    return a + (b - a) * blend;
+    let nextFov = a + (b - a) * blend;
+    berthWeight = 0;
+    if (mode === 'auto' && Number.isFinite(boat?.progress)) {
+      // Arriving/departing views follow the voyage, so docking is never missed
+      // merely because an unrelated camera timer selected a distant shot.
+      const progress = boat.progress;
+      berthWeight = boat.phase === 'docked' ? 1 : progress < .18
+        ? 1 - smoothstep(clamp(progress / .18, 0, 1))
+        : smoothstep(clamp((progress - .72) / .2, 0, 1));
+      const berthFov = shot('scenic', boat, berthPosition, berthTarget);
+      firstPosition.lerp(berthPosition, berthWeight); firstTarget.lerp(berthTarget, berthWeight);
+      waterlineWeight *= 1 - berthWeight;
+      nextFov += (berthFov - nextFov) * berthWeight;
+    }
+    return nextFov;
   }
   function apply() {
     camera.position.copy(position); camera.up.set(0, 1, 0); camera.lookAt(target);
@@ -110,6 +136,7 @@ export function createCoveCamera(camera, { reducedMotion = false, holdDuration =
     fov = pose(boat); position.copy(firstPosition); target.copy(firstTarget); initialized = true; apply();
   }
   return {
+    setBoatDimensions,
     setMode(value) {
       if (disposed || !CAMERA_MODES.some(({ id }) => id === value)) return mode;
       if (value === "auto" && mode !== "auto") elapsed = Math.max(0, ORDER.indexOf(mode)) * (hold + transition);
@@ -130,7 +157,8 @@ export function createCoveCamera(camera, { reducedMotion = false, holdDuration =
       camera.aspect = width / height; camera.updateProjectionMatrix();
     },
     snap,
-    snapshot() { return { mode, activeMode, nextMode, blend, elapsed, initialized, disposed,
+    snapshot() { return { mode, activeMode: berthWeight > .95 ? 'scenic' : activeMode, nextMode, blend, berthWeight,
+      elapsed, initialized, disposed,
       position: position.toArray(), target: target.toArray(), fov }; },
     dispose() { disposed = true; },
   };

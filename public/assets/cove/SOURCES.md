@@ -7,6 +7,7 @@
 | 素材 | 作者 | 许可 | 原始来源 | 项目文件 |
 | --- | --- | --- | --- | --- |
 | Riva Aquarama · 经典木质快艇 | Anton Kovalev | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | [原始素材](https://sketchfab.com/3d-models/riva-aquarama-lamborghini-9d5716a2ab6645b9a1452f1d6b0372ef) | `/assets/library/riva-aquarama/model.glb` |
+| MAVERICK GT · 运动摩托艇 | dannzjs | [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/) | [原始素材](https://sketchfab.com/3d-models/maverick-gt-1cbe1b65836d4536bade28ca351ba164) | `/assets/library/maverick-gt/model.glb` |
 | Modular Wooden Pier · 做旧木码头 | Rico Cilliers | [CC0-1.0](https://polyhaven.com/license) | [原始素材](https://polyhaven.com/a/modular_wooden_pier) | `/assets/library/modular-wooden-pier/model.glb` |
 | 掉漆木长椅 | Kirill Sannikov | [CC0-1.0](https://polyhaven.com/license) | [原始素材](https://polyhaven.com/a/painted_wooden_bench) | `/assets/library/painted-wooden-bench/model.glb` |
 | Wooden Crate · 绳柄货箱 | James Ray Cock, Jurita Burger | [CC0-1.0](https://polyhaven.com/license) | [原始素材](https://polyhaven.com/a/wooden_crate_02) | `/assets/library/wooden-crate-02/model.glb` |
@@ -19,6 +20,10 @@
 ## 加工与组合
 
 船艇使用 Anton Kovalev 的 Riva Aquarama，CC BY 4.0。保留原始贴图与 UV，运行时按原有材质分区调整清漆、皮革、镀铬与独立风挡。+Y 向上、-Z 向前、水面 y=0；长度 2.4 米，默认吃水 0.11 米，可在独立工厂配置。历史加工见 [Riva 来源记录](../library/riva-aquarama/SOURCES.md)。
+
+2026-10-13 增加 dannzjs 的 MAVERICK GT 作为第二艘可选观赏船，CC BY 4.0。复用已有模型和运行变体，保留原始形状、UV、贴图、漆面、金属与皮革材质；独立挂载层将源模型的 -X 船首转至晴湾的 -Z，显示船长 2.6 米、船宽约 0.9054 米、船高约 0.9247 米，默认吃水 0.10 米。显示尺寸与水线是观赏设置，不是实艇工程规格。原文件和既有加工见 [Maverick 来源记录](../library/maverick-gt/SOURCES.md)。
+
+两船通过同一船型配置分别选择朝向、尺寸、吃水、材质处理和船水接触参数。运行模型分别映射为 `/assets/runtime/riva-aquarama.glb` 与 `/assets/runtime/maverick-gt.glb`，原素材公开 URL 不变；运行变体的字节、SHA-256 及加工精度见 [runtime 清单](../runtime/asset-manifest.json)。
 
 码头仅使用 modular_wooden_pier_planks 节点，加厚板边并组合。木柱、梁、年轮、风化木纹、连接件、绳结、帆布缝边与少量生活细节由项目程序生成，资源由码头实例统一释放。
 

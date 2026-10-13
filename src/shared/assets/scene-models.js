@@ -3,7 +3,7 @@
 const variants = Object.fromEntries([
   'maverick-gt', 'ocean-buoy', 'futuristic-speedboat', 'riva-aquarama',
   'modular-wooden-pier', 'rock-09', 'rock-face-01',
-  'painted-wooden-bench', 'wooden-crate-02', 'lifebuoy',
+  'painted-wooden-bench', 'wooden-crate-02', 'lifebuoy', 'jacaranda-tree',
 ].map(id => [`library/${id}/model.glb`, `runtime/${id}.glb`]));
 
 export function sceneModelUrl(url, base = document.baseURI) {

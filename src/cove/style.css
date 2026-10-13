@@ -10,4 +10,42 @@
   .wordmark { text-shadow: 0 1px 6px #12343d80; }
   .scene-caption { text-shadow: 0 2px 22px #154647; }
   .status-dot { background: #ffe1ac; box-shadow: 0 0 10px #ffdda044; }
+  .cove-controls { width: 568px; max-width: calc(100% - 32px); padding: 10px; border-radius: 18px; }
+  .boat-choice { @apply flex items-center justify-between gap-3 rounded-xl px-4 py-2 text-left; min-height: 47px; color: var(--view-muted); border: 1px solid #dbe9d918; background: #083b411f; transition: background .2s, border-color .2s; }
+  .boat-choice[aria-pressed="true"] { color: var(--view-text); background: var(--view-active); border-color: #f5dfb872; }
+  .boat-choice[data-pending="true"] { border-color: var(--gold); }
+  .boat-choice-name { display: block; font-size: 12px; font-weight: 500; }
+  .boat-choice-subtitle { display: block; margin-top: 4px; font-size: 10px; opacity: .72; }
+  .boat-choice-mark { color: var(--gold); width: 16px; text-align: center; font-size: 13px; }
+  .boat-choice[data-pending="true"] .boat-choice-mark { width: 12px; height: 12px; border: 1px solid #ffdfae55; border-top-color: var(--gold); border-radius: 50%; animation: spin 1.1s linear infinite; }
+  .boat-feedback { @apply fixed left-1/2 z-6 -translate-x-1/2 rounded-xl px-4 py-2; top: 100px; width: max-content; max-width: calc(100% - 32px); border: 1px solid #c7ddd42b; background: var(--view-panel); font-size: 11px; color: var(--view-muted); min-height: 32px; backdrop-filter: blur(18px); }
+  #boat-retry { padding: 5px 8px; color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+  .scene-caption { bottom: 176px; }
+  .scene-caption h1 { font-size: 30px; letter-spacing: 2px; }
+  .shot-caption { bottom: 180px; }
+  @media (max-width: 600px) {
+    .cove-controls { width: 376px; bottom: max(16px, env(safe-area-inset-bottom)); padding: 8px; }
+    .cove-controls .mood-switch { width: auto; gap: 0; }
+    .cove-controls .mood-switch button { padding: 10px 8px; font-size: 11px; }
+    .cove-controls .mood-switch button span { display: none; }
+    .cove-controls .camera-control { margin: 0; }
+    .cove-controls #camera { max-width: 90px; font-size: 11px; }
+    .cove-controls .pause-control { min-width: 36px; }
+    .boat-choice { padding: 9px 10px; gap: 6px; }
+    .boat-choice-name { font-size: 11px; }
+    .boat-choice-subtitle { font-size: 9px; }
+    .scene-caption { bottom: 156px; left: 24px; }
+    .scene-caption h1 { font-size: 24px; margin: 9px 0; }
+    .scene-caption #weather { display: none; }
+    .shot-caption { bottom: 164px; right: 24px; }
+    .shot-caption #shot-name, .shot-separator { display: none; }
+  }
+  @media (max-height: 500px) {
+    .cove-controls { bottom: max(10px, env(safe-area-inset-bottom)); padding: 7px 10px; }
+    .boat-choice { min-height: 32px; padding-top: 6px; padding-bottom: 6px; }
+    .boat-choice-subtitle { display: none; }
+    .scene-caption { top: 74px; bottom: auto; }
+    .scene-caption h1 { font-size: 22px; }
+    .shot-caption { bottom: 140px; }
+  }
 }

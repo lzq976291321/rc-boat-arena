@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { PerspectiveCamera, Vector3 } from "three";
 import { COVE_ROUTE, createCoveNavigation, stepCoveNavigation, resetCoveNavigation } from "../../src/scene-assets/sunny-cove/navigation.js";
 import { CAMERA_MODES, createCoveCamera } from "../../src/scene-assets/sunny-cove/camera.js";
+import { BOATS } from "../../src/scene-assets/sunny-cove/config/boats.js";
+import { COVE_TOUR, routeAtBerth } from "../../src/scene-assets/sunny-cove/config/tour.js";
 
 const wrap = value => Math.atan2(Math.sin(value), Math.cos(value));
 const run = (state, seconds, hz = 60) => {
@@ -68,6 +70,90 @@ test("route and timing are configurable and incomplete loops fail explicitly", (
   assert.equal(boat.phase, "docked");
   assert.equal(boat.x, -4); assert.equal(boat.z, 2.5);
   assert.throws(() => createCoveNavigation({ route: [COVE_ROUTE[0]] }), /closed loop/);
+});
+
+test("world berth anchors rotate a closed route toward the configured bow without mutating its source", () => {
+  const before = JSON.stringify(COVE_ROUTE);
+  for (const heading of [0, Math.PI / 2, -.73, -Math.PI / 2]) {
+    const position = { x: 4.2, z: -2.8 }, route = routeAtBerth(COVE_ROUTE, { position, heading });
+    const boat = createCoveNavigation({ route, startProgress: 0 });
+    assert.ok(Math.hypot(boat.x - position.x, boat.z - position.z) < 1e-10);
+    assert.ok(Math.abs(wrap(boat.heading - heading)) < 1e-10);
+    const [origin, handle] = route[0], direction = [handle[0] - origin[0], handle[1] - origin[1]];
+    const distance = Math.hypot(...direction);
+    assert.ok(Math.abs(direction[0] / distance + Math.sin(heading)) < 1e-10);
+    assert.ok(Math.abs(direction[1] / distance + Math.cos(heading)) < 1e-10);
+    assert.deepEqual(route.at(-1).at(-1), route[0][0]);
+    run(boat, 108);
+    assert.ok(Math.hypot(boat.x - position.x, boat.z - position.z) < 1e-8);
+  }
+  assert.equal(JSON.stringify(COVE_ROUTE), before);
+  for (const anchor of [{ position: { x: NaN, z: 0 }, heading: 0 },
+    { position: { x: 0, z: 0 }, heading: Infinity }]) assert.throws(() => routeAtBerth(COVE_ROUTE, anchor), TypeError);
+});
+
+test("a replacement rests in the berth for four seconds before a continuous departure and return", () => {
+  const boat = createCoveNavigation(); run(boat, 21);
+  assert.equal(resetCoveNavigation(boat, { atBerth: true, dwellDuration: COVE_TOUR.changeoverDwell }), boat);
+  const berth = { ...boat };
+  assert.equal(COVE_TOUR.changeoverDwell, 4); assert.equal(boat.phase, "docked"); assert.equal(boat.speed, 0);
+  for (let frame = 0; frame < 4 * 60 - 1; frame++) {
+    stepCoveNavigation(boat, 1 / 60);
+    assert.equal(boat.phase, "docked");
+    assert.ok(Math.hypot(boat.x - berth.x, boat.z - berth.z) < 1e-10);
+  }
+  const phases = new Set(); let maxStep = 0, maxTurn = 0;
+  for (let frame = 0; frame < 108 * 60; frame++) {
+    const before = { ...boat }; stepCoveNavigation(boat, 1 / 60); phases.add(boat.phase);
+    maxStep = Math.max(maxStep, Math.hypot(boat.x - before.x, boat.z - before.z));
+    maxTurn = Math.max(maxTurn, Math.abs(wrap(boat.heading - before.heading)));
+    if (frame === 1) assert.equal(boat.phase, "departing");
+  }
+  assert.deepEqual(phases, new Set(["departing", "cruising", "approaching", "docked"]));
+  assert.ok(maxStep < .025, `replacement route position jump ${maxStep}`);
+  assert.ok(maxTurn < .025, `replacement route heading jump ${maxTurn}`);
+  assert.equal(boat.phase, "docked");
+  assert.ok(Math.hypot(boat.x - berth.x, boat.z - berth.z) < 1e-8);
+});
+
+test("both measured runtime hulls stay entirely framed through every camera mode and cruise phase", () => {
+  // Runtime GLB geometry measured after authored transforms and display scaling;
+  // use the full height, including Maverick's tall handlebars, not Riva's box.
+  const measured = {
+    'riva-aquarama': { length: 2.4, beam: .738211833252415, height: .5632309079558888, draft: .11 },
+    'maverick-gt': { length: 2.6, beam: .905438596491228, height: .9247208931419457, draft: .1 },
+  };
+  const failures = [];
+  for (const definition of BOATS) for (const aspect of [16 / 9, 390 / 844, 320 / 800]) {
+    for (const { id } of CAMERA_MODES) {
+      const dimensions = measured[definition.id];
+      assert.equal(dimensions.length, definition.length); assert.equal(dimensions.draft, definition.draft);
+      const camera = new PerspectiveCamera(50, aspect, .1, 400), rig = createCoveCamera(camera);
+      const boat = createCoveNavigation();
+      rig.setBoatDimensions(dimensions); rig.setMode(id); rig.snap(boat);
+      const seconds = id === 'auto' ? 256 : 108;
+      let clipped = false;
+      for (let frame = 0; frame <= seconds * 30 && !clipped; frame++) {
+        if (frame > 0) { stepCoveNavigation(boat, 1 / 30); rig.update(1 / 30, frame / 30, boat); }
+        camera.updateMatrixWorld();
+        for (const across of [-dimensions.beam / 2, dimensions.beam / 2]) {
+          for (const along of [-dimensions.length / 2, dimensions.length / 2]) {
+            for (const y of [-dimensions.draft, dimensions.height - dimensions.draft]) {
+              const projected = new Vector3(
+                boat.x + Math.cos(boat.heading) * across + Math.sin(boat.heading) * along, y,
+                boat.z - Math.sin(boat.heading) * across + Math.cos(boat.heading) * along).project(camera);
+              if (projected.z <= -1 || projected.z >= 1 || Math.abs(projected.x) >= .98 || Math.abs(projected.y) >= .98) {
+                if (!clipped) failures.push(`${definition.id}/${id}: aspect=${aspect}, t=${frame / 30}, phase=${boat.phase}, projected=${projected.toArray()}`);
+                clipped = true;
+              }
+            }
+          }
+        }
+      }
+      rig.dispose();
+    }
+  }
+  assert.deepEqual(failures, [], `measured hull clipping:\n${failures.join('\n')}`);
 });
 
 test("all camera modes keep the complete boat visible and avoid pier through a full loop on desktop and portrait", () => {
