@@ -42,15 +42,30 @@ def read_glb(path):
     return raw, document, chunks[0x004E4942]
 
 
+TEXTURE_SOURCE_EXTENSIONS = ("EXT_texture_avif", "EXT_texture_webp", "KHR_texture_basisu")
+
+
+def texture_source(texture):
+    """Resolve the image index from core ``source`` or a vendor format extension."""
+    source = texture.get("source")
+    if source is not None:
+        return source
+    for name in TEXTURE_SOURCE_EXTENSIONS:
+        extension = texture.get("extensions", {}).get(name)
+        if isinstance(extension, dict) and extension.get("source") is not None:
+            return extension["source"]
+    return None
+
+
 def texture_roles(document):
     roles = {index: set() for index in range(len(document.get("images", [])))}
 
     def visit(value, key=""):
         if isinstance(value, dict):
             if key.endswith("Texture") and "index" in value:
-                texture = document["textures"][value["index"]]
-                if "source" in texture:
-                    roles[texture["source"]].add(key)
+                source = texture_source(document["textures"][value["index"]])
+                if source is not None:
+                    roles[source].add(key)
             for child_key, child in value.items():
                 visit(child, child_key)
         elif isinstance(value, list):
@@ -72,6 +87,51 @@ def image_difference(original, candidate):
     }
 
 
+TEXTURE_EXTENSIONS = {"image/avif": "EXT_texture_avif", "image/webp": "EXT_texture_webp"}
+
+
+def alpha_bytes(image):
+    return image.convert("RGBA").getchannel("A").tobytes()
+
+
+def apply_texture_extensions(document):
+    """Declare vendor image formats on their textures.
+
+    A WebP/AVIF texture carries its source index in the extension and has no
+    core ``source``; Three's loader resolves the extension before the core
+    texture path, so the declared format is never decoded as a fallback.
+    """
+    used = set()
+    for texture in document.get("textures", []):
+        source = texture_source(texture)
+        if source is None:
+            continue
+        # The declaration follows the encoded output. This also handles a
+        # repeated pass where an extension-only AVIF/WebP texture is re-encoded
+        # to another format: the old extension must be replaced, not left stale.
+        target = TEXTURE_EXTENSIONS.get(document["images"][source].get("mimeType"))
+        extensions = texture.setdefault("extensions", {})
+        for name in TEXTURE_SOURCE_EXTENSIONS:
+            if name != target:
+                extensions.pop(name, None)
+        if target:
+            extensions[target] = {"source": source}
+            texture.pop("source", None)
+            used.add(target)
+        else:
+            texture["source"] = source
+        if not extensions:
+            texture.pop("extensions", None)
+    declared = set()
+    for texture in document.get("textures", []):
+        declared.update(name for name in TEXTURE_SOURCE_EXTENSIONS
+                        if name in texture.get("extensions", {}))
+    preserved = [name for name in document.get("extensionsUsed", [])
+                 if name not in TEXTURE_SOURCE_EXTENSIONS]
+    document["extensionsUsed"] = sorted(set(preserved) | declared)
+    return sorted(declared)
+
+
 def optimize_image(payload, mime, roles, options):
     original = Image.open(io.BytesIO(payload))
     original.load()
@@ -83,6 +143,38 @@ def optimize_image(payload, mime, roles, options):
         "original_bytes": len(payload), "has_alpha": has_alpha,
     }
     candidates = [(payload, mime, original, None)]
+    minimum_psnr = options.data_psnr if is_data else options.color_psnr
+
+    def add_lossy(encoder, output_mime, start_quality):
+        # AVIF keeps 4:4:4, which matters for packed normal/ORM channels.
+        # Lossy AVIF alpha is not exact, so alpha textures use lossless-webp alpha.
+        if encoder == "AVIF" and has_alpha:
+            return
+        for candidate_quality in sorted(set(range(start_quality, 101, 2)) | {100}):
+            stream = io.BytesIO()
+            try:
+                if encoder == "AVIF":
+                    original.convert("RGB").save(stream, "AVIF", quality=candidate_quality,
+                                                 speed=8, subsampling="4:4:4")
+                else:
+                    original.save(stream, "WEBP", quality=candidate_quality, method=6,
+                                  alpha_quality=100)
+            except (OSError, ValueError):
+                return
+            encoded = stream.getvalue()
+            decoded = Image.open(io.BytesIO(encoded))
+            decoded.load()
+            if has_alpha and alpha_bytes(original) != alpha_bytes(decoded):
+                continue
+            difference = image_difference(original, decoded)
+            if difference["psnr_db"] is None or difference["psnr_db"] >= minimum_psnr:
+                candidates.append((encoded, output_mime, decoded, candidate_quality))
+                return
+
+    if getattr(options, "avif", False):
+        add_lossy("AVIF", "image/avif", options.avif_data_quality if is_data else options.avif_color_quality)
+    if getattr(options, "webp", False):
+        add_lossy("WEBP", "image/webp", options.webp_data_quality if is_data else options.webp_color_quality)
     # PNG is always eligible for lossless re-encoding; palette transparency is
     # preserved, including when Pillow represents it as PNG tRNS metadata.
     if original.format == "PNG":
@@ -95,7 +187,6 @@ def optimize_image(payload, mime, roles, options):
         candidates.append((encoded, "image/png", decoded, None))
     if not has_alpha and (original.format == "JPEG" or options.opaque_png_jpeg):
         quality = options.data_quality if is_data else options.color_quality
-        minimum_psnr = options.data_psnr if is_data else options.color_psnr
         # Raise quality for high-frequency textures instead of violating the
         # error bound or dropping the useful encoding improvement entirely.
         for candidate_quality in sorted(set(range(quality, 101, 2)) | {100}):
@@ -113,7 +204,10 @@ def optimize_image(payload, mime, roles, options):
     if has_alpha and original.convert("RGBA").getchannel("A").tobytes() != decoded.convert("RGBA").getchannel("A").tobytes():
         raise ValueError("Encoded image changed alpha")
     report.update({"output_bytes": len(encoded), "output_format": output_mime,
-                   "quality": quality, **image_difference(original, decoded)})
+                   "quality": quality, "minimum_psnr_db": minimum_psnr,
+                   "is_data_texture": is_data,
+                   "retained_input": encoded == payload and output_mime == mime,
+                   **image_difference(original, decoded)})
     return encoded, output_mime, report
 
 
@@ -180,6 +274,7 @@ def optimize(source, output, options):
         payloads[view], image["mimeType"], report = optimize_image(
             payloads[view], image["mimeType"], roles[index], options)
         image_reports.append({"index": index, "name": image.get("name"), **report})
+    texture_extensions = apply_texture_extensions(document)
     narrowed = compact_indices(document, payloads) if options.compact_indices else []
     packed = bytearray()
     for view, payload in zip(views, payloads):
@@ -202,9 +297,42 @@ def optimize(source, output, options):
         if index not in set(image_views) | narrowed_views:
             start = view.get("byteOffset", 0)
             assert payloads[index] == binary[start:start + view["byteLength"]]
-    for key in ("scene", "scenes", "nodes", "meshes", "materials", "textures", "samplers",
-                "skins", "animations", "extensionsUsed", "extensionsRequired"):
+    for key in ("scene", "scenes", "nodes", "meshes", "materials", "samplers",
+                "skins", "animations", "extensionsRequired"):
         assert document.get(key) == original_document.get(key), key
+    # Textures keep their sampler and gain exactly one declared image-format
+    # extension; no other texture metadata may change.
+    original_textures, updated_textures = original_document.get("textures", []), document.get("textures", [])
+    assert len(original_textures) == len(updated_textures), "Texture count changed"
+    for original, updated in zip(original_textures, updated_textures):
+        # Verify invariants rather than reconstructing one expected dictionary:
+        # the output format may differ from the input and the declaration must
+        # follow the new MIME, including on a repeated compression pass.
+        assert {key: value for key, value in original.items() if key not in ("source", "extensions")} == \
+               {key: value for key, value in updated.items() if key not in ("source", "extensions")}, \
+            "Texture metadata changed unexpectedly"
+        original_extensions, updated_extensions = original.get("extensions", {}), updated.get("extensions", {})
+        for name, extension in original_extensions.items():
+            if name not in TEXTURE_SOURCE_EXTENSIONS:
+                assert updated_extensions.get(name) == extension, "Non-format texture extension changed"
+        source = texture_source(original)
+        if source is None:
+            assert updated == original, "Texture without an image source changed"
+            continue
+        target = TEXTURE_EXTENSIONS.get(document["images"][source]["mimeType"])
+        if target:
+            assert updated_extensions.get(target) == {"source": source}, "Output format not declared"
+            for name in TEXTURE_SOURCE_EXTENSIONS:
+                if name != target:
+                    assert name not in updated_extensions, "Stale texture format declaration"
+            assert "source" not in updated, "Vendor texture keeps a core source"
+        else:
+            assert updated.get("source") == source, "Core image source changed"
+            for name in TEXTURE_SOURCE_EXTENSIONS:
+                assert name not in updated_extensions, "Stale vendor texture declaration"
+    declared = set(document.get("extensionsUsed", []))
+    assert set(texture_extensions) <= declared, "Texture extension declarations missing"
+
     for index, accessor in enumerate(original_document.get("accessors", [])):
         if index not in narrowed:
             assert document["accessors"][index] == accessor
@@ -226,7 +354,9 @@ def optimize(source, output, options):
         "original_image_bytes": sum(item["original_bytes"] for item in image_reports),
         "output_image_bytes": sum(item["output_bytes"] for item in image_reports),
         "indices_narrowed_to_uint16": narrowed, "images": image_reports,
+        "texture_extensions": texture_extensions,
         "validation": {"scene_and_materials_unchanged": True,
+                       "texture_extensions_declared": True,
                        "non_index_geometry_bytes_unchanged": True,
                        "index_values_unchanged": True,
                        "image_dimensions_and_alpha_unchanged": True},
@@ -241,12 +371,20 @@ if __name__ == "__main__":
     parser.add_argument("--color-quality", type=int, default=90)
     parser.add_argument("--data-quality", type=int, default=95)
     parser.add_argument("--color-psnr", type=float, default=36)
-    parser.add_argument("--data-psnr", type=float, default=40)
+    parser.add_argument("--data-psnr", type=float, default=38)
     parser.add_argument("--opaque-png-jpeg", action="store_true")
     parser.add_argument("--compact-indices", action="store_true")
+    parser.add_argument("--avif", action="store_true")
+    parser.add_argument("--webp", action="store_true")
+    parser.add_argument("--avif-color-quality", type=int, default=76)
+    parser.add_argument("--avif-data-quality", type=int, default=80)
+    parser.add_argument("--webp-color-quality", type=int, default=80)
+    parser.add_argument("--webp-data-quality", type=int, default=84)
     arguments = parser.parse_args()
-    if any(not 1 <= quality <= 100 for quality in (arguments.color_quality, arguments.data_quality)):
-        parser.error("JPEG quality must be between 1 and 100")
+    qualities = (arguments.color_quality, arguments.data_quality, arguments.avif_color_quality,
+                 arguments.avif_data_quality, arguments.webp_color_quality, arguments.webp_data_quality)
+    if any(not 1 <= quality <= 100 for quality in qualities):
+        parser.error("Texture quality must be between 1 and 100")
     result = optimize(arguments.source, arguments.output, arguments)
     serialized = json.dumps(result, indent=2, ensure_ascii=False) + "\n"
     if arguments.report:

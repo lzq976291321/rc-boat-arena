@@ -12,6 +12,7 @@ const catalogs = await Promise.all(['library/catalog.json', 'cove/asset-manifest
   .map(async path => JSON.parse(await readFile(new URL(`assets/${path}`, root), 'utf8'))));
 const runtime = JSON.parse(await readFile(new URL('assets/runtime/asset-manifest.json', root), 'utf8'));
 const checked = new Map();
+const documents = new Map();
 let compressedViews = 0;
 await MeshoptDecoder.ready;
 for (const catalog of [...catalogs, runtime]) {
@@ -42,13 +43,66 @@ for (const catalog of [...catalogs, runtime]) {
         compressedViews++;
       }
       file = { bytes: bytes.length, sha256: createHash('sha256').update(bytes).digest('hex') };
-      checked.set(asset.path, file);
+      checked.set(asset.path, file); documents.set(asset.path, document);
     }
     assert.equal(asset.bytes, file.bytes, `${asset.path}: stale catalog bytes`);
     assert.equal(asset.sha256, file.sha256, `${asset.path}: stale catalog checksum`);
   }
 }
+// Delivered variants must declare the vendor image format they actually use,
+// and may not keep vertex attributes no material can read.
 const cove = catalogs[1];
+const textureFormats = new Set();
+let runtimeImageBytes = 0;
+for (const asset of runtime.assets) {
+  const document = documents.get(asset.path);
+  assert(document, `${asset.id}: runtime document was not parsed`);
+  const textures = document.textures ?? [];
+  const images = document.images ?? [];
+  for (const texture of textures) {
+    const source = texture.source ?? Object.values(texture.extensions ?? {})[0]?.source;
+    const mime = images[source]?.mimeType;
+    assert(['image/avif', 'image/webp', 'image/jpeg', 'image/png'].includes(mime),
+      `${asset.id}: unsupported image type ${mime}`);
+    textureFormats.add(mime.replace('image/', ''));
+    if (mime === 'image/avif') assert(texture.extensions?.EXT_texture_avif?.source === source,
+      `${asset.id}: AVIF texture is missing EXT_texture_avif`);
+    if (mime === 'image/webp') assert(texture.extensions?.EXT_texture_webp?.source === source,
+      `${asset.id}: WebP texture is missing EXT_texture_webp`);
+    if (mime === 'image/avif') assert(document.extensionsUsed?.includes('EXT_texture_avif'),
+      `${asset.id}: extensionsUsed omits EXT_texture_avif`);
+    if (mime === 'image/webp') assert(document.extensionsUsed?.includes('EXT_texture_webp'),
+      `${asset.id}: extensionsUsed omits EXT_texture_webp`);
+  }
+  runtimeImageBytes += images.reduce((total, image) =>
+    total + (document.bufferViews[image.bufferView]?.byteLength ?? 0), 0);
+  const actualFormats = [...new Set(images.map(image => image.mimeType.replace('image/', '')))].sort();
+  assert.deepEqual([...new Set(asset.textureFormats ?? [])].sort(), actualFormats,
+    `${asset.id}: manifest texture formats are stale`);
+  let triangles = 0;
+  for (const mesh of document.meshes ?? []) for (const primitive of mesh.primitives) {
+    triangles += primitive.indices === undefined
+      ? document.accessors[primitive.attributes.POSITION].count / 3
+      : document.accessors[primitive.indices].count / 3;
+  }
+  assert.equal(asset.triangles, triangles, `${asset.id}: manifest triangle count is stale`);
+  const usedTexcoords = new Set();
+  const visit = (value, key = '') => {
+    if (Array.isArray(value)) { for (const item of value) visit(item, key); return; }
+    if (!value || typeof value !== 'object') return;
+    if (key.endsWith('Texture') && 'index' in value) usedTexcoords.add(value.texCoord ?? 0);
+    for (const [child, item] of Object.entries(value)) visit(item, child);
+  };
+  visit(document.materials ?? []);
+  for (const mesh of document.meshes ?? []) for (const primitive of mesh.primitives) {
+    for (const name of Object.keys(primitive.attributes)) {
+      if (name === 'TANGENT') assert.fail(`${asset.id}: authored tangents must be removed`);
+      const match = /^TEXCOORD_(\d+)$/.exec(name);
+      if (match) assert(usedTexcoords.has(Number(match[1])),
+        `${asset.id}: ${name} is not referenced by any material`);
+    }
+  }
+}
 const coveById = new Map(cove.assets.map(asset => [asset.id, asset]));
 const library = catalogs[0];
 assert(library.assets.every(asset => asset.kind === 'model'), 'Local catalog must contain only active models');
@@ -164,4 +218,5 @@ for (const boat of BOATS) {
   boatBudgets[boat.id] = { coreBytes, coreLimit, fullSceneBytes, sceneLimit: 8_000_000 };
 }
 console.log(JSON.stringify({ models: checked.size, activeRuntimeModels: activeVariants.length,
-  compressedViews, mappingChecks, sceneryBytes, boatBudgets }, null, 2));
+  compressedViews, mappingChecks, textureFormats: [...textureFormats].sort(), runtimeImageBytes,
+  sceneryBytes, boatBudgets }, null, 2));

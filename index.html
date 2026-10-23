@@ -11,6 +11,22 @@
     <link rel="preload" as="fetch" href="./assets/runtime/rock-09.glb" crossorigin="anonymous" />
     <link rel="preload" as="fetch" href="./assets/runtime/rock-face-01.glb" crossorigin="anonymous" />
     <link rel="stylesheet" href="./src/cove/style.css" />
+    <script>
+      // Start the selected hull before the module graph finishes parsing. The
+      // boat list mirrors config/boats.js; an unknown saved value uses the default.
+      (() => {
+        const ids = ['riva-aquarama', 'maverick-gt', 'motor-whaleboat', 'assault-boat'];
+        let id = 'riva-aquarama';
+        try {
+          const stored = JSON.parse(localStorage.getItem('sunny-cove.preferences.v1'));
+          if (stored && ids.includes(stored.boatId)) id = stored.boatId;
+        } catch { /* Storage is optional. */ }
+        const link = document.createElement('link');
+        link.rel = 'preload'; link.as = 'fetch'; link.type = 'model/gltf-binary';
+        link.href = `./assets/runtime/${id}.glb`; link.crossOrigin = 'anonymous'; link.fetchPriority = 'high';
+        document.head.append(link);
+      })();
+    </script>
   </head>
   <body>
     <canvas id="world" class="fixed inset-0 block h-full w-full" aria-label="晴湾船坞，船艇自动出航、巡游与归港"></canvas>

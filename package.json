@@ -14,7 +14,8 @@
     "check:routes": "node tools/checks/cove-routes-check.mjs",
     "check:assets": "node tools/checks/assets-check.mjs",
     "check:bundle": "node tools/checks/bundle-check.mjs",
-    "check:delivery": "node tools/checks/model-delivery-check.mjs"
+    "check:delivery": "node tools/checks/model-delivery-check.mjs",
+    "check:tools": "node --test tools/checks/publish-atomic-check.mjs"
   },
   "dependencies": {
     "three": "0.180.0"

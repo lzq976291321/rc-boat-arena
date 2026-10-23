@@ -9,7 +9,7 @@ export default defineConfig(({ command }) => ({
   // Relative URLs preserve optional static-host subpaths.
   base: './',
   build: {
-    outDir: 'dist', assetsDir: 'assets', target: 'es2020', sourcemap: false,
+    outDir: 'dist', assetsDir: 'assets/build', target: 'es2020', sourcemap: false,
     manifest: true,
     rollupOptions: {
       input: { cove: 'index.html' },

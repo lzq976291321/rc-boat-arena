@@ -80,6 +80,7 @@ pnpm check:cove
 pnpm check:viewing
 pnpm check:contact
 pnpm check:assets
+pnpm check:tools
 pnpm check:delivery
 pnpm build
 pnpm check:routes

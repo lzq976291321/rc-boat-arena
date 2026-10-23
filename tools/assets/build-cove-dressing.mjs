@@ -3,6 +3,7 @@
  * node tools/assets/build-cove-dressing.mjs --python /path/to/python-with-pillow
  *   [--output-root tools/local/cove-dressing]
  *   [--only jacaranda-tree,shrub-04] [--tree-ratio .2] [--tree-error .006]
+ *   [--texture-size N] [--avif] [--webp] [--drop-unused-attributes]
  */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
@@ -14,10 +15,19 @@ import { MeshoptSimplifier } from 'meshoptimizer';
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const options = { '--python': 'python3', '--output-root': 'tools/local/cove-dressing', '--tree-ratio': '.2', '--tree-error': '.006', '--only': '' };
+const options = { '--python': 'python3', '--output-root': 'tools/local/cove-dressing', '--tree-ratio': '.2',
+  '--tree-error': '.006', '--only': '', '--texture-size': '', '--avif': false, '--webp': false,
+  '--drop-unused-attributes': false, '--color-psnr': '36', '--data-psnr': '38',
+  '--simplify-details': '', '--detail-ratio': '.5' };
+const flags = new Set(['--avif', '--webp', '--drop-unused-attributes']);
 const args = process.argv.slice(2);
-assert.equal(args.length % 2, 0, 'Every option needs a value');
-for (let i = 0; i < args.length; i += 2) { assert(args[i] in options); options[args[i]] = args[i + 1]; }
+for (let i = 0; i < args.length;) {
+  if (flags.has(args[i])) { options[args[i]] = true; i++; continue; }
+  assert(args[i] in options && i + 1 < args.length, `Unknown or incomplete option: ${args[i]}`);
+  options[args[i]] = args[i + 1]; i += 2;
+}
+assert(options['--texture-size'] === '' || Number(options['--texture-size']) >= 16, 'Texture size must be at least 16');
+assert(Number(options['--detail-ratio']) > 0 && Number(options['--detail-ratio']) <= 1, 'Detail ratio must be in (0, 1]');
 assert(Number(options['--tree-ratio']) > 0 && Number(options['--tree-ratio']) <= 1, 'Tree ratio must be in (0, 1]');
 assert(Number(options['--tree-error']) > 0 && Number(options['--tree-error']) <= .01, 'Tree error must be in (0, .01]');
 const outputRoot = resolve(root, options['--output-root']);
@@ -83,7 +93,8 @@ function simplifyTree(doc, payloads) {
     const uv = accessorArray(doc, payloads, primitive.attributes.TEXCOORD_0);
     const attributes = new Float32Array(positions.length / 3 * 5);
     for (let i = 0; i < positions.length / 3; i++) attributes.set([...normal.subarray(i * 3, i * 3 + 3), ...uv.subarray(i * 2, i * 2 + 2)], i * 5);
-    const name = doc.materials[primitive.material].name, ratio = name.includes('leaves') ? Number(options['--tree-ratio']) : .32;
+    const name = doc.materials[primitive.material].name, ratio = name.includes('leaves')
+      ? Number(options['--tree-ratio']) : Number(options['--detail-ratio']);
     const [simplified, error] = MeshoptSimplifier.simplifyWithAttributes(indices, positions, 3, attributes, 5,
       [.015, .015, .015, .05, .05], null, Math.floor(indices.length * ratio / 3) * 3, Number(options['--tree-error']));
     const originalIndices = simplified.slice(), [remap, vertexCount] = MeshoptSimplifier.compactMesh(simplified);
@@ -95,8 +106,10 @@ function simplifyTree(doc, payloads) {
         packed.set(values.subarray(old * components, old * components + components), remap[old] * components);
       setAccessor(doc, payloads, id, packed);
     }
-    doc.accessors[primitive.indices].componentType = 5125;
-    setAccessor(doc, payloads, primitive.indices, simplified);
+    // 16-bit indices halve the payload whenever the compacted mesh fits.
+    const narrow = vertexCount < 65535;
+    doc.accessors[primitive.indices].componentType = narrow ? 5123 : 5125;
+    setAccessor(doc, payloads, primitive.indices, narrow ? Uint16Array.from(simplified) : simplified);
     report.push({ material: name, originalTriangles: indices.length / 3, triangles: simplified.length / 3,
       vertices: vertexCount, requestedRatio: ratio, measuredRelativeError: error,
       sourcePositionScale: MeshoptSimplifier.getScale(positions, 3), retainedVertexAttributesExactBeforeCompression: true,
@@ -125,6 +138,7 @@ const run = (executable, args) => {
   assert.equal(result.status, 0, result.stderr || result.error?.message);
 };
 await mkdir(outputRoot, { recursive: true });
+const simplifyDetails = new Set(options['--simplify-details'] ? options['--simplify-details'].split(',') : []);
 const selectedModels = options['--only'] ? models.filter(model => options['--only'].split(',').includes(model.id)) : models;
 for (const model of selectedModels) {
   const source = join(root, `public/assets/library/${model.id}/model.glb`), input = await readFile(source);
@@ -134,10 +148,15 @@ for (const model of selectedModels) {
   const { doc, payloads } = unpack(input);
   try {
     await writeFile(decoded, pack(doc, payloads));
+    const textureSize = options['--texture-size'] || model.textureSize;
     run(options['--python'], [join(root, 'tools/assets/prepare-startup-glb.py'), decoded, prepared,
-      '--report', texturesReport, '--max-texture-size', String(model.textureSize), ...(model.nodes ?? []).flatMap(node => ['--node', node])]);
+      '--report', texturesReport, '--max-texture-size', String(textureSize),
+      '--color-psnr', options['--color-psnr'], '--data-psnr', options['--data-psnr'],
+      ...(options['--avif'] ? ['--avif'] : []), ...(options['--webp'] ? ['--webp'] : []),
+      ...(options['--drop-unused-attributes'] ? ['--drop-unused-attributes'] : []),
+      ...(model.nodes ?? []).flatMap(node => ['--node', node])]);
     let compressionSource = prepared;
-    if (model.simplify) {
+    if (model.simplify || simplifyDetails.has(model.id)) {
       const preparedData = unpack(await readFile(prepared));
       const result = simplifyTree(preparedData.doc, preparedData.payloads); model.simplification = result.report;
       await writeFile(simplified, pack(preparedData.doc, result.payloads)); compressionSource = simplified;

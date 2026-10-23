@@ -13,8 +13,8 @@
     {
       "id": "lifebuoy",
       "path": "/assets/runtime/lifebuoy.glb",
-      "bytes": 206280,
-      "sha256": "91267c820aaa65f46f03ef54263edc6565d0b3ce4db3ea1a139c39911afdd176",
+      "bytes": 174800,
+      "sha256": "0a6732bafae78a1094c862dc90524131fa97fef02290feb7eb3032a93a7656af",
       "sourcePath": "/assets/library/lifebuoy/model.glb",
       "sourceRecord": "/assets/library/lifebuoy/SOURCES.md",
       "originalSha256": "f5ad7afd6984e322041a61d8734decd932b8405b4b27150f7edd67d43e0f475d",
@@ -36,9 +36,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 10728,
       "verification": {
@@ -58,14 +56,20 @@
       "license": "CC0-1.0",
       "licenseUrl": "https://polyhaven.com/license",
       "source": "https://polyhaven.com/a/lifebuoy",
-      "name": "Lifebuoy · 救生圈",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "Lifebuoy \u00b7 \u6551\u751f\u5708",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "avif",
+        "avif",
+        "avif"
+      ],
+      "droppedAttributes": []
     },
     {
       "id": "maverick-gt",
       "path": "/assets/runtime/maverick-gt.glb",
-      "bytes": 1149484,
-      "sha256": "879ad45fc0adf3dc5653f40b688f08e65da254e78a2682486212e3ae063583a8",
+      "bytes": 1089340,
+      "sha256": "eb91a85fb63a850b6433d78d408ed6b7f5ccbf1711dd62872237d2af1882bf47",
       "sourcePath": "/assets/library/maverick-gt/model.glb",
       "sourceRecord": "/assets/library/maverick-gt/SOURCES.md",
       "originalSha256": "f184e29f3cef989484433ab16b907676b0a37131ce548d7ead0f8e1ecf563f4a",
@@ -91,9 +95,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 127081,
       "verification": {
@@ -113,14 +115,23 @@
       "license": "CC-BY-4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
       "source": "https://sketchfab.com/3d-models/maverick-gt-1cbe1b65836d4536bade28ca351ba164",
-      "name": "MAVERICK GT · 运动摩托艇",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "MAVERICK GT \u00b7 \u8fd0\u52a8\u6469\u6258\u8247",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "webp",
+        "webp",
+        "avif",
+        "jpeg"
+      ],
+      "droppedAttributes": [
+        "TANGENT"
+      ]
     },
     {
       "id": "modular-wooden-pier",
       "path": "/assets/runtime/modular-wooden-pier.glb",
-      "bytes": 180764,
-      "sha256": "c6b6392c68c0768e699e8fb9062cb51bc750e4b33005c7487fc0879687a0ceca",
+      "bytes": 148512,
+      "sha256": "f564b7e61593b1c248719cd104626999c82f00bdd7e39775528fbf4e8c0cffb1",
       "sourcePath": "/assets/library/modular-wooden-pier/model.glb",
       "sourceRecord": "/assets/library/modular-wooden-pier/SOURCES.md",
       "originalSha256": "d601cf30319b985bef3cc14facafaff166160ceffb824debcebf567de92e2044",
@@ -144,9 +155,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 5512,
       "verification": {
@@ -166,14 +175,20 @@
       "license": "CC0-1.0",
       "licenseUrl": "https://polyhaven.com/license",
       "source": "https://polyhaven.com/a/modular_wooden_pier",
-      "name": "Modular Wooden Pier · 做旧木码头",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "Modular Wooden Pier \u00b7 \u505a\u65e7\u6728\u7801\u5934",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": []
     },
     {
       "id": "painted-wooden-bench",
       "path": "/assets/runtime/painted-wooden-bench.glb",
-      "bytes": 79188,
-      "sha256": "665070408f97ac7e802dc82c88ea57466456d1ae5ec3ade11ff226c6adb59770",
+      "bytes": 44600,
+      "sha256": "9f5cb42236d831dfa587f36c1b666b679f3103fc733ac504cf66d53cd0f53a90",
       "sourcePath": "/assets/library/painted-wooden-bench/model.glb",
       "sourceRecord": "/assets/library/painted-wooden-bench/SOURCES.md",
       "originalSha256": "01366dba8fbdea38c2945ba6eaf91486f268785d6e849913d1df579651df05ef",
@@ -195,9 +210,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 630,
       "verification": {
@@ -217,14 +230,20 @@
       "license": "CC0-1.0",
       "licenseUrl": "https://polyhaven.com/license",
       "source": "https://polyhaven.com/a/painted_wooden_bench",
-      "name": "掉漆木长椅",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "\u6389\u6f06\u6728\u957f\u6905",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": []
     },
     {
       "id": "riva-aquarama",
       "path": "/assets/runtime/riva-aquarama.glb",
-      "bytes": 673008,
-      "sha256": "258475a6e8b8cc3bc0fa5c158738f60bc661a3228e5557e584d69269a61e3497",
+      "bytes": 240228,
+      "sha256": "0cd844da86902f4014d642c4affaf3e6aa5cd4a6bdc595342c07154b165c5456",
       "sourcePath": "/assets/library/riva-aquarama/model.glb",
       "sourceRecord": "/assets/library/riva-aquarama/SOURCES.md",
       "originalSha256": "7a8597cad5aa8d579f2debd2f708ccac0ee37e56e24e2748c6a348ca650a7aea",
@@ -246,9 +265,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 4458,
       "verification": {
@@ -268,14 +285,22 @@
       "license": "CC-BY-4.0",
       "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
       "source": "https://sketchfab.com/3d-models/riva-aquarama-lamborghini-9d5716a2ab6645b9a1452f1d6b0372ef",
-      "name": "Riva Aquarama · 经典木质快艇",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "Riva Aquarama \u00b7 \u7ecf\u5178\u6728\u8d28\u5feb\u8247",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "webp",
+        "avif",
+        "avif"
+      ],
+      "droppedAttributes": [
+        "TANGENT"
+      ]
     },
     {
       "id": "rock-09",
       "path": "/assets/runtime/rock-09.glb",
-      "bytes": 212396,
-      "sha256": "a5d318ba9f81b677e4393d644b88582319f985146a5cc8ebaa3a6c475606e124",
+      "bytes": 172348,
+      "sha256": "ead460286baefd8bdb24da96f6ad3bbca0cd6ae0a54e05401b342a2f164555b9",
       "sourcePath": "/assets/library/rock-09/model.glb",
       "sourceRecord": "/assets/library/rock-09/SOURCES.md",
       "originalSha256": "6be049785bd00a91ecfd0daa36c5dc3d4b3cd4de70668772d3055fd872b7bcd6",
@@ -297,9 +322,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 12416,
       "verification": {
@@ -319,14 +342,20 @@
       "license": "CC0-1.0",
       "licenseUrl": "https://polyhaven.com/license",
       "source": "https://polyhaven.com/a/rock_09",
-      "name": "灰褐层理岸石",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "\u7070\u8910\u5c42\u7406\u5cb8\u77f3",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": []
     },
     {
       "id": "rock-face-01",
       "path": "/assets/runtime/rock-face-01.glb",
-      "bytes": 346992,
-      "sha256": "7cbbac399f34512be874ee64d8748fd8b7a638c681bde5750005686ec84c3d58",
+      "bytes": 305804,
+      "sha256": "9aa2ac145c71f5aca440dfb724c155e77f0fa6c73625989cfb31a8407abd46c1",
       "sourcePath": "/assets/library/rock-face-01/model.glb",
       "sourceRecord": "/assets/library/rock-face-01/SOURCES.md",
       "originalSha256": "1a94fa37c0f0c04becbed033d72833690884268180648df63e8119101e7f16ed",
@@ -348,9 +377,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 20174,
       "verification": {
@@ -370,14 +397,20 @@
       "license": "CC0-1.0",
       "licenseUrl": "https://polyhaven.com/license",
       "source": "https://polyhaven.com/a/rock_face_01",
-      "name": "层理岩壁",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "\u5c42\u7406\u5ca9\u58c1",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": []
     },
     {
       "id": "wooden-crate-02",
       "path": "/assets/runtime/wooden-crate-02.glb",
-      "bytes": 143248,
-      "sha256": "46de434420269101b1920517b1937b74c90f2983220cf4e705c8c726dd2b3e48",
+      "bytes": 111708,
+      "sha256": "2622a26b4cb92783506882fded2217a95d685c31836648145924fed4a39895b6",
       "sourcePath": "/assets/library/wooden-crate-02/model.glb",
       "sourceRecord": "/assets/library/wooden-crate-02/SOURCES.md",
       "originalSha256": "0601279966337ab52ef4eaf95a71a7e32ac5154eb086bd157e4980df5066da8c",
@@ -399,9 +432,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 5176,
       "verification": {
@@ -421,14 +452,20 @@
       "license": "CC0-1.0",
       "licenseUrl": "https://polyhaven.com/license",
       "source": "https://polyhaven.com/a/wooden_crate_02",
-      "name": "Wooden Crate · 绳柄货箱",
-      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node."
+      "name": "Wooden Crate \u00b7 \u7ef3\u67c4\u8d27\u7bb1",
+      "changes": "Scene-only variant: bounded float precision, meshopt compression, resized textures; complete original triangle topology except pier selects only the planks node\uff1b2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002",
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": []
     },
     {
       "id": "motor-whaleboat",
       "path": "/assets/runtime/motor-whaleboat.glb",
-      "bytes": 1040096,
-      "sha256": "f1c57c55c16b0d912bda0eb6ac12d4080c8d7132934c199c5d2d3fab81218cba",
+      "bytes": 778708,
+      "sha256": "ce94a6512f0b75ccdfa15f889f7b450cbd568e7d3180db016d2ded5872a19c88",
       "sourcePath": "/assets/library/motor-whaleboat/model.glb",
       "sourceRecord": "/assets/library/motor-whaleboat/SOURCES.md",
       "originalSha256": "69db765dcdc04e0bb01e9f50a9246c0be1b2d64838afdb4b5c2897f9485b0984",
@@ -486,9 +523,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 47198,
       "verification": {
@@ -510,13 +545,29 @@
           "imageBytesExact": true,
           "sceneAndMaterialsExact": true
         }
-      }
+      },
+      "textureFormats": [
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002"
     },
     {
       "id": "assault-boat",
       "path": "/assets/runtime/assault-boat.glb",
-      "bytes": 1012880,
-      "sha256": "33ee8204403246174d84e5cc6eb8f4d73a55b6b393127e9d0d795a290bba15c8",
+      "bytes": 579616,
+      "sha256": "e7e6d408e4f61df72828655d3f201182fc6919c995a38dc9fce2da25362f9e65",
       "sourcePath": "/assets/library/assault-boat/model.glb",
       "sourceRecord": "/assets/library/assault-boat/SOURCES.md",
       "originalSha256": "86a1a117e699fc7581c29a74283dff7de51a459acbda9f3fd5ab9915665318f9",
@@ -538,9 +589,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 40036,
       "verification": {
@@ -562,13 +611,24 @@
           "imageBytesExact": true,
           "sceneAndMaterialsExact": true
         }
-      }
+      },
+      "textureFormats": [
+        "webp",
+        "avif",
+        "avif"
+      ],
+      "droppedAttributes": [
+        "TANGENT",
+        "TEXCOORD_1",
+        "TEXCOORD_2"
+      ],
+      "changes": "2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002"
     },
     {
       "id": "old-tyre",
       "path": "/assets/runtime/old-tyre.glb",
-      "bytes": 108448,
-      "sha256": "70791c1835f8c452856613d45ee82e6f6b907c964350871d0c59a599afcd0910",
+      "bytes": 82572,
+      "sha256": "1647824bdbddac4968b78fe1b11e6cf2c02e2f1e2da688997177441d48515ac9",
       "sourcePath": "/assets/library/old-tyre/model.glb",
       "sourceRecord": "/assets/library/old-tyre/SOURCES.md",
       "originalSha256": "0643e2e67d6c9379a515cdf2d8eef7f74a8290186bf55a69801052d76791c319",
@@ -590,9 +650,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 2880,
       "verification": {
@@ -607,13 +665,20 @@
         "accessorValuesRepackedExactlyBeforeFiltering": true,
         "imageBytesExact": true,
         "sceneAndMaterialsExact": true
-      }
+      },
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002"
     },
     {
       "id": "wooden-bucket-01",
       "path": "/assets/runtime/wooden-bucket-01.glb",
-      "bytes": 163584,
-      "sha256": "acfd0815ae7ab19aa6b3761b2cc952c93c654282bb1ebdd4aab5434033cd4e5f",
+      "bytes": 128444,
+      "sha256": "79375c24922fb9358f172b7768d8bf6123e5e84b6c9492cf8df079a848fbcc13",
       "sourcePath": "/assets/library/wooden-bucket-01/model.glb",
       "sourceRecord": "/assets/library/wooden-bucket-01/SOURCES.md",
       "originalSha256": "fa3373d6b5b24a7a0d249394678f2f3b04a4b1375948ecd958106c40e4c1de86",
@@ -635,9 +700,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 5116,
       "verification": {
@@ -652,13 +715,20 @@
         "accessorValuesRepackedExactlyBeforeFiltering": true,
         "imageBytesExact": true,
         "sceneAndMaterialsExact": true
-      }
+      },
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002"
     },
     {
       "id": "lantern-01",
       "path": "/assets/runtime/lantern-01.glb",
-      "bytes": 418572,
-      "sha256": "14b073552cb2d9f108cd811e2accc9e539af0c64be046b6aac7ef00d63d8bc6e",
+      "bytes": 219212,
+      "sha256": "d148ee4d6a4a64b7518d598bccad0e3b6d10de6e51e127b24b1d937bcf6c8538",
       "sourcePath": "/assets/library/lantern-01/model.glb",
       "sourceRecord": "/assets/library/lantern-01/SOURCES.md",
       "originalSha256": "f28125f90216376db04506f2787c1aef0f4bd6bc4360db0c8c954eed536a195e",
@@ -684,14 +754,12 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
-      "triangles": 33902,
+      "triangles": 16950,
       "verification": {
         "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
-        "verifiedBytes": 986613,
+        "verifiedBytes": 532160,
         "indicesExact": false,
         "trianglesVerticesOrderAndWindingExact": true,
         "topologyExact": true,
@@ -701,13 +769,47 @@
         "accessorValuesRepackedExactlyBeforeFiltering": true,
         "imageBytesExact": true,
         "sceneAndMaterialsExact": true
-      }
+      },
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif",
+        "webp"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-13\uff1a\u63d0\u706f\u8fd0\u884c\u53d8\u4f53\uff0c\u7eb9\u7406\u4e0a\u9650 256\u30022026-10-22\uff1a\u7eb9\u7406\u6539\u4e3a AVIF/WebP\uff0c\u51e0\u4f55 33,902\u219216,950 \u9762\u5e76\u6539\u7528 16 \u4f4d\u7d22\u5f15\uff1b\u4fdd\u7559\u94dc/\u73bb\u7483\u6750\u8d28\u69fd\u3002",
+      "simplification": [
+        {
+          "material": "Lantern_01_brass",
+          "originalTriangles": 30830,
+          "triangles": 15414,
+          "vertices": 10204,
+          "requestedRatio": 0.5,
+          "measuredRelativeError": 0.0006903513567522168,
+          "sourcePositionScale": 0.2942466139793396,
+          "retainedVertexAttributesExactBeforeCompression": true,
+          "wholeComponentsPruned": false,
+          "selectedOriginalIndicesSha256": "93a50458955cfa79f46796e3171cdc5a63cf7ce0b6b938b1c2ac2cb64ff859d8"
+        },
+        {
+          "material": "Lantern_01_glass",
+          "originalTriangles": 3072,
+          "triangles": 1536,
+          "vertices": 925,
+          "requestedRatio": 0.5,
+          "measuredRelativeError": 0.004471074789762497,
+          "sourcePositionScale": 0.07054830342531204,
+          "retainedVertexAttributesExactBeforeCompression": true,
+          "wholeComponentsPruned": false,
+          "selectedOriginalIndicesSha256": "ef8622edbd80a7e2d1506da9c8544c4aed219e527739b49f9978cdb59505ba77"
+        }
+      ]
     },
     {
       "id": "shrub-03",
       "path": "/assets/runtime/shrub-03.glb",
-      "bytes": 101964,
-      "sha256": "08aa073a833d4882e73de5cd8740bf07eaaff979c3efeb47d9458a739ba808cd",
+      "bytes": 66172,
+      "sha256": "f322ca4987c07283832ea73085f8324107b443c69b626b7ed9af0f8bf1ae0262",
       "sourcePath": "/assets/library/shrub-03/model.glb",
       "sourceRecord": "/assets/library/shrub-03/SOURCES.md",
       "originalSha256": "9b26ec8da7d609f32309026fd620207e9ac34a5c1540bf68767c1dc8687fd489",
@@ -729,9 +831,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 2385,
       "verification": {
@@ -746,13 +846,20 @@
         "accessorValuesRepackedExactlyBeforeFiltering": true,
         "imageBytesExact": true,
         "sceneAndMaterialsExact": true
-      }
+      },
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002"
     },
     {
       "id": "shrub-sorrel-01",
       "path": "/assets/runtime/shrub-sorrel-01.glb",
-      "bytes": 67260,
-      "sha256": "96d0b301d4545949b11c79443386a87bacd5b1cecaee438fefd78d5dd8e6d911",
+      "bytes": 38316,
+      "sha256": "705b06d13885eb0ae7686f327e18a7f1b25fe6d53ed14dd80c66f3db14c79364",
       "sourcePath": "/assets/library/shrub-sorrel-01/model.glb",
       "sourceRecord": "/assets/library/shrub-sorrel-01/SOURCES.md",
       "originalSha256": "eb3b7510c96810185585ca0fb7174f0f63c89b2b2cd88eddf83687302dc9d8e2",
@@ -774,9 +881,7 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
       "triangles": 990,
       "verification": {
@@ -791,13 +896,20 @@
         "accessorValuesRepackedExactlyBeforeFiltering": true,
         "imageBytesExact": true,
         "sceneAndMaterialsExact": true
-      }
+      },
+      "textureFormats": [
+        "avif",
+        "webp",
+        "webp"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-22\uff1a\u7eb9\u7406\u6309\u9519\u8bef\u4e0a\u9650\u91cd\u65b0\u7f16\u7801\u4e3a AVIF 4:4:4 \u6216 WebP\uff08\u900f\u660e\u901a\u9053\u65e0\u635f\uff09\uff0c\u79fb\u9664\u672a\u88ab\u6750\u8d28\u5f15\u7528\u7684\u9876\u70b9\u5c5e\u6027\uff1b\u4e09\u89d2\u5f62\u62d3\u6251\u4e0e\u8239\u4f53\u5c3a\u5bf8\u672a\u53d8\u3002"
     },
     {
       "id": "shrub-04",
       "path": "/assets/runtime/shrub-04.glb",
-      "bytes": 471560,
-      "sha256": "a4c5751003a9cdc1c08d5b3394f6fe674f390774d6acfec841faa2bb7f912fcc",
+      "bytes": 231636,
+      "sha256": "b6881181adbae0c8bbca80dfbd0b8b91c26723e8c9e08876fa471aaf27642dc5",
       "sourcePath": "/assets/library/shrub-04/model.glb",
       "sourceRecord": "/assets/library/shrub-04/SOURCES.md",
       "originalSha256": "e04b5658f89983dbf11822ad5361faee909c863a9ccd2fdffb0e4563f9ce279a",
@@ -819,14 +931,12 @@
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
-      "triangles": 27327,
+      "triangles": 13639,
       "verification": {
         "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
-        "verifiedBytes": 941446,
+        "verifiedBytes": 506780,
         "indicesExact": false,
         "trianglesVerticesOrderAndWindingExact": true,
         "topologyExact": true,
@@ -836,54 +946,73 @@
         "accessorValuesRepackedExactlyBeforeFiltering": true,
         "imageBytesExact": true,
         "sceneAndMaterialsExact": true
-      }
+      },
+      "textureFormats": [
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-13\uff1ashrub-04 \u8fd0\u884c\u53d8\u4f53\uff0c\u7eb9\u7406\u4e0a\u9650 512\u30022026-10-22\uff1a\u7eb9\u7406\u6539\u4e3a AVIF/WebP\uff0c\u51e0\u4f55 27,327\u219213,639 \u9762\u5e76\u6539\u7528 16 \u4f4d\u7d22\u5f15\uff1b\u4fdd\u7559\u5b8c\u6574\u6750\u8d28\u69fd\u3002",
+      "simplification": [
+        {
+          "material": "shrub_04",
+          "originalTriangles": 27327,
+          "triangles": 13639,
+          "vertices": 10676,
+          "requestedRatio": 0.5,
+          "measuredRelativeError": 0.00053203827701509,
+          "sourcePositionScale": 0.5836901664733887,
+          "retainedVertexAttributesExactBeforeCompression": true,
+          "wholeComponentsPruned": false,
+          "selectedOriginalIndicesSha256": "149a7ae5397d123e86732b21198de49aafb3f9c78651bc8cad1fd8d7ee13965d"
+        }
+      ]
     },
     {
       "id": "jacaranda-tree",
       "path": "/assets/runtime/jacaranda-tree.glb",
-      "bytes": 3262184,
-      "sha256": "1ca3a0c239d11df2286ed2fd9057e8008476069cc68f106583636c3f77c938b9",
+      "bytes": 2036196,
+      "sha256": "b5f33fd2914a5ee3000551417950054b45c77bf1357d15c6e56f92369d3916ae",
       "sourcePath": "/assets/library/jacaranda-tree/model.glb",
       "sourceRecord": "/assets/library/jacaranda-tree/SOURCES.md",
       "originalSha256": "2b5572edfcb4a8a35a50bb0ecee295a93e322a2c028cf749c3a14b974843c264",
       "selectedNodes": [],
       "textureDimensions": [
         [
-          512,
-          512
+          384,
+          384
         ],
         [
-          512,
-          512
+          384,
+          384
         ],
         [
-          512,
-          512
+          384,
+          384
         ],
         [
-          512,
-          512
+          384,
+          384
         ],
         [
-          512,
-          512
+          384,
+          384
         ],
         [
-          512,
-          512
+          384,
+          384
         ]
       ],
       "geometryBounds": {
         "POSITION": 0.0002,
         "NORMAL": 0.001,
-        "TANGENT": 0.001,
-        "TEXCOORD_0": 0.000244140625,
-        "TEXCOORD_1": 0.000244140625
+        "TEXCOORD_0": 0.000244140625
       },
-      "triangles": 103674,
+      "triangles": 80611,
       "verification": {
         "runtimeDecoder": "three/examples/jsm/libs/meshopt_decoder.module.js",
-        "verifiedBytes": 7584523,
+        "verifiedBytes": 4751870,
         "indicesExact": false,
         "trianglesVerticesOrderAndWindingExact": true,
         "topologyExact": true,
@@ -898,28 +1027,38 @@
         {
           "material": "jacaranda_tree_leaves",
           "originalTriangles": 288292,
-          "triangles": 57658,
-          "vertices": 147522,
-          "requestedRatio": 0.2,
-          "measuredRelativeError": 0.0031644022092223167,
+          "triangles": 34595,
+          "vertices": 89713,
+          "requestedRatio": 0.12,
+          "measuredRelativeError": 0.003653955413028598,
           "sourcePositionScale": 24.395551681518555,
           "retainedVertexAttributesExactBeforeCompression": true,
           "wholeComponentsPruned": false,
-          "selectedOriginalIndicesSha256": "a046a7957c916a6323aa783c6c10f736248571a2017860b820ef747075439720"
+          "selectedOriginalIndicesSha256": "62ea9603864f856e60fcf8b5b4c8e2d4422fd1356956003ccfe6a8af31ddc470"
         },
         {
           "material": "jacaranda_tree_trunk",
           "originalTriangles": 46022,
           "triangles": 46016,
           "vertices": 26386,
-          "requestedRatio": 0.32,
+          "requestedRatio": 0.5,
           "measuredRelativeError": 0.0017237220890820026,
           "sourcePositionScale": 10.350882530212402,
           "retainedVertexAttributesExactBeforeCompression": true,
           "wholeComponentsPruned": false,
           "selectedOriginalIndicesSha256": "7925f076fae9d91c85051d6c90dd74030dc78bfba4ded12ae7d9ce318792ebdd"
         }
-      ]
+      ],
+      "textureFormats": [
+        "avif",
+        "avif",
+        "webp",
+        "avif",
+        "webp",
+        "avif"
+      ],
+      "droppedAttributes": [],
+      "changes": "2026-10-13\uff1a\u4fdd\u7559\u53f6\u51a0\u4e0e\u4e3b\u5e72\u5e76\u51cf\u9762\u81f3 103,674 \u9762\uff0c\u7eb9\u7406\u4e0a\u9650 512\u30022026-10-22\uff1a\u7eb9\u7406\u6539\u4e3a AVIF/WebP\uff0c\u53f6\u51a0\u518d\u51cf\u81f3 34,595 \u9762\uff08\u603b 80,611 \u9762\uff09\uff0c\u7eb9\u7406\u4e0a\u9650 384\uff0c\u7d22\u5f15\u6539\u4e3a 16 \u4f4d\uff1b\u4fdd\u7559\u4e3b\u5e72\u4e0e\u51a0\u5f62\uff0c\u7ec6\u5c0f\u53f6\u7247\u51cf\u5c11\u3002"
     }
   ]
 }

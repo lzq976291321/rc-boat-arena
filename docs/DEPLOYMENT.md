@@ -2,6 +2,8 @@
 
 GitHub 仓库：`lzq976291321/rc-boat-arena`（私有）。Vercel 项目：`rc-boat-arena`，所属团队 `sz976291321-gmailcoms-projects`。使用 Vercel 原生 GitHub 集成，生产分支为 `main`。
 
+这是个人项目，只保留 `main` 分支：本地实验完成、检查通过后直接提交并推送 `main`，不保留长期功能分支、合并提交或 PR 流程。唯一发布动作是推送 `main`，由 Vercel 自动构建并更新生产域名；本地 `vercel` 手动部署和额外发布脚本都不再使用。
+
 提交并推送到 `main` 后，Vercel 自动拉取对应提交、安装依赖、构建并更新生产域名。其他分支的推送产生预览部署。无需在仓库或 GitHub Actions 中存储 Vercel Token，也无需在每次推送后执行手动上传命令。
 
 ## 构建约定

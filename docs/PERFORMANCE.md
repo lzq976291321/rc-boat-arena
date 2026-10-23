@@ -1,5 +1,66 @@
 # 加载、复用与资源管理
 
+## 2026-10-22 运行资源再压缩与首屏预加载
+
+本轮只改传输与加载路径，不改三角形拓扑、顶点坐标、节点变换、材质槽或船水参数。基准是当时已发布的 17 个 runtime GLB，完整库原件未动。
+
+| 指标 | 优化前 | 优化后 | 变化 |
+| --- | ---: | ---: | ---: |
+| 17 个运行 GLB 合计 | 9,637,908 B | 6,448,212 B | -33.1% |
+| 运行贴图字节 | 3,434,278 B | 1,689,913 B | -50.8% |
+| 默认船首屏核心 GLB（Riva + 码头 + 两岸石） | 1,413,160 B | 866,892 B | -38.7% |
+| 默认 Riva 单船 | 673,008 B | 240,228 B | -64.3% |
+| Riva 完整场景 | 6,435,448 B | 4,000,548 B | -37.8% |
+| 其余船完整场景 | 6.78–6.92 MB | 4.34–4.85 MB | -28% 左右 |
+| 发布目录（含完整库原件） | 73,747,748 B | 70,569,974 B | 约 -4.3% |
+
+不透明贴图优先改为 AVIF 4:4:4（保留 PBR 通道独立性），透明贴图使用 WebP 并把 alpha 以 lossless 方式保存。编码从当前交付图开始，颜色图 PSNR ≥ 36 dB、法线/ORM 等数据图 ≥ 38 dB；达不到阈值的贴图保留原 JPEG/PNG，因此 Maverick GT 仍有 JPEG 贴图。材质实际只引用 0 号 UV，故移除 `TANGENT` 与 `TEXCOORD_1+`；Assault Boat 因此从 1,012,880 降到 579,616 字节。AVIF/WebP 由 `EXT_texture_avif`、`EXT_texture_webp` 声明，不再内嵌回退图；需要 Chrome 85+、Firefox 93+、Safari 16.4+。
+
+第二轮继续削减几何占比最高的内容，没有删除模型：蓝花楹从完整库原件重建并减面，叶冠 57,658→34,595 面（总 103,674→80,611 面，相对误差 0.00365），贴图上限 512→384，文件 2,978,264→2,036,196 字节；提灯 33,902→16,950 面（376,060→219,212 字节），shrub-04 27,327→13,639 面（356,988→231,636 字节），两者改为 16 位索引。减面使用法线/UV 权重和误差上限，保留主干、冠形与材质槽。树冠在固定机位的全画面平均像素差为 0.578/255，但画面含大片空白；排除空白后平均差为 **1.174/255**，差异超过 8 的像素约 **3.18%**，明显高于原定 0.5% 门槛。冠形与构图肉眼相近，但这是一次明确的画质取舍，**不能算原门槛通过**；蓝花楹停止继续减面。
+
+首屏侧：`index.html` 内联脚本读取当前浏览器的 `sunny-cove.preferences.v1`，在模块图解析前预加载对应船型 GLB（默认 Riva）。实测资源时间线中该文件只出现一次实际下载，后续调用命中缓存。素材来源清单原来在启动时请求，现改为首次打开“来源”对话框时再取（约 16 KB JSON）。构建产物移到 `assets/build/`：该目录由 Vite 内容哈希命名，Vercel 设置一年 immutable；`assets/runtime/`、`assets/library/`、`assets/cove/` 设置 1 小时缓存 + 1 天 stale-while-revalidate，避免未哈希 URL 长期锁死旧模型。
+
+无头 Chrome（SwiftShader、1440×900、2 Mbps / 40 ms、冷缓存）下，四个首屏 GLB 的最后完成时间由约 6.36 s 降到 4.26 s（-33%）；页面 `ready` 仅从约 6.7–6.9 s 降到 6.6 s，因为软件渲染的着色器编译与首帧占主导，这个 ready 数字不能当作真机首屏时间。预加载 `<link rel=preload as=fetch>` 必须带 `crossorigin="anonymous"` 才能与 `fetch()` 的 CORS 模式合并；缺少时，大文件尚未下载完就会触发第二次请求。真机与公网测量仍未做。
+
+验证：`check:cove` 5 项、`check:viewing` 8 项、`check:contact` 19 项、`check:assets` 8 项、`check:delivery`（含贴图格式声明与未使用属性断言）、`check:routes` 8 项、`check:tools` 2 项、构建和 `check:bundle` 通过。真实 GLB/WebGL 工厂检查 36 项通过，四轮全船切换后 46 geometry / 59 texture 稳定、双实例释放归零。固定机位前后截图：船体与道具平均像素差 0.007–0.225/255，超过 8 的像素约 0.2%；蓝花楹按排除空白的区域口径为 1.174/255、3.18% 像素超过 8。无头浏览器使用 SwiftShader，不能代表实体手机帧率或公网下载时间；本轮未部署。
+
+工具修复（2026-10-22 复验后）：`optimize-glb.py` 的纹理校验改为按**输出** MIME 判断扩展，并保留纹理上的其他扩展；已用 `painted-wooden-bench` 的库原件复现并验证 `--avif --webp` 可重复运行。`texture_roles()` 现在同时解析 core `source` 和 `EXT_texture_avif` / `EXT_texture_webp` 里的 source，重复压缩时法线/ORM 使用 38 dB 数据门槛；输出声明随新 MIME 替换，`--node` 子集也会保留扩展贴图。报告新增 `is_data_texture`、`minimum_psnr_db`、`retained_input`，可区分“按门槛重编码”和“保留原图、没有新增损失”。`publish-cove-runtime.mjs` 与 `publish-cove-model.mjs` 改为先校验全部输入、再写临时文件并重命名；任一步失败会恢复原模型和清单。回归检查 `pnpm check:tools` 用隔离目录覆盖“第二个模型校验失败时第一个不得被替换”和成功发布两种路径。
+
+重复压缩复现（当前蓝花楹解压后重压）：
+
+```sh
+node tools/assets/decompress-glb.mjs public/assets/runtime/jacaranda-tree.glb /tmp/tree.glb --report /tmp/tree-decompress.json
+python3 tools/assets/optimize-glb.py /tmp/tree.glb /tmp/tree-recompressed.glb --avif --webp --report /tmp/tree-recompress.json
+# 检查 /tmp/tree-recompress.json：is_data_texture=true 的 minimum_psnr_db 应为 38，
+# 且 psnr_db >= 38，或 retained_input=true（保留原图，不新增损失）。
+```
+
+验收时可先核对这几个固定值：`public/assets/runtime` 下 17 个 GLB 之和为 6,448,212 字节；`check:delivery` 输出的默认首屏 `coreBytes` 为 866,892、`runtimeImageBytes` 为 1,689,913；贴图格式集合为 avif/jpeg/webp；蓝花楹清单为 2,036,196 字节 / 80,611 面。任何一项与清单或文件哈希不符，都应先重新生成清单而不是直接改数字。
+
+可复现工具（Python 需带 AVIF/WebP 支持的 Pillow）：
+
+```sh
+node tools/assets/optimize-cove-runtime.mjs --python /path/to/python-with-pillow
+node tools/assets/publish-cove-runtime.mjs
+pnpm check:delivery
+pnpm build
+pnpm check:routes
+pnpm check:bundle
+```
+
+`optimize-cove-runtime.mjs` 先展开 Meshopt 数据，再由 `prepare-startup-glb.py --avif --webp --drop-unused-attributes` 处理，最后用 `bound-startup-glb.mjs` 重新压缩；逐文件输入/输出 SHA、贴图 PSNR、格式和丢弃属性写在 `tools/local/cove-runtime/report.json`（本机生成，不发布）。`publish-cove-runtime.mjs` 会拒绝覆盖在优化后又被改动过的运行文件，并同步 `public/assets/runtime/asset-manifest.json`。单模型重建（如蓝花楹、提灯）用：
+
+```sh
+node tools/assets/build-cove-dressing.mjs --python /path/to/python-with-pillow \
+  --only jacaranda-tree --tree-ratio .12 --texture-size 384 --avif --webp --drop-unused-attributes \
+  --output-root tools/local/cove-tree-384
+node tools/assets/publish-cove-model.mjs --id jacaranda-tree \
+  --file tools/local/cove-tree-384/jacaranda-tree.glb \
+  --textures tools/local/cove-tree-384/jacaranda-tree/textures.json \
+  --geometry tools/local/cove-tree-384/jacaranda-tree/geometry.json \
+  --simplification tools/local/cove-tree-384/report.json
+```
+
 ## 2026-10-05 第二轮：首屏可用低于 3 秒
 
 本地生产构建完成，尚未提交、推送或部署。Chromium、1280×800、DPR 1、减少动态效果；每次新建浏览器上下文并禁用缓存，CDP 下载 1,250,000 B/s（10 Mbps）、延迟 40 ms。四入口各测三次，以下为最终构建的实际结果：

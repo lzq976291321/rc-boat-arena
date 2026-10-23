@@ -32,7 +32,7 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
     catch { /* Keep this session's choices even when storage is full or blocked. */ }
   }
   let viewer, request, generation = 0, toastTimer, previousFocus, dialogWasPaused = false;
-  let immersive = false, lastSnapshot, boatRequest = 0, failedBoatId;
+  let immersive = false, lastSnapshot, boatRequest = 0, failedBoatId, creditsLoaded = false;
   const debug = window[debugKey] = {
     errors, assets: [],
     get ready() { return !!viewer?.state.ready; },
@@ -224,6 +224,9 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
     previousFocus = document.activeElement;
     dialogWasPaused = viewer?.state.paused ?? true;
     viewer?.setPaused(true); $('credits-dialog').showModal();
+    // Source metadata is only needed when the dialog opens; it must not compete
+    // with the boat and scenery requests on first load.
+    if (!creditsLoaded) { creditsLoaded = true; void credits(); }
   });
   listen($('credits-close'), 'click', closeCredits);
   listen($('credits-dialog'), 'cancel', event => { event.preventDefault(); closeCredits(); });
@@ -256,8 +259,6 @@ export function createViewingPage({ createViewer, moods, cameraModes, debugKey,
       $('credits-list').replaceChildren(...rows);
     } catch { if (lifetime.signal.aborted) return; $('credits-list').textContent = '素材清单暂时不可用，请查看下方完整来源记录。'; }
   }
-  // Source metadata is useful independently; its network failure must not block the view.
-  void credits();
   void init();
   return {
     dispose() {
